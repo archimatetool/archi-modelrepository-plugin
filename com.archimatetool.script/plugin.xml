@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.archicontribs.modelrepository.ShowRepositoryViewHandler"
+            id="org.archicontribs.modelrepository.command.showRepositoryView"
+            name="Model Repository">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:window?after=show_view_append">
+         <command
+               commandId="org.archicontribs.modelrepository.command.showRepositoryView"
+               label="Model Repository"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:toolbar_views?after=append">
+         <command
+               commandId="org.archicontribs.modelrepository.command.showRepositoryView"
+               icon="img/plugin.png"
+               label="Model Repository"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="org.archicontribs.modelrepository.views.ModelRepositoryView"
+            icon="img/plugin.png"
+            id="org.archicontribs.modelrepository.modelRepositoryView"
+            name="Model Repository"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               id="org.archicontribs.modelrepository.modelRepositoryView"
+               minimized="false"
+               relationship="stack"
+               relative="com.archimatetool.editor.treeModelView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="org.archicontribs.modelrepository.Startup"></startup>
+   </extension>
+
+</plugin>
