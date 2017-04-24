@@ -1,3 +1,8 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
 package org.archicontribs.modelrepository.views;
 
 import java.io.File;
@@ -62,18 +67,10 @@ implements IContextProvider {
     protected AbstractModelAction fActionPush;
     
 
-    /**
-     * @return the Root Folder to display
-     */
-    public File getRootFolder() {
-        return ModelRepositoryPlugin.INSTANCE.getUserScriptsFolder();
-    }
-    
-    
     @Override
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
-        fTreeViewer = new GitRepositoryTreeViewer(getRootFolder(), parent);
+        fTreeViewer = new GitRepositoryTreeViewer(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), parent);
         
         makeActions();
         //registerGlobalActions();

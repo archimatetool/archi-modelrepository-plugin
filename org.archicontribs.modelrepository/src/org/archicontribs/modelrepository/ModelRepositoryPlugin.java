@@ -1,3 +1,8 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
 package org.archicontribs.modelrepository;
 
 import java.io.File;
@@ -5,7 +10,6 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import com.archimatetool.editor.ArchiPlugin;
@@ -17,7 +21,7 @@ import com.archimatetool.editor.ArchiPlugin;
  * 
  * @author Phillip Beauvoir
  */
-public class ModelRepositoryPlugin extends AbstractUIPlugin implements IStartup {
+public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.archicontribs.modelrepository"; //$NON-NLS-1$
     
@@ -46,21 +50,10 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements IStartup 
     }
     
     /**
-     * @return The folder where we store user scripts
+     * @return The folder where we store repositories
      */
-    public File getUserScriptsFolder() {
+    public File getUserModelRepositoryFolder() {
         return new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository"); //$NON-NLS-1$
     }
     
-    /**
-     * @return The folder where we store example scripts
-     */
-//    public File getExamplesFolder() {
-//        return new File(getPluginFolder(), "examples"); //$NON-NLS-1$
-//    }
-
-    public void earlyStartup() {
-        // Do nothing
-    }
-
 }
