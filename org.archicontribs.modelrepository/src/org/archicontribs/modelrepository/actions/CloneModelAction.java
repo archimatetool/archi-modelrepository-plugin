@@ -5,10 +5,18 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import java.io.File;
+
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.ui.IWorkbenchWindow;
 
+/**
+ * Clone a model
+ */
 public class CloneModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
@@ -22,6 +30,15 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-    	MessageDialog.openInformation(fWindow.getShell(), this.getText(), this.getToolTipText());
+        try {
+            CloneCommand cloneCommand = Git.cloneRepository();
+            cloneCommand.setDirectory(new File("/testGit"));
+            cloneCommand.setURI("");
+            cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("username", "password") );
+            cloneCommand.call();
+        }
+        catch(GitAPIException ex) {
+            ex.printStackTrace();
+        }
     }
 }

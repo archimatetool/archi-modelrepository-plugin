@@ -14,7 +14,7 @@ public abstract class AbstractModelAction extends Action {
 	protected File fGitRepo;
 	 
 	public void setGitRepository(File folder) {
-		setEnabled(folder != null && (new File(folder, ".git")).exists());
+		setEnabled(folder != null && (new File(folder, ".git")).exists()); //$NON-NLS-1$
         fGitRepo = isEnabled() ? folder : null;
 	}
 	
