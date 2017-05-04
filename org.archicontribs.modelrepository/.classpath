@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.slf4j.api_1.7.2.v20121108-1250.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit-4.7.0.201704051617-r.jar" sourcepath="lib/org.eclipse.jgit.source_4.7.0.201704051617-r.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>

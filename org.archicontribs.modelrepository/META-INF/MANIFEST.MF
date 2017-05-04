@@ -11,7 +11,8 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
 Export-Package: org.archicontribs.modelrepository
-Bundle-ClassPath: lib/org.eclipse.jgit-4.7.0.201704051617-r.jar,
- org.archicontribs.modelrepository.jar,
- lib/org.slf4j.api_1.7.2.v20121108-1250.jar,
- lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar
+Bundle-ClassPath: org.archicontribs.modelrepository.jar,
+ lib/org.eclipse.jgit-4.7.0.201704051617-r.jar,
+ lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,
+ lib/slf4j-api-1.7.25.jar,
+ lib/slf4j-simple-1.7.25.jar
