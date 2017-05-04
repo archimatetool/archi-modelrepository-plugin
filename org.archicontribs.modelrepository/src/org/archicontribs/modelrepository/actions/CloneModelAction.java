@@ -9,17 +9,10 @@ import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
-import org.eclipse.jface.dialogs.ErrorDialog;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.ui.IWorkbenchWindow;
-
-import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.model.IArchimateModel;
 
 /**
  * Clone a model
@@ -27,7 +20,7 @@ import com.archimatetool.model.IArchimateModel;
 public class CloneModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
-
+	
     public CloneModelAction(IWorkbenchWindow window) {
         fWindow = window;
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE_16));
@@ -37,51 +30,27 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        File localFolder = new File("/testGit"); //$NON-NLS-1$
-        String repoURL = ""; //$NON-NLS-1$
-        String userName = ""; //$NON-NLS-1$
-        String userPassword = ""; //$NON-NLS-1$
+        File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
         
-        if(localFolder.exists() && localFolder.isDirectory() && localFolder.list().length > 0) {
+        if(localGitFolder .exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
                     "Import",
-                    "Local folder is not empty.");
+                    "Local folder is not empty. Please delete it and try again!");
+
             return;
         }
         
-        Git git = null;
-        
+        // Clone
         try {
-            CloneCommand cloneCommand = Git.cloneRepository();
-            cloneCommand.setDirectory(localFolder);
-            cloneCommand.setURI(repoURL);
-            cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
-            
-            git = cloneCommand.call();
+            GraficoUtils.cloneModel(localGitFolder, GraficoUtils.TEST_REPO_URL, GraficoUtils.TEST_USER_NAME, GraficoUtils.TEST_USER_PASSWORD);
         }
         catch(GitAPIException ex) {
             ex.printStackTrace();
         }
-        finally {
-            if(git != null) {
-                git.close();
-            }
-        }
         
+        // Load
         try {
-            GraficoModelImporter importer = new GraficoModelImporter();
-            IArchimateModel model = importer.importLocalGitRepositoryAsModel(localFolder);
-            
-            if(importer.getResolveStatus() != null) {
-                ErrorDialog.openError(fWindow.getShell(),
-                        "Import",
-                        "Errors occurred during import",
-                        importer.getResolveStatus());
-
-            }
-            else {
-                IEditorModelManager.INSTANCE.openModel(model);
-            }
+            GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
         }
         catch(IOException ex) {
             ex.printStackTrace();
