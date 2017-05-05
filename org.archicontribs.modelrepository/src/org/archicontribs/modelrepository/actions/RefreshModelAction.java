@@ -5,10 +5,22 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+
+/**
+ * Refresh model action
+ * 
+ * @author Jean-Baptiste Sarrodie
+ * @author Phillip Beauvoir
+ */
 public class RefreshModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
@@ -22,6 +34,27 @@ public class RefreshModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-    	MessageDialog.openInformation(fWindow.getShell(), this.getText(), this.getToolTipText());
+        File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
+        
+        if(IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Refresh",
+                    "Model is already open. Close it and retry.");
+        }
+        else {
+            try {
+                GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
+    
+    // TEMPORARY FOR TESTING!
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
 }

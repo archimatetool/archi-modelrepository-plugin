@@ -42,7 +42,7 @@ public class CloneModelAction extends AbstractModelAction {
         
         // Clone
         try {
-            GraficoUtils.cloneModel(localGitFolder, GraficoUtils.TEST_REPO_URL, GraficoUtils.TEST_USER_NAME, GraficoUtils.TEST_USER_PASSWORD);
+            GraficoUtils.cloneModel(localGitFolder, GraficoUtils.TEST_REPO_URL, GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
         }
         catch(GitAPIException | IOException ex) {
             ex.printStackTrace();
