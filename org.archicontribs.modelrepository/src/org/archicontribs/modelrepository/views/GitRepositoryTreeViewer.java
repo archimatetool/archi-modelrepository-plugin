@@ -46,7 +46,7 @@ public class GitRepositoryTreeViewer extends TreeViewer {
      */
     static public boolean isGitRepository(File folder) {
         // Name of the Git folder
-        String GIT_FOLDER = ".git";
+        String GIT_FOLDER = ".git"; //$NON-NLS-1$
         
     	return (new File(folder, GIT_FOLDER)).exists();
     }

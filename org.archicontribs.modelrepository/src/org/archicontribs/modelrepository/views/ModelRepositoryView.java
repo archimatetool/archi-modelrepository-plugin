@@ -108,21 +108,24 @@ implements IContextProvider {
      */
     protected void makeActions() {
         fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
-        fActionClone.setEnabled(true); // Clone is always enabled
         
         fActionOpen = new OpenModelAction(getViewSite().getWorkbenchWindow());
-        fActionOpen.setEnabled(false);
+        //fActionOpen.setEnabled(false);
+        
         fActionRefresh = new RefreshModelAction(getViewSite().getWorkbenchWindow());
-        fActionRefresh.setEnabled(false);
+        //fActionRefresh.setEnabled(false);
+        
         fActionDelete = new DeleteModelAction(getViewSite().getWorkbenchWindow());
-        fActionDelete.setEnabled(false);
+        //fActionDelete.setEnabled(false);
         
         fActionSave = new SaveModelAction(getViewSite().getWorkbenchWindow());
-        fActionSave.setEnabled(false);
+        //fActionSave.setEnabled(false);
+        
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
-        fActionCommit.setEnabled(false);
+        //fActionCommit.setEnabled(false);
+        
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
-        fActionPush.setEnabled(false);
+        //fActionPush.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -196,14 +199,16 @@ implements IContextProvider {
      */
     public void updateActions(ISelection selection) {
         File file = (File)((IStructuredSelection)selection).getFirstElement();
-        boolean isEmpty = selection.isEmpty();
+        //boolean isEmpty = selection.isEmpty();
         
         // Clone is always enabled
         fActionClone.setEnabled(true);
+        
         // Actions that need a git repository
         fActionRefresh.setGitRepository(file);
         fActionOpen.setGitRepository(file);
         fActionDelete.setGitRepository(file);
+        
         // TODO: Actions that should in fact be bounded to an ArchimateModel and not a git repository 
         fActionSave.setGitRepository(file);
         fActionCommit.setGitRepository(file);
@@ -255,6 +260,6 @@ implements IContextProvider {
     }
 
     public String getSearchExpression(Object target) {
-        return "File Viewer";
+        return "Repository View";
     }
 }

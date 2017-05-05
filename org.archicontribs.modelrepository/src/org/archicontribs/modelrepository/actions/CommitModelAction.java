@@ -72,11 +72,4 @@ public class CommitModelAction extends AbstractModelAction {
             }
         } 
     }
-    
-    // TEMPORARY FOR TESTING!
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
 }

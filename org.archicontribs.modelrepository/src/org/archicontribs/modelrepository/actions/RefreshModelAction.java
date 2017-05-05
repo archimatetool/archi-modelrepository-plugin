@@ -52,11 +52,4 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         }
     }
-    
-    // TEMPORARY FOR TESTING!
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
 }
