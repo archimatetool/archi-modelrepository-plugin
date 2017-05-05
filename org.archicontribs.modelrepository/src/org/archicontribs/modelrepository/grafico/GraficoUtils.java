@@ -36,7 +36,6 @@ public class GraficoUtils {
     // TEMPORARY FOR TESTING!
     public static final File TEST_LOCAL_FILE = new File("/temp.archimate"); //$NON-NLS-1$
 
-    public static final File TEST_LOCAL_GIT_FOLDER = new File("/testGit"); //$NON-NLS-1$
     public static final String TEST_REPO_URL = ""; //$NON-NLS-1$
     public static final String TEST_USER_LOGIN = ""; //$NON-NLS-1$
     public static final String TEST_USER_PASSWORD = ""; //$NON-NLS-1$

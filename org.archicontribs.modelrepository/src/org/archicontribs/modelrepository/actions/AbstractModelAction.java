@@ -11,11 +11,14 @@ import org.eclipse.jface.action.Action;
 
 public abstract class AbstractModelAction extends Action {
 	
-	protected File fGitRepo;
+	private File fGitRepo;
 	 
 	public void setGitRepository(File folder) {
 		setEnabled(folder != null && (new File(folder, ".git")).exists()); //$NON-NLS-1$
         fGitRepo = isEnabled() ? folder : null;
 	}
 	
+	public File getGitRepository() {
+	    return fGitRepo;
+	}
 }

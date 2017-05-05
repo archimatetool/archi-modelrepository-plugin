@@ -9,8 +9,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -30,9 +33,21 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
+    	String repoURL = GraficoUtils.TEST_REPO_URL;
+    	String userName = GraficoUtils.TEST_USER_LOGIN;
+    	String userPassword = GraficoUtils.TEST_USER_PASSWORD;
+    	
+    	CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
+    	dialog.create();
+        if(dialog.open() == Window.OK) {
+            repoURL = dialog.getURL();
+            userName = dialog.getUsername();
+            userPassword = dialog.getPassword();
+    	}
+    	
+        File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), "TEST");
         
-        if(localGitFolder .exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
+        if(localGitFolder.exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
                     "Import",
                     "Local folder is not empty. Please delete it and try again!");
@@ -42,7 +57,7 @@ public class CloneModelAction extends AbstractModelAction {
         
         // Clone
         try {
-            GraficoUtils.cloneModel(localGitFolder, GraficoUtils.TEST_REPO_URL, GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
+            GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword);
         }
         catch(GitAPIException | IOException ex) {
             ex.printStackTrace();

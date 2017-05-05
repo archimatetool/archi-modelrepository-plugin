@@ -35,8 +35,6 @@ public class RefreshModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
-        
         if(IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",
@@ -44,8 +42,8 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         else {
             try {
-                GraficoUtils.pullFromRemote(localGitFolder, GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
-                GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+                GraficoUtils.pullFromRemote(getGitRepository(), GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
+                GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();

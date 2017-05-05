@@ -48,8 +48,6 @@ public class CommitModelAction extends AbstractModelAction {
                 "Commit changes?");
         
         if(doCommit) {
-            File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
-            
             IArchimateModel model = null;
             
             // Find it - this method should really be API
@@ -64,7 +62,7 @@ public class CommitModelAction extends AbstractModelAction {
                 try {
                     PersonIdent personIdent = new PersonIdent(GraficoUtils.TEST_COMMIT_USER_NAME, GraficoUtils.TEST_COMMIT_USER_EMAIL);
                     String commitMessage = "Test commit message from model repo!";
-                    GraficoUtils.commitModel(model, localGitFolder, personIdent, commitMessage);
+                    GraficoUtils.commitModel(model, getGitRepository(), personIdent, commitMessage);
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();

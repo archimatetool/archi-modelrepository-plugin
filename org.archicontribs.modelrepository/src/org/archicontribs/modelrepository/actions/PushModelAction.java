@@ -5,7 +5,6 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
@@ -32,10 +31,8 @@ public class PushModelAction extends AbstractModelAction {
                 "Push changes?");
         
         if(doPush) {
-            File localGitFolder = GraficoUtils.TEST_LOCAL_GIT_FOLDER;
-            
             try {
-                GraficoUtils.pushToRemote(localGitFolder, GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
+                GraficoUtils.pushToRemote(getGitRepository(), GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();

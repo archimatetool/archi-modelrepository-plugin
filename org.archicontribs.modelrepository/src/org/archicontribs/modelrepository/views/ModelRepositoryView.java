@@ -110,22 +110,22 @@ implements IContextProvider {
         fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
         
         fActionOpen = new OpenModelAction(getViewSite().getWorkbenchWindow());
-        //fActionOpen.setEnabled(false);
+        fActionOpen.setEnabled(false);
         
         fActionRefresh = new RefreshModelAction(getViewSite().getWorkbenchWindow());
-        //fActionRefresh.setEnabled(false);
+        fActionRefresh.setEnabled(false);
         
         fActionDelete = new DeleteModelAction(getViewSite().getWorkbenchWindow());
-        //fActionDelete.setEnabled(false);
+        fActionDelete.setEnabled(false);
         
         fActionSave = new SaveModelAction(getViewSite().getWorkbenchWindow());
-        //fActionSave.setEnabled(false);
+        fActionSave.setEnabled(false);
         
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
-        //fActionCommit.setEnabled(false);
+        fActionCommit.setEnabled(false);
         
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
-        //fActionPush.setEnabled(false);
+        fActionPush.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
