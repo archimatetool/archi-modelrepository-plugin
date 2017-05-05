@@ -11,6 +11,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -43,9 +44,10 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         else {
             try {
+                GraficoUtils.pullFromRemote(localGitFolder, GraficoUtils.TEST_USER_LOGIN, GraficoUtils.TEST_USER_PASSWORD);
                 GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
             }
-            catch(IOException ex) {
+            catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
             }
         }

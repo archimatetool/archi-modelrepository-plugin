@@ -13,6 +13,7 @@ import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -174,6 +175,30 @@ public class GraficoUtils {
                 git.close();
             }
         }
-
+    }
+    
+    /**
+     * Pull from Remote
+     * @param localGitFolder
+     * @param userName
+     * @param userPassword
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public static void pullFromRemote(File localGitFolder, String userName, String userPassword) throws IOException, GitAPIException {
+        Git git = null;
+        
+        try {
+            git = Git.open(localGitFolder);
+            
+            PullCommand pullCommand = git.pull();
+            pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.call();
+        }
+        finally {
+            if(git != null) {
+                git.close();
+            }
+        }
     }
 }
