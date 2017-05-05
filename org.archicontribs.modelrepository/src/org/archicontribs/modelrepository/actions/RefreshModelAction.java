@@ -35,6 +35,8 @@ public class RefreshModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        // TODO we need to prompt user to save/commit changes before a pull and reload
+        
         if(IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",

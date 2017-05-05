@@ -5,10 +5,21 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import java.io.IOException;
+
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+
+/**
+ * Open Model Action
+ * 
+ * @author Jean-Baptiste Sarrodie
+ * @author Phillip Beauvoir
+ */
 public class OpenModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
@@ -22,6 +33,19 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-    	MessageDialog.openInformation(fWindow.getShell(), this.getText(), this.getToolTipText());
+        if(IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Open",
+                    "Model is already open.");
+        }
+        else {
+            try {
+                GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
     }
 }
