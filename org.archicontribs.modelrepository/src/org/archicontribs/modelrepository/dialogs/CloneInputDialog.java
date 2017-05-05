@@ -88,7 +88,7 @@ public class CloneInputDialog extends TitleAreaDialog {
         GridData data = new GridData();
         data.grabExcessHorizontalSpace = true;
         data.horizontalAlignment = GridData.FILL;
-        txtPassword = new Text(container, SWT.BORDER);
+        txtPassword = new Text(container, SWT.BORDER | SWT.PASSWORD);
         txtPassword.setLayoutData(data);
     }
 
