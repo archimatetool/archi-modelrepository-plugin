@@ -6,6 +6,8 @@
 package org.archicontribs.modelrepository;
 
 
+import org.archicontribs.modelrepository.grafico.GraficoUtilsTests;
+
 import junit.framework.TestSuite;
 
 @SuppressWarnings("nls")
@@ -14,7 +16,7 @@ public class AllTests {
     public static junit.framework.Test suite() {
 		TestSuite suite = new TestSuite("org.archicontribs.modelrepository");
 
-		suite.addTest(GitHandlerTests.suite());
+		suite.addTest(GraficoUtilsTests.suite());
 		
         return suite;
 	}

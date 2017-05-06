@@ -200,4 +200,45 @@ public class GraficoUtils {
             }
         }
     }
+    
+    /**
+     * Create a local git folder name based on the repo's URL
+     * @param repoURL
+     * @return
+     */
+    public static String createLocalGitFolderName(String repoURL) {
+        repoURL = repoURL.trim();
+        
+        int index = repoURL.lastIndexOf("/"); //$NON-NLS-1$
+        if(index > 0 && index < repoURL.length() - 2) {
+            repoURL = repoURL.substring(index + 1).toLowerCase();
+        }
+        
+        index = repoURL.lastIndexOf(".git"); //$NON-NLS-1$
+        if(index > 0 && index < repoURL.length() - 1) {
+            repoURL = repoURL.substring(0, index);
+        }
+        
+        return repoURL.replaceAll("[^a-zA-Z0-9-]", "_"); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+    
+    /**
+     * Check if a folder contains a Git repository
+     * @param folder
+     * @return
+     */
+    public static boolean isGitRepository(File folder) {
+        if(folder == null || !folder.exists() || !folder.isDirectory()) {
+            return false;
+        }
+        
+        // Name of the Git folder
+        String GIT_FOLDER = ".git"; //$NON-NLS-1$
+        
+        File gitFolder = new File(folder, GIT_FOLDER);
+        
+        return gitFolder.exists() && gitFolder.isDirectory();
+    }
+    
+
 }

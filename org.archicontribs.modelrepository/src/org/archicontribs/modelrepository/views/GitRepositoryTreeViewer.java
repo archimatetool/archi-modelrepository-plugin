@@ -6,8 +6,10 @@
 package org.archicontribs.modelrepository.views;
 
 import java.io.File;
+import java.io.FileFilter;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -40,17 +42,6 @@ public class GitRepositoryTreeViewer extends TreeViewer {
      */
     static int TIMERDELAY = 5000;
         
-    /**
-     * Utility method to check if a folder is a Git repository
-     * TODO: use a better solution
-     */
-    static public boolean isGitRepository(File folder) {
-        // Name of the Git folder
-        String GIT_FOLDER = ".git"; //$NON-NLS-1$
-        
-    	return (new File(folder, GIT_FOLDER)).exists();
-    }
-    
     /**
      * Constructor
      */
@@ -159,19 +150,18 @@ public class GitRepositoryTreeViewer extends TreeViewer {
         }
         
         public Object [] getChildren(Object parent) {
-        	// Don't show content of Git repositories
-            if(parent instanceof File && !isGitRepository((File)parent)) {
-                return ((File)parent).listFiles();
+        	// Only show top level folders that are git repos
+            if(parent instanceof File) {
+                return ((File)parent).listFiles(new FileFilter() {
+                    public boolean accept(File child) {
+                        return GraficoUtils.isGitRepository(child);
+                    }
+                });
             }
             return new Object[0];
         }
         
         public boolean hasChildren(Object parent) {
-        	// Don't show content of Git repositories
-            if(parent instanceof File && !isGitRepository((File)parent)) {
-                File f = (File)parent;
-                return f.isDirectory() && f.listFiles().length > 0;
-            }
             return false;
         }
     }
@@ -199,9 +189,10 @@ public class GitRepositoryTreeViewer extends TreeViewer {
             
             if(obj instanceof File) {
                 File f = (File)obj;
-                if(isGitRepository(f)) {
+                if(GraficoUtils.isGitRepository(f)) {
                 	image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
-                } else if(f.isDirectory()) {
+                }
+                else if(f.isDirectory()) {
                     image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
                 }
                 else {

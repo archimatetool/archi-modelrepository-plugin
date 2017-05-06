@@ -45,7 +45,8 @@ public class CloneModelAction extends AbstractModelAction {
             userPassword = dialog.getPassword();
     	}
     	
-        File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), "TEST");
+        File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                GraficoUtils.createLocalGitFolderName(repoURL));
         
         if(localGitFolder.exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
