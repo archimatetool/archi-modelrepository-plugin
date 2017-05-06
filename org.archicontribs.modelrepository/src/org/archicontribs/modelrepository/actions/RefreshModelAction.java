@@ -37,7 +37,7 @@ public class RefreshModelAction extends AbstractModelAction {
     public void run() {
         // TODO we need to prompt user to save/commit changes before a pull and reload
         
-        if(IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
+        if(IEditorModelManager.INSTANCE.isModelLoaded(getGitRepository())) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",
                     "Model is already open. Close it and retry.");

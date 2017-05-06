@@ -37,7 +37,7 @@ public class CommitModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        if(!IEditorModelManager.INSTANCE.isModelLoaded(GraficoUtils.TEST_LOCAL_FILE)) {
+        if(!GraficoUtils.isModelLoaded(getGitRepository())) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Commit",
                     "Model is not open. Hit Refresh!");
@@ -48,16 +48,7 @@ public class CommitModelAction extends AbstractModelAction {
                 "Commit changes?");
         
         if(doCommit) {
-            IArchimateModel model = null;
-            
-            // Find it - this method should really be API
-            for(IArchimateModel m : IEditorModelManager.INSTANCE.getModels()) {
-                if(GraficoUtils.TEST_LOCAL_FILE.equals(m.getFile())) {
-                    model = m;
-                    break;
-                }
-            }
-            
+            IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
             if(model != null) {
                 try {
                     PersonIdent personIdent = new PersonIdent(GraficoUtils.TEST_COMMIT_USER_NAME, GraficoUtils.TEST_COMMIT_USER_EMAIL);

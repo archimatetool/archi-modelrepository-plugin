@@ -33,9 +33,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class GraficoUtils {
 
-    // TEMPORARY FOR TESTING!
-    public static final File TEST_LOCAL_FILE = new File("/temp.archimate"); //$NON-NLS-1$
-
     public static final String TEST_REPO_URL = ""; //$NON-NLS-1$
     public static final String TEST_USER_LOGIN = ""; //$NON-NLS-1$
     public static final String TEST_USER_PASSWORD = ""; //$NON-NLS-1$
@@ -94,7 +91,7 @@ public class GraficoUtils {
 
         }
         else {
-            model.setFile(TEST_LOCAL_FILE); // TEMPORARY FOR TESTING!
+            model.setFile(getModelFileName(localGitFolder)); // Add a file name used to locate the model
             IEditorModelManager.INSTANCE.openModel(model);
         }
 
@@ -240,5 +237,37 @@ public class GraficoUtils {
         return gitFolder.exists() && gitFolder.isDirectory();
     }
     
-
+    /**
+     * @param localGitFolder
+     * @return True if a model based on the local git folder name is loaded in the models tree
+     */
+    public static boolean isModelLoaded(File localGitFolder) {
+        return IEditorModelManager.INSTANCE.isModelLoaded(getModelFileName(localGitFolder));
+    }
+    
+    /**
+     * Locate a model in the models tree based on its file location
+     * @param localGitFolder
+     * @return
+     */
+    public static IArchimateModel locateModel(File localGitFolder) {
+        File tmpFileName = getModelFileName(localGitFolder);
+        
+        for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {
+            if(tmpFileName.equals(model.getFile())) {
+                return model;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Create a file name to attach to a model. Used to locate a model in the model tree
+     * @param localGitFolder
+     * @return
+     */
+    public static File getModelFileName(File localGitFolder) {
+        return new File(localGitFolder, "temp.archimate"); //$NON-NLS-1$
+    }
 }

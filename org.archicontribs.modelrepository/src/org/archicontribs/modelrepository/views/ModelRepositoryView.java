@@ -201,9 +201,6 @@ implements IContextProvider {
         File file = (File)((IStructuredSelection)selection).getFirstElement();
         //boolean isEmpty = selection.isEmpty();
         
-        // Clone is always enabled
-        fActionClone.setEnabled(true);
-        
         // Actions that need a git repository
         fActionRefresh.setGitRepository(file);
         fActionOpen.setGitRepository(file);

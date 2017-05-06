@@ -14,6 +14,10 @@ import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.model.IArchimateFactory;
+import com.archimatetool.model.IArchimateModel;
+
 import junit.framework.JUnit4TestAdapter;
 
 
@@ -74,4 +78,30 @@ public class GraficoUtilsTests {
         assertEquals("this_one", GraficoUtils.createLocalGitFolderName(repoURL));        
     }
 
+    @Test
+    public void isModelLoaded_IsLoadedInModelsTree() {
+        File localGitFolder = new File("/temp/folder");
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
+        
+        IEditorModelManager.INSTANCE.openModel(model);
+        assertTrue(GraficoUtils.isModelLoaded(localGitFolder));
+    }
+
+    @Test
+    public void locateModel_LocateNewModel() {
+        File localGitFolder = new File("/temp/folder");
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
+        
+        IEditorModelManager.INSTANCE.openModel(model);
+        assertEquals(model, GraficoUtils.locateModel(localGitFolder));
+    }
+
+    @Test
+    public void getModelFileName_IsCorrect() {
+        File localGitFolder = new File("/temp/folder");
+        assertEquals(new File(localGitFolder, "temp.archimate"), GraficoUtils.getModelFileName(localGitFolder));
+    }
+    
 }
