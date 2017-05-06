@@ -181,7 +181,7 @@ public class GraficoModelImporter implements IGraficoConstants {
      * @return
      */
     private EObject resolve(IIdentifier object, IIdentifier parent) {
-        if(object != null & object.eIsProxy()) {
+        if(object != null && object.eIsProxy()) {
             IIdentifier newObject = fIDLookup.get(((InternalEObject)object).eProxyURI().fragment());
             // Log errors if proxy has not been resolved
             if(newObject == null) {
