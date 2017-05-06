@@ -58,5 +58,19 @@
       <startup
             class="org.archicontribs.modelrepository.Startup"></startup>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
+            id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
+            name="Model Repository">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.archicontribs.modelrepository.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
 
 </plugin>

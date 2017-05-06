@@ -36,9 +36,6 @@ public class GraficoUtils {
     public static final String TEST_REPO_URL = ""; //$NON-NLS-1$
     public static final String TEST_USER_LOGIN = ""; //$NON-NLS-1$
     public static final String TEST_USER_PASSWORD = ""; //$NON-NLS-1$
-    public static final String TEST_COMMIT_USER_NAME = ""; //$NON-NLS-1$
-    public static final String TEST_COMMIT_USER_EMAIL = ""; //$NON-NLS-1$
-    
 
     /**
      * Clone a model
