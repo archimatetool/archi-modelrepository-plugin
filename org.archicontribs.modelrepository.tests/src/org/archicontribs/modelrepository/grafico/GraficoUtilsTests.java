@@ -7,14 +7,19 @@ package org.archicontribs.modelrepository.grafico;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.eclipse.jgit.api.Git;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 
@@ -32,6 +37,12 @@ public class GraficoUtilsTests {
     public void runOnceBeforeEachTest() {
     }
     
+    @After
+    public void runOnceAfterEachTest() throws IOException {
+        FileUtils.deleteFolder(getTempTestsFolder());
+    }
+    
+    
     @Test
     public void isGitRepository_FileShouldNotBe() throws Exception {
         File tmpFile = File.createTempFile("tmp", null);
@@ -45,7 +56,6 @@ public class GraficoUtilsTests {
         tmpFolder.mkdirs();
         
         assertFalse(GraficoUtils.isGitRepository(tmpFolder));
-        tmpFolder.delete();
     }
 
     @Test
@@ -55,15 +65,6 @@ public class GraficoUtilsTests {
         gitFolder.mkdirs();
         
         assertTrue(GraficoUtils.isGitRepository(tmpFolder));
-        gitFolder.delete();
-        tmpFolder.delete();
-    }
-    
-    private File getTempTestsFolder() {
-        File file = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tests.tmp");
-        file.deleteOnExit();
-        file.mkdirs();
-        return file;
     }
     
     @Test
@@ -104,4 +105,73 @@ public class GraficoUtilsTests {
         assertEquals(new File(localGitFolder, "temp.archimate"), GraficoUtils.getModelFileName(localGitFolder));
     }
     
+    @Test
+    public void createNewLocalGitRepository_CreatesNewRepo() throws Exception {
+        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
+        String URL = "https://www.somewherethereish.net/myRepo.git";
+        Git git = null;
+        
+        try {
+            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
+            assertNotNull(git);
+            assertEquals("origin", git.getRepository().getRemoteName("refs/remotes/origin/"));
+        }
+        finally {
+            if(git != null) {
+                git.close();
+            }
+        }
+    }
+    
+    @Test(expected=IOException.class)
+    public void createNewLocalGitRepository_ThrowsExceptionIfNotEmptyDir() throws Exception {
+        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
+        String URL = "https://www.somewherethereish.net/myRepo.git";
+        Git git = null;
+        
+        try {
+            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
+            assertNotNull(git);
+        }
+        finally {
+            // Don't delete folder
+            if(git != null) {
+                git.close();
+            }
+        }
+        
+        // Should throw exception
+        git = GraficoUtils.createNewLocalGitRepository(getTempTestsFolder(), URL);
+    }
+    
+    @Test
+    public void getRepositoryURL_ShouldReturnURL() throws Exception {
+        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
+        String URL = "https://www.somewherethereish.net/myRepo.git";
+        Git git = null;
+        
+        try {
+            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
+            assertNotNull(git);
+            assertEquals(URL, GraficoUtils.getRepositoryURL(localGitFolder));
+        }
+        finally {
+            // Don't delete folder
+            if(git != null) {
+                git.close();
+            }
+        }
+    }
+    
+    
+    // Support
+    
+    private File getTempTestsFolder() {
+        File file = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tests.tmp");
+        file.deleteOnExit();
+        file.mkdirs();
+        return file;
+    }
+    
+
 }

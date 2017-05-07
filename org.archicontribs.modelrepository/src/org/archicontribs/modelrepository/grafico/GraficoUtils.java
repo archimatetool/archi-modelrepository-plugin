@@ -7,19 +7,23 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.swt.widgets.Shell;
 
@@ -266,5 +270,52 @@ public class GraficoUtils {
      */
     public static File getModelFileName(File localGitFolder) {
         return new File(localGitFolder, "temp.archimate"); //$NON-NLS-1$
+    }
+    
+    /**
+     * Create a new, local Git repository with name set to "origin"
+     * @param localGitFolder
+     * @param URL online URL
+     * @return The Git object
+     * @throws GitAPIException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static Git createNewLocalGitRepository(File localGitFolder, String URL) throws GitAPIException, IOException, URISyntaxException {
+        if(localGitFolder.exists() && localGitFolder.list().length > 0) {
+            throw new IOException("Directory: " + localGitFolder + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        
+        InitCommand initCommand = Git.init();
+        initCommand.setDirectory(localGitFolder);
+        Git git = initCommand.call();
+        
+        RemoteAddCommand remoteAddCommand = git.remoteAdd();
+        remoteAddCommand.setName("origin"); //$NON-NLS-1$
+        remoteAddCommand.setUri(new URIish(URL));
+        remoteAddCommand.call();
+        
+        return git;
+    }
+
+    /**
+     * Return the URL of the Git repo, taken from local config file.
+     * We assume that there is only one remote per repo, and its name is "origin"
+     * @param localGitFolder
+     * @return The URL or null if not found
+     * @throws IOException
+     */
+    public static String getRepositoryURL(File localGitFolder) throws IOException {
+        Git git = null;
+        
+        try {
+            git = Git.open(localGitFolder);
+            return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        }
+        finally {
+            if(git != null) {
+                git.close();
+            }
+        }
     }
 }
