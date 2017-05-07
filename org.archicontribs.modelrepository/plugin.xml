@@ -72,5 +72,36 @@
             class="org.archicontribs.modelrepository.preferences.PreferenceInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
+      <propertyContributor
+            contributorId="org.archicontribs.modelrepository">
+         <propertyCategory
+               category="main.category"></propertyCategory>
+      </propertyContributor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
+      <propertyTabs
+            contributorId="org.archicontribs.modelrepository">
+         <propertyTab
+               category="main.category"
+               id="info.tab"
+               label="Info">
+         </propertyTab>
+      </propertyTabs>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views.properties.tabbed.propertySections">
+      <propertySections
+            contributorId="org.archicontribs.modelrepository">
+         <propertySection
+               class="org.archicontribs.modelrepository.propertysections.RepoInfoSection"
+               filter="org.archicontribs.modelrepository.propertysections.RepoInfoSection$Filter"
+               id="infoSection"
+               tab="info.tab">
+         </propertySection>
+      </propertySections>
+   </extension>
 
 </plugin>

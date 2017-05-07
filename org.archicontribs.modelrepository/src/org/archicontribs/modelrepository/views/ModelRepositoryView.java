@@ -6,12 +6,14 @@
 package org.archicontribs.modelrepository.views;
 
 import java.io.File;
+
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AbstractModelAction;
 import org.archicontribs.modelrepository.actions.CloneModelAction;
 import org.archicontribs.modelrepository.actions.CommitModelAction;
 import org.archicontribs.modelrepository.actions.DeleteModelAction;
 import org.archicontribs.modelrepository.actions.OpenModelAction;
+import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.SaveModelAction;
@@ -35,7 +37,11 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.views.properties.IPropertySheetPage;
+import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
+import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 
 /**
@@ -43,7 +49,7 @@ import org.eclipse.ui.part.ViewPart;
  */
 public class ModelRepositoryView
 extends ViewPart
-implements IContextProvider {
+implements IContextProvider, ITabbedPropertySheetPageContributor {
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
@@ -66,6 +72,8 @@ implements IContextProvider {
     protected AbstractModelAction fActionCommit;
     protected AbstractModelAction fActionPush;
     
+    protected AbstractModelAction fActionProperties;
+    
 
     @Override
     public void createPartControl(Composite parent) {
@@ -73,7 +81,7 @@ implements IContextProvider {
         fTreeViewer = new GitRepositoryTreeViewer(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), parent);
         
         makeActions();
-        //registerGlobalActions();
+        registerGlobalActions();
         hookContextMenu();
         //makeLocalMenuActions();
         makeLocalToolBarActions();
@@ -127,6 +135,9 @@ implements IContextProvider {
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
         fActionPush.setEnabled(false);
         
+        fActionProperties = new PropertiesAction();
+        fActionProperties.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -135,14 +146,18 @@ implements IContextProvider {
     /**
      * Register Global Action Handlers
      */
-//    protected void registerGlobalActions() {
-//    }
+    private void registerGlobalActions() {
+        IActionBars actionBars = getViewSite().getActionBars();
+        
+        // Register our interest in the global menu actions
+        actionBars.setGlobalActionHandler(ActionFactory.PROPERTIES.getId(), fActionProperties);
+    }
 
     /**
      * Hook into a right-click menu
      */
     protected void hookContextMenu() {
-        MenuManager menuMgr = new MenuManager("#FileViewerPopupMenu"); //$NON-NLS-1$
+        MenuManager menuMgr = new MenuManager("#RepoViewerPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
         menuMgr.addMenuListener(new IMenuListener() {
@@ -210,6 +225,8 @@ implements IContextProvider {
         fActionSave.setGitRepository(file);
         fActionCommit.setGitRepository(file);
         fActionPush.setGitRepository(file);
+        
+        fActionProperties.setGitRepository(file);
     }
     
     protected void fillContextMenu(IMenuManager manager) {
@@ -226,6 +243,8 @@ implements IContextProvider {
             manager.add(fActionSave);
             manager.add(fActionCommit);
             manager.add(fActionPush);
+            manager.add(new Separator());
+            manager.add(fActionProperties);
         }
     }
 
@@ -241,6 +260,23 @@ implements IContextProvider {
         if(getViewer() != null) {
             getViewer().getControl().setFocus();
         }
+    }
+    
+    @Override
+    public String getContributorId() {
+        return ModelRepositoryPlugin.PLUGIN_ID;
+    }
+    
+    @Override
+    public <T> T getAdapter(Class<T> adapter) {
+        /*
+         * Return the PropertySheet Page
+         */
+        if(adapter == IPropertySheetPage.class) {
+            return adapter.cast(new TabbedPropertySheetPage(this));
+        }
+        
+        return super.getAdapter(adapter);
     }
 
 
