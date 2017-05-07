@@ -17,5 +17,5 @@ public interface IPreferenceConstants {
     
     String PREFS_COMMIT_USER_NAME = "userName"; //$NON-NLS-1$
     String PREFS_COMMIT_USER_EMAIL = "userEmail"; //$NON-NLS-1$
-    
-}
+    String PREFS_REPOSITORY_FOLDER = "repoFolder"; //$NON-NLS-1$
+ }

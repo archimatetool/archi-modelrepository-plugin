@@ -9,10 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import com.archimatetool.editor.ArchiPlugin;
+import com.archimatetool.editor.utils.StringUtils;
 
 
 
@@ -53,7 +54,19 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
      * @return The folder where we store repositories
      */
     public File getUserModelRepositoryFolder() {
-        return new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository"); //$NON-NLS-1$
+        // Get from preferences
+        String path = getPreferenceStore().getString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
+        
+        if(StringUtils.isSet(path)) {
+            File file = new File(path);
+            if(file.canWrite()) {
+                return file;
+            }
+        }
+        
+        // Default
+        path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
+        return new File(path);
     }
     
 }

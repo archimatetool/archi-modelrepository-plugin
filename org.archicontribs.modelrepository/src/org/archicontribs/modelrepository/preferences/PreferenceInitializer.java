@@ -5,9 +5,13 @@
  */
 package org.archicontribs.modelrepository.preferences;
 
+import java.io.File;
+
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
+
+import com.archimatetool.editor.ArchiPlugin;
 
 
 
@@ -25,5 +29,6 @@ implements IPreferenceConstants {
         
         store.setDefault(PREFS_COMMIT_USER_NAME, System.getProperty("user.name")); //$NON-NLS-1$
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, ""); //$NON-NLS-1$
+		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository").getAbsolutePath()); //$NON-NLS-1$
     }
 }
