@@ -13,12 +13,10 @@ import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchimatePropertySection;
-import com.archimatetool.editor.ui.UIUtils;
 
 
 /**
@@ -42,10 +40,10 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
 
     @Override
     protected void createControls(Composite parent) {
-        createLabel(parent, "Location:", STANDARD_LABEL_WIDTH, SWT.CENTER);
+        createLabel(parent, Messages.RepoInfoSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextFile = createSingleTextControl(parent, SWT.READ_ONLY);
 
-        createLabel(parent, "URL:", STANDARD_LABEL_WIDTH, SWT.CENTER);
+        createLabel(parent, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextURL = createSingleTextControl(parent, SWT.READ_ONLY);
     }
 
