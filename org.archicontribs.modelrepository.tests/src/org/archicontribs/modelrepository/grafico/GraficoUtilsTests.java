@@ -45,7 +45,7 @@ public class GraficoUtilsTests {
     
     @Test
     public void isGitRepository_FileShouldNotBe() throws Exception {
-        File tmpFile = File.createTempFile("tmp", null);
+        File tmpFile = File.createTempFile("architest", null);
         assertFalse(GraficoUtils.isGitRepository(tmpFile));
         tmpFile.delete();
     }
@@ -123,25 +123,12 @@ public class GraficoUtilsTests {
         }
     }
     
-    @Test(expected=IOException.class)
+    @Test (expected=IOException.class)
     public void createNewLocalGitRepository_ThrowsExceptionIfNotEmptyDir() throws Exception {
-        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
-        String URL = "https://www.somewherethereish.net/myRepo.git";
-        Git git = null;
-        
-        try {
-            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
-            assertNotNull(git);
-        }
-        finally {
-            // Don't delete folder
-            if(git != null) {
-                git.close();
-            }
-        }
+        File tmpFile = File.createTempFile("architest", null, getTempTestsFolder());
         
         // Should throw exception
-        git = GraficoUtils.createNewLocalGitRepository(getTempTestsFolder(), URL);
+        GraficoUtils.createNewLocalGitRepository(tmpFile.getParentFile(), "");
     }
     
     @Test
@@ -156,7 +143,6 @@ public class GraficoUtilsTests {
             assertEquals(URL, GraficoUtils.getRepositoryURL(localGitFolder));
         }
         finally {
-            // Don't delete folder
             if(git != null) {
                 git.close();
             }
