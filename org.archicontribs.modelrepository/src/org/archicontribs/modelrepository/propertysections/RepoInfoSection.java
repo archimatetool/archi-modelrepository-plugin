@@ -45,6 +45,9 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
 
         createLabel(parent, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextURL = createSingleTextControl(parent, SWT.READ_ONLY);
+        
+        // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
+        addHiddenTextFieldToForm(parent);
     }
 
     @Override
