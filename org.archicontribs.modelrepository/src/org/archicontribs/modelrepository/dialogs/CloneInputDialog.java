@@ -16,6 +16,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.archimatetool.editor.ui.IArchiImages;
+
 /**
  * Clone Input Dialog
  * 
@@ -38,8 +40,9 @@ public class CloneInputDialog extends TitleAreaDialog {
     @Override
     public void create() {
         super.create();
-        setTitle("Import remote model");
-        setMessage("Please enter URL or remote model and credentials (if any)", IMessageProvider.INFORMATION);
+        setTitle(Messages.CloneInputDialog_0);
+        setMessage(Messages.CloneInputDialog_1, IMessageProvider.INFORMATION);
+        setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
     }
 
     @Override
@@ -59,7 +62,7 @@ public class CloneInputDialog extends TitleAreaDialog {
 
     private void createURL(Composite container) {
         Label lbt = new Label(container, SWT.NONE);
-        lbt.setText("Remote model URL");
+        lbt.setText(Messages.CloneInputDialog_2);
 
         GridData data = new GridData();
         data.grabExcessHorizontalSpace = true;
@@ -71,7 +74,7 @@ public class CloneInputDialog extends TitleAreaDialog {
     
     private void createUsername(Composite container) {
         Label lbt = new Label(container, SWT.NONE);
-        lbt.setText("Username");
+        lbt.setText(Messages.CloneInputDialog_3);
 
         GridData data = new GridData();
         data.grabExcessHorizontalSpace = true;
@@ -83,7 +86,7 @@ public class CloneInputDialog extends TitleAreaDialog {
 
     private void createPassword(Composite container) {
         Label lbt = new Label(container, SWT.NONE);
-        lbt.setText("Password");
+        lbt.setText(Messages.CloneInputDialog_4);
 
         GridData data = new GridData();
         data.grabExcessHorizontalSpace = true;

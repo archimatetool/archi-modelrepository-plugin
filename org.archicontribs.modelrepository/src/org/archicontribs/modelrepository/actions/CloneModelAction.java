@@ -27,49 +27,47 @@ public class CloneModelAction extends AbstractModelAction {
     public CloneModelAction(IWorkbenchWindow window) {
         fWindow = window;
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE_16));
-        setText("Download");
-        setToolTipText("Download Remote Model");
+        setText(Messages.CloneModelAction_0);
+        setToolTipText(Messages.CloneModelAction_1);
     }
 
     @Override
     public void run() {
-    	String repoURL = GraficoUtils.TEST_REPO_URL;
-    	String userName = GraficoUtils.TEST_USER_LOGIN;
-    	String userPassword = GraficoUtils.TEST_USER_PASSWORD;
+    	String repoURL = null;
+    	String userName = null;
+    	String userPassword = null;
     	
-    	CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
-    	dialog.create();
+        CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
         if(dialog.open() == Window.OK) {
             repoURL = dialog.getURL();
             userName = dialog.getUsername();
             userPassword = dialog.getPassword();
-    	}
+        }
     	
         File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                 GraficoUtils.createLocalGitFolderName(repoURL));
         
+        // Folder is not empty
         if(localGitFolder.exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
-                    "Import",
-                    "Local folder is not empty. Please delete it and try again!");
+                    Messages.CloneModelAction_0,
+                    Messages.CloneModelAction_2);
 
             return;
         }
         
-        // Clone
         try {
+            // Clone
             GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword);
-        }
-        catch(GitAPIException | IOException ex) {
-            ex.printStackTrace();
-        }
-        
-        // Load
-        try {
+            
+            // Load
             GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
         }
-        catch(IOException ex) {
-            ex.printStackTrace();
+        catch(GitAPIException | IOException ex) {
+            MessageDialog.openError(fWindow.getShell(),
+                    Messages.CloneModelAction_0,
+                    Messages.CloneModelAction_3 + " " + //$NON-NLS-1$
+                    ex.getMessage());
         }
     }
 }
