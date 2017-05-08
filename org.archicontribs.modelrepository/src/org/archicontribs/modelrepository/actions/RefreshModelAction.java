@@ -5,7 +5,6 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;

@@ -19,7 +19,6 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.editor.preferences.ColoursFontsPreferencePage;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
