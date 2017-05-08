@@ -22,6 +22,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -47,10 +48,11 @@ public class GraficoUtils {
      * @param repoURL
      * @param userName
      * @param userPassword
+     * @param monitor
      * @throws GitAPIException
-     * @throws IOException 
+     * @throws IOException
      */
-    public static void cloneModel(File localGitFolder, String repoURL, String userName, String userPassword) throws GitAPIException, IOException {
+    public static void cloneModel(File localGitFolder, String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
         Git git = null;
         
         try {
@@ -58,6 +60,7 @@ public class GraficoUtils {
             cloneCommand.setDirectory(localGitFolder);
             cloneCommand.setURI(repoURL);
             cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            cloneCommand.setProgressMonitor(monitor);
             
             git = cloneCommand.call();
             
@@ -86,14 +89,16 @@ public class GraficoUtils {
         
         if(importer.getResolveStatus() != null) {
             ErrorDialog.openError(shell,
-                    "Import",
-                    "Errors occurred during import",
+                    Messages.GraficoUtils_0,
+                    Messages.GraficoUtils_1,
                     importer.getResolveStatus());
 
         }
         else {
             model.setFile(getModelFileName(localGitFolder)); // Add a file name used to locate the model
-            IEditorModelManager.INSTANCE.openModel(model);
+            if(!IEditorModelManager.INSTANCE.isModelLoaded(model.getFile())) {
+                IEditorModelManager.INSTANCE.openModel(model); // Open it
+            }
         }
 
         return model;

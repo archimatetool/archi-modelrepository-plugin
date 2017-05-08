@@ -7,14 +7,20 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.EmptyProgressMonitor;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
@@ -33,17 +39,15 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-    	String repoURL = null;
-    	String userName = null;
-    	String userPassword = null;
-    	
         CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
-        if(dialog.open() == Window.OK) {
-            repoURL = dialog.getURL();
-            userName = dialog.getUsername();
-            userPassword = dialog.getPassword();
+        if(dialog.open() != Window.OK) {
+            return;
         }
     	
+        final String repoURL = dialog.getURL();
+        final String userName = dialog.getUsername();
+        final String userPassword = dialog.getPassword();
+        
         File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                 GraficoUtils.createLocalGitFolderName(repoURL));
         
@@ -56,18 +60,57 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        try {
-            // Clone
-            GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword);
-            
-            // Load
-            GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+        class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
+            private IProgressMonitor monitor;
+
+            @Override
+            public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                try {
+                    this.monitor = monitor;
+                    
+                    monitor.beginTask(Messages.CloneModelAction_4, 750);
+                    
+                    // Clone
+                    GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword, this);
+                    
+                    monitor.subTask(Messages.CloneModelAction_5);
+                    
+                    // Load
+                    GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+                }
+                catch(GitAPIException | IOException ex) {
+                    MessageDialog.openError(fWindow.getShell(),
+                            Messages.CloneModelAction_0,
+                            Messages.CloneModelAction_3 + " " + //$NON-NLS-1$
+                            ex.getMessage());
+                }
+                finally {
+                    monitor.done();
+                }
+            }
+
+            @Override
+            public void beginTask(String title, int totalWork) {
+                monitor.subTask(title);
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return monitor.isCanceled();
+            }
         }
-        catch(GitAPIException | IOException ex) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.CloneModelAction_0,
-                    Messages.CloneModelAction_3 + " " + //$NON-NLS-1$
-                    ex.getMessage());
-        }
+        
+        Display.getCurrent().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
+                    pmDialog.run(false, true, new Progress());
+                }
+                catch(InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
 }

@@ -13,6 +13,10 @@ public class Messages extends NLS {
     public static String CloneModelAction_2;
 
     public static String CloneModelAction_3;
+
+    public static String CloneModelAction_4;
+
+    public static String CloneModelAction_5;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
