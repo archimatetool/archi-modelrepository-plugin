@@ -12,8 +12,6 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.model.IEditorModelManager;
-
 /**
  * Open Model Action
  * 

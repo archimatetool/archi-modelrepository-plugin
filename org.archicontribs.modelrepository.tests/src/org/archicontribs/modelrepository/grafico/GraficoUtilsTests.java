@@ -68,15 +68,15 @@ public class GraficoUtilsTests {
     }
     
     @Test
-    public void createLocalGitFolderName_ShouldReturnCorrectName() {
+    public void getLocalGitFolderName_ShouldReturnCorrectName() {
         String repoURL = "https://githosting.org/path/archi-demo-grafico.git";
-        assertEquals("archi-demo-grafico", GraficoUtils.createLocalGitFolderName(repoURL));
+        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
         
         repoURL = "ssh://githosting.org/path/archi-demo-grafico";
-        assertEquals("archi-demo-grafico", GraficoUtils.createLocalGitFolderName(repoURL));
+        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
         
         repoURL = "ssh://githosting.org/This_One";
-        assertEquals("this_one", GraficoUtils.createLocalGitFolderName(repoURL));        
+        assertEquals("this_one", GraficoUtils.getLocalGitFolderName(repoURL));        
     }
 
     @Test

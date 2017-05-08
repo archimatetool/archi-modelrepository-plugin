@@ -8,9 +8,12 @@ package org.archicontribs.modelrepository.actions;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -23,12 +26,18 @@ import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.utils.StringUtils;
+
 /**
  * Clone a model
  */
 public class CloneModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
+	
+	// Set this to true to store user name and password in a simple encrypted file called "credentials" in the repo's .git folder
+	// It's not the most secure algorithm so you have been warned!
+	boolean STORE_CREDENTIALS = false;
 	
     public CloneModelAction(IWorkbenchWindow window) {
         fWindow = window;
@@ -48,14 +57,18 @@ public class CloneModelAction extends AbstractModelAction {
         final String userName = dialog.getUsername();
         final String userPassword = dialog.getPassword();
         
+        if(!StringUtils.isSet(repoURL) && !StringUtils.isSet(userName) && !StringUtils.isSet(userPassword)) {
+            return;
+        }
+        
         File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                GraficoUtils.createLocalGitFolderName(repoURL));
+                GraficoUtils.getLocalGitFolderName(repoURL));
         
         // Folder is not empty
         if(localGitFolder.exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
                     Messages.CloneModelAction_0,
-                    Messages.CloneModelAction_2);
+                    Messages.CloneModelAction_2 + " " + localGitFolder.getAbsolutePath()); //$NON-NLS-1$
 
             return;
         }
@@ -68,7 +81,7 @@ public class CloneModelAction extends AbstractModelAction {
                 try {
                     this.monitor = monitor;
                     
-                    monitor.beginTask(Messages.CloneModelAction_4, 750);
+                    monitor.beginTask(Messages.CloneModelAction_4, IProgressMonitor.UNKNOWN);
                     
                     // Clone
                     GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword, this);
@@ -77,8 +90,15 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Load
                     GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+                    
+                    // Store credentials
+                    if(STORE_CREDENTIALS) {
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(localGitFolder);
+                        sc.store(userName, userPassword);
+                    }
                 }
-                catch(GitAPIException | IOException ex) {
+                catch(GitAPIException | IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+                    ex.printStackTrace();
                     MessageDialog.openError(fWindow.getShell(),
                             Messages.CloneModelAction_0,
                             Messages.CloneModelAction_3 + " " + //$NON-NLS-1$

@@ -38,10 +38,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class GraficoUtils {
 
-    public static final String TEST_REPO_URL = ""; //$NON-NLS-1$
-    public static final String TEST_USER_LOGIN = ""; //$NON-NLS-1$
-    public static final String TEST_USER_PASSWORD = ""; //$NON-NLS-1$
-
     /**
      * Clone a model
      * @param localGitFolder
@@ -162,7 +158,7 @@ public class GraficoUtils {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void pushToRemote(File localGitFolder, String userName, String userPassword) throws IOException, GitAPIException {
+    public static void pushToRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         Git git = null;
         
         try {
@@ -170,6 +166,7 @@ public class GraficoUtils {
             
             PushCommand pushCommand = git.push();
             pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pushCommand.setProgressMonitor(monitor);
             pushCommand.call();
         }
         finally {
@@ -187,7 +184,7 @@ public class GraficoUtils {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void pullFromRemote(File localGitFolder, String userName, String userPassword) throws IOException, GitAPIException {
+    public static void pullFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         Git git = null;
         
         try {
@@ -195,6 +192,7 @@ public class GraficoUtils {
             
             PullCommand pullCommand = git.pull();
             pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.setProgressMonitor(monitor);
             pullCommand.call();
         }
         finally {
@@ -205,11 +203,11 @@ public class GraficoUtils {
     }
     
     /**
-     * Create a local git folder name based on the repo's URL
+     * Get a local git folder name based on the repo's URL
      * @param repoURL
      * @return
      */
-    public static String createLocalGitFolderName(String repoURL) {
+    public static String getLocalGitFolderName(String repoURL) {
         repoURL = repoURL.trim();
         
         int index = repoURL.lastIndexOf("/"); //$NON-NLS-1$
