@@ -7,14 +7,17 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.archicontribs.modelrepository.dialogs.ConflictsDialog;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CheckoutCommand.Stage;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Shell;
 
@@ -72,21 +75,31 @@ public class MergeConflictHandler {
         return message;
     }
 
-    public void resetToRemoteState() throws IOException, GitAPIException {
-        resetToState("origin/master"); //$NON-NLS-1$
+    public void mergeAndCommitToTheirs() throws IOException, GitAPIException {
+        mergeAndCommit(Stage.THEIRS);
     }
     
-    public void resetToLocalState() throws IOException, GitAPIException {
-        resetToState("refs/heads/master"); //$NON-NLS-1$
+    public void mergeAndCommitToOurs() throws IOException, GitAPIException {
+        mergeAndCommit(Stage.OURS);
     }
     
-    void resetToState(String ref) throws IOException, GitAPIException {
-        // For now, reset HARD  which will lose all changes
+    void mergeAndCommit(Stage stage) throws IOException, GitAPIException {
         Git git = Git.open(fLocalGitFolder);
-        ResetCommand resetCommand = git.reset();
-        resetCommand.setRef(ref);
-        resetCommand.setMode(ResetType.HARD);
-        resetCommand.call();
+        
+        CheckoutCommand checkoutCommand = git.checkout();
+        checkoutCommand.setStage(stage);
+        Map<String, int[][]> allConflicts = fMergeResult.getConflicts();
+        checkoutCommand.addPaths(new ArrayList<String>( allConflicts.keySet()));
+        checkoutCommand.call();
+        
+        AddCommand addCommand = git.add();
+        addCommand.addFilepattern("."); //$NON-NLS-1$
+        addCommand.setUpdate(false);
+        addCommand.call();
+        
+        CommitCommand commitCommand = git.commit();
+        commitCommand.call();
+        
         git.close();
     }
 }

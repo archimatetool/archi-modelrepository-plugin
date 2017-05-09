@@ -69,13 +69,13 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         messageText.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         Label label = new Label(container, SWT.NONE);
-        label.setText("\n\nPress OK to accept online changes and lose local changes.\nPress Cancel to revert to local version.");
+        label.setText("\n\nPress OK to accept online changes.\nPress Cancel to use local changes.");
     }
 
     @Override
     protected void okPressed() {
         try {
-            fHandler.resetToRemoteState();
+            fHandler.mergeAndCommitToTheirs();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
@@ -86,7 +86,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     @Override
     protected void cancelPressed() {
         try {
-            fHandler.resetToLocalState();
+            fHandler.mergeAndCommitToOurs();
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

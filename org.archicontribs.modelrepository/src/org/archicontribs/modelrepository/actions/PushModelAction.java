@@ -75,7 +75,6 @@ public class PushModelAction extends AbstractModelAction {
                     if(!pullResult.isSuccessful()) {
                         MergeConflictHandler handler = new MergeConflictHandler(pullResult, getGitRepository(), fWindow.getShell());
                         handler.checkForMergeConflicts();
-                        return;
                     }
                     
                     monitor.beginTask("Publishing", IProgressMonitor.UNKNOWN);

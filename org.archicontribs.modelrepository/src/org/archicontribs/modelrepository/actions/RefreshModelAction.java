@@ -81,7 +81,6 @@ public class RefreshModelAction extends AbstractModelAction {
                     if(!pullResult.isSuccessful()) {
                         MergeConflictHandler handler = new MergeConflictHandler(pullResult, getGitRepository(), fWindow.getShell());
                         handler.checkForMergeConflicts();
-                        return;
                     }
                     
                     monitor.subTask("Importing to Model");
