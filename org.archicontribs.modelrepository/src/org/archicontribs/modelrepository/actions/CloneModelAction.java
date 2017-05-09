@@ -16,6 +16,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -37,8 +38,6 @@ public class CloneModelAction extends AbstractModelAction {
 	
 	// Set this to true to store user name and password in a simple encrypted file called "credentials" in the repo's .git folder
 	// It's not the most secure algorithm so you have been warned!
-	boolean STORE_CREDENTIALS = false;
-	
     public CloneModelAction(IWorkbenchWindow window) {
         fWindow = window;
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE_16));
@@ -91,8 +90,8 @@ public class CloneModelAction extends AbstractModelAction {
                     // Load
                     GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
                     
-                    // Store credentials
-                    if(STORE_CREDENTIALS) {
+                    // Store credentials if option is set
+                    if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
                         SimpleCredentialsStorage sc = new SimpleCredentialsStorage(localGitFolder);
                         sc.store(userName, userPassword);
                     }
