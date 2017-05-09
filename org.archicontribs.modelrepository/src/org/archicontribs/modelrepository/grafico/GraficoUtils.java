@@ -17,6 +17,7 @@ import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.Status;
@@ -25,6 +26,9 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.swt.widgets.Shell;
@@ -107,10 +111,11 @@ public class GraficoUtils {
      * @param localGitFolder
      * @param personIdent
      * @param commitMessage
+     * @return 
      * @throws GitAPIException
      * @throws IOException
      */
-    public static void commitModel(IArchimateModel model, File localGitFolder, PersonIdent personIdent,
+    public static RevCommit commitModel(IArchimateModel model, File localGitFolder, PersonIdent personIdent,
             String commitMessage) throws GitAPIException, IOException {
         Git git = null;
         
@@ -124,7 +129,7 @@ public class GraficoUtils {
             
             // Nothing changed
             if(status.isClean()) {
-                return;
+                return null;
             }
             
             // Add modified files to index
@@ -142,7 +147,7 @@ public class GraficoUtils {
             CommitCommand commitCommand = git.commit();
             commitCommand.setAuthor(personIdent);
             commitCommand.setMessage(commitMessage);
-            commitCommand.call();
+            return commitCommand.call();
         }
         finally {
             if(git != null) {
@@ -156,10 +161,11 @@ public class GraficoUtils {
      * @param localGitFolder
      * @param userName
      * @param userPassword
+     * @return 
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void pushToRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public static Iterable<PushResult> pushToRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         Git git = null;
         
         try {
@@ -168,7 +174,7 @@ public class GraficoUtils {
             PushCommand pushCommand = git.push();
             pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pushCommand.setProgressMonitor(monitor);
-            pushCommand.call();
+            return pushCommand.call();
         }
         finally {
             if(git != null) {
@@ -182,10 +188,11 @@ public class GraficoUtils {
      * @param localGitFolder
      * @param userName
      * @param userPassword
+     * @return 
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void pullFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public static PullResult pullFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         Git git = null;
         
         try {
@@ -194,7 +201,7 @@ public class GraficoUtils {
             PullCommand pullCommand = git.pull();
             pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pullCommand.setProgressMonitor(monitor);
-            pullCommand.call();
+            return pullCommand.call();
         }
         finally {
             if(git != null) {
@@ -211,7 +218,7 @@ public class GraficoUtils {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static void fetchFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public static FetchResult fetchFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         Git git = null;
         
         try {
@@ -220,7 +227,7 @@ public class GraficoUtils {
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
-            fetchCommand.call();
+            return fetchCommand.call();
         }
         finally {
             if(git != null) {
