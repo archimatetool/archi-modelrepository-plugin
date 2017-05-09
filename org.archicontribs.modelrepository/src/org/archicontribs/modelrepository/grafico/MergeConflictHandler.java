@@ -86,20 +86,23 @@ public class MergeConflictHandler {
     void mergeAndCommit(Stage stage) throws IOException, GitAPIException {
         Git git = Git.open(fLocalGitFolder);
         
-        CheckoutCommand checkoutCommand = git.checkout();
-        checkoutCommand.setStage(stage);
-        Map<String, int[][]> allConflicts = fMergeResult.getConflicts();
-        checkoutCommand.addPaths(new ArrayList<String>( allConflicts.keySet()));
-        checkoutCommand.call();
-        
-        AddCommand addCommand = git.add();
-        addCommand.addFilepattern("."); //$NON-NLS-1$
-        addCommand.setUpdate(false);
-        addCommand.call();
-        
-        CommitCommand commitCommand = git.commit();
-        commitCommand.call();
-        
-        git.close();
+        try {
+            CheckoutCommand checkoutCommand = git.checkout();
+            checkoutCommand.setStage(stage);
+            Map<String, int[][]> allConflicts = fMergeResult.getConflicts();
+            checkoutCommand.addPaths(new ArrayList<String>( allConflicts.keySet()));
+            checkoutCommand.call();
+            
+            AddCommand addCommand = git.add();
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+            
+            CommitCommand commitCommand = git.commit();
+            commitCommand.call();
+        }
+        finally {
+            git.close();
+        }
     }
 }
