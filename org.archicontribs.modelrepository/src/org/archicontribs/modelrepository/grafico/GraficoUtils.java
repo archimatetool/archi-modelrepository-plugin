@@ -272,7 +272,7 @@ public class GraficoUtils {
      * @return
      */
     public static File getModelFileName(File localGitFolder) {
-        return new File(localGitFolder, "temp.archimate"); //$NON-NLS-1$
+        return new File(localGitFolder, "/.git/temp.archimate"); //$NON-NLS-1$
     }
     
     /**

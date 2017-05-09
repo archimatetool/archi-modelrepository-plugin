@@ -102,7 +102,7 @@ public class GraficoUtilsTests {
     @Test
     public void getModelFileName_IsCorrect() {
         File localGitFolder = new File("/temp/folder");
-        assertEquals(new File(localGitFolder, "temp.archimate"), GraficoUtils.getModelFileName(localGitFolder));
+        assertEquals(new File(localGitFolder, ".git/temp.archimate"), GraficoUtils.getModelFileName(localGitFolder));
     }
     
     @Test
