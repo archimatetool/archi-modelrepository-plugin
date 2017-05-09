@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
@@ -75,7 +76,11 @@ public class RefreshModelAction extends AbstractModelAction {
                     monitor.beginTask("Refreshing", IProgressMonitor.UNKNOWN);
                     
                     // Pull
-                    GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
+                    if(!pullResult.isSuccessful()) {
+                        checkConflicts(pullResult, fWindow.getShell());
+                        return;
+                    }
                     
                     monitor.subTask("Importing to Model");
                     
