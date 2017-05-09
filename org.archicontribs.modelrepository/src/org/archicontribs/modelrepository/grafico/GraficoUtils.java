@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -96,10 +97,20 @@ public class GraficoUtils {
 
         }
         else {
-            model.setFile(getModelFileName(localGitFolder)); // Add a file name used to locate the model
-            if(!IEditorModelManager.INSTANCE.isModelLoaded(model.getFile())) {
-                IEditorModelManager.INSTANCE.openModel(model); // Open it
+            File tmpFile = getModelFileName(localGitFolder);
+            model.setFile(tmpFile); // Add a file name used to locate the model
+            
+            // If we have it open, close and re-open to refresh changes
+            IArchimateModel existingModel = locateModel(localGitFolder);
+            if(existingModel != null) {
+                // Set dirty state to non-dirty
+                CommandStack stack = (CommandStack)existingModel.getAdapter(CommandStack.class);
+                stack.flush();
+                // Close it
+                IEditorModelManager.INSTANCE.closeModel(existingModel);
             }
+            
+            IEditorModelManager.INSTANCE.openModel(model); // Open it
         }
 
         return model;
