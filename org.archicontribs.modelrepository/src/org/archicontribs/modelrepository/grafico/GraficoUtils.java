@@ -13,6 +13,7 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
 import org.eclipse.jgit.api.PullCommand;
@@ -202,6 +203,32 @@ public class GraficoUtils {
         }
     }
     
+    /**
+     * Fetch from Remote
+     * @param localGitFolder
+     * @param userName
+     * @param userPassword
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public static void fetchFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        Git git = null;
+        
+        try {
+            git = Git.open(localGitFolder);
+            
+            FetchCommand fetchCommand = git.fetch();
+            fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            fetchCommand.setProgressMonitor(monitor);
+            fetchCommand.call();
+        }
+        finally {
+            if(git != null) {
+                git.close();
+            }
+        }
+    }
+
     /**
      * Get a local git folder name based on the repo's URL
      * @param repoURL
