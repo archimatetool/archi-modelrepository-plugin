@@ -7,8 +7,12 @@ package org.archicontribs.modelrepository.authentication;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 
@@ -25,6 +29,7 @@ public class UserDetails {
         
         // Secure storage
         SimpleCredentialsStorage sc = new SimpleCredentialsStorage(localGitFolder);
+        
         if(sc.hasCredentialsFile()) {
             userName = sc.getUserName();
             userPassword = sc.getUserPassword();
@@ -38,6 +43,16 @@ public class UserDetails {
             
             userName = dialog.getUsername();
             userPassword = dialog.getPassword();
+            
+            // Store credentials if option is set
+            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
+                try {
+                    sc.store(userName, userPassword);
+                }
+                catch(NoSuchAlgorithmException | InvalidKeySpecException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
 
         return new String[] { userName, userPassword };
