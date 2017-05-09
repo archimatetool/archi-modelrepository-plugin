@@ -79,7 +79,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     // First we need to Pull and check for conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
                     if(!pullResult.isSuccessful()) {
-                        MergeConflictHandler handler = new MergeConflictHandler(pullResult, getGitRepository(), fWindow.getShell());
+                        MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(), fWindow.getShell());
                         handler.checkForMergeConflicts();
                     }
                     

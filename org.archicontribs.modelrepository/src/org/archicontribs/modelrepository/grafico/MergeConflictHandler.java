@@ -10,14 +10,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.ConflictsDialog;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CheckoutCommand.Stage;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Shell;
 
@@ -31,18 +32,15 @@ public class MergeConflictHandler {
     private File fLocalGitFolder;
     private MergeResult fMergeResult;
     private Shell fShell;
-    private PullResult fPullRequest;
 
-    public MergeConflictHandler(PullResult pullResult, File localGitFolder, Shell shell) {
-        fPullRequest = pullResult;
+    public MergeConflictHandler(MergeResult mergeResult, File localGitFolder, Shell shell) {
+        fMergeResult = mergeResult;
         fLocalGitFolder = localGitFolder;
         fShell = shell;
     }
     
     public void checkForMergeConflicts() throws IOException, GitAPIException {
-        fMergeResult = fPullRequest.getMergeResult();
-        
-        // This could be null if Rebase is set rather than merge on Pull
+        // This could be null if Rebase is the default behaviour on the repo rather than merge when a Pull is done
         if(fMergeResult == null) {
             throw new IOException("MergeResult was null"); //$NON-NLS-1$
         }
@@ -83,22 +81,33 @@ public class MergeConflictHandler {
         mergeAndCommit(Stage.OURS);
     }
     
+    /**
+     * @param stage Can be Stage.THEIRS or Stage.OURS
+     * @throws IOException
+     * @throws GitAPIException
+     */
     void mergeAndCommit(Stage stage) throws IOException, GitAPIException {
         Git git = Git.open(fLocalGitFolder);
         
         try {
+            // Check out conflicting files either from us or them
             CheckoutCommand checkoutCommand = git.checkout();
             checkoutCommand.setStage(stage);
             Map<String, int[][]> allConflicts = fMergeResult.getConflicts();
             checkoutCommand.addPaths(new ArrayList<String>( allConflicts.keySet()));
             checkoutCommand.call();
             
+            // Add to index all files
             AddCommand addCommand = git.add();
             addCommand.addFilepattern("."); //$NON-NLS-1$
             addCommand.setUpdate(false);
             addCommand.call();
             
+            // Commit
             CommitCommand commitCommand = git.commit();
+            String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
+            String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
+            commitCommand.setAuthor(userName, userEmail);
             commitCommand.call();
         }
         finally {
