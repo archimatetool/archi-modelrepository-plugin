@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UserDetails;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -75,10 +76,11 @@ public class RefreshModelAction extends AbstractModelAction {
                     
                     monitor.beginTask("Refreshing", IProgressMonitor.UNKNOWN);
                     
-                    // Pull
+                    // First we need to Pull and check for conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
                     if(!pullResult.isSuccessful()) {
-                        checkConflicts(pullResult, fWindow.getShell());
+                        MergeConflictHandler handler = new MergeConflictHandler(pullResult, getGitRepository(), fWindow.getShell());
+                        handler.checkForMergeConflicts();
                         return;
                     }
                     

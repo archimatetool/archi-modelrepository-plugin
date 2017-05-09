@@ -200,6 +200,7 @@ public class GraficoUtils {
             
             PullCommand pullCommand = git.pull();
             pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.setRebase(false); // Merge, not rebase
             pullCommand.setProgressMonitor(monitor);
             return pullCommand.call();
         }

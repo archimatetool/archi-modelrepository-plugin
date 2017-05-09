@@ -35,14 +35,15 @@ public class CloneInputDialog extends TitleAreaDialog {
 
     public CloneInputDialog(Shell parentShell) {
         super(parentShell);
-    }
-
-    @Override
-    public void create() {
-        super.create();
         setTitle(Messages.CloneInputDialog_0);
         setMessage(Messages.CloneInputDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
+    }
+
+    @Override
+    protected void configureShell(Shell shell) {
+        super.configureShell(shell);
+        shell.setText(Messages.CloneInputDialog_0);
     }
 
     @Override

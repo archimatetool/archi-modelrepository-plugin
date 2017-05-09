@@ -33,14 +33,15 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
 
     public UserNamePasswordDialog(Shell parentShell) {
         super(parentShell);
-    }
-
-    @Override
-    public void create() {
-        super.create();
         setTitle(Messages.UserNamePasswordDialog_0);
         setMessage(Messages.UserNamePasswordDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_PROPERTIES_VIEW_ICON));
+    }
+
+    @Override
+    protected void configureShell(Shell shell) {
+        super.configureShell(shell);
+        shell.setText(Messages.UserNamePasswordDialog_0);
     }
 
     @Override

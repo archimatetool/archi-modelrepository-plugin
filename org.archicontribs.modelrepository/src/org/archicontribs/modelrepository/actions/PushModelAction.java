@@ -7,20 +7,16 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UserDetails;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
@@ -74,10 +70,11 @@ public class PushModelAction extends AbstractModelAction {
                 try {
                     this.monitor = monitor;
                     
-                    // First we need to Pull
+                    // First we need to Pull and check for conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
                     if(!pullResult.isSuccessful()) {
-                        checkConflicts(pullResult, fWindow.getShell());
+                        MergeConflictHandler handler = new MergeConflictHandler(pullResult, getGitRepository(), fWindow.getShell());
+                        handler.checkForMergeConflicts();
                         return;
                     }
                     
