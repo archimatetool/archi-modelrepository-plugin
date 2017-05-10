@@ -120,7 +120,6 @@ public class MergeConflictHandler {
         CheckoutCommand checkoutCommand = git.checkout();
         checkoutCommand.setStage(stage);
         checkoutCommand.addPaths(paths);
-        checkoutCommand.setForce(true);
         checkoutCommand.call();
     }
     
