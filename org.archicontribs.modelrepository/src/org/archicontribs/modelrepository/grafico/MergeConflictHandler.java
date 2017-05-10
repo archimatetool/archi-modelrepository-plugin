@@ -55,19 +55,22 @@ public class MergeConflictHandler {
         String message = ""; //$NON-NLS-1$
         
         for(String path : allConflicts.keySet()) {
+            message += "File: " + path + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
+            
             int[][] c = allConflicts.get(path);
-            message = "File: " + path + "\n\n"; //$NON-NLS-1$ //$NON-NLS-2$
             for(int i = 0; i < c.length; ++i) {
-                message += "Conflict #" + i + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
+                message += "  Conflict #" + (i + 1) + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
                 for(int j = 0; j < (c[i].length) - 1; ++j) {
                     if(c[i][j] >= 0) {
-                        message += "  Chunk for " + //$NON-NLS-1$
+                        message += "   Chunk for " + //$NON-NLS-1$
                         fMergeResult.getMergedCommits()[j] +
                         " starts on line #" + //$NON-NLS-1$
                         c[i][j] + "\n"; //$NON-NLS-1$
                     }
                 }
             }
+            
+            message += "\n\n"; //$NON-NLS-1$
         }
         
         return message;
