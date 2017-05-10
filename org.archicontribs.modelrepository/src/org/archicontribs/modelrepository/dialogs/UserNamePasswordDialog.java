@@ -34,8 +34,6 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     public UserNamePasswordDialog(Shell parentShell) {
         super(parentShell);
         setTitle(Messages.UserNamePasswordDialog_0);
-        setMessage(Messages.UserNamePasswordDialog_1, IMessageProvider.INFORMATION);
-        setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_PROPERTIES_VIEW_ICON));
     }
 
     @Override
@@ -46,6 +44,9 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
+        setMessage(Messages.UserNamePasswordDialog_1, IMessageProvider.INFORMATION);
+        setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_PROPERTIES_VIEW_ICON));
+
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);
         container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
