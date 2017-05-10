@@ -26,7 +26,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
-import com.archimatetool.editor.preferences.Messages;
 import com.archimatetool.editor.ui.UIUtils;
 
 

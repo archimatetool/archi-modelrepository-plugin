@@ -78,22 +78,43 @@ public class RefreshModelAction extends AbstractModelAction {
                     
                     // First we need to Pull and check for conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
-                    if(!pullResult.isSuccessful()) {
-                        MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(), fWindow.getShell());
-                        handler.checkForMergeConflicts();
-                    }
                     
-                    monitor.subTask("Importing to Model");
+                    monitor.done();
                     
-                    // Load
-                    GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
+                    Display.getCurrent().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Conflict merger
+                            if(!pullResult.isSuccessful()) {
+                                try {
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(), fWindow.getShell());
+                                    boolean result = handler.checkForMergeConflicts();
+                                    if(result) {
+                                        handler.mergeAndCommit();
+                                    }
+                                    else {
+                                        // User cancelled - we assume user has committed all changes so we can reset
+                                        handler.resetToLocalState();
+                                        return;
+                                    }
+                                }
+                                catch(IOException | GitAPIException ex) {
+                                    displayErrorDialog(ex);
+                                }
+                            }
+                            
+                            // Load
+                            try {
+                                GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
+                            }
+                            catch(IOException ex) {
+                                displayErrorDialog(ex);
+                            }
+                        }
+                    });
                 }
                 catch(GitAPIException | IOException ex) {
-                    ex.printStackTrace();
-                    MessageDialog.openError(fWindow.getShell(),
-                            "Refresh",
-                            "There was an error:" + " " +
-                                ex.getMessage());
+                    displayErrorDialog(ex);
                 }
                 finally {
                     monitor.done();
@@ -124,5 +145,14 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         });
         
+    }
+    
+    private void displayErrorDialog(Throwable ex) {
+        ex.printStackTrace();
+        
+        MessageDialog.openError(fWindow.getShell(),
+                "Refresh",
+                "There was an error:" + " " +
+                    ex.getMessage());
     }
 }

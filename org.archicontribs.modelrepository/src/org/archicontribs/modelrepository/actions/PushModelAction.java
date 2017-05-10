@@ -70,24 +70,45 @@ public class PushModelAction extends AbstractModelAction {
                 try {
                     this.monitor = monitor;
                     
-                    // First we need to Pull and check for conflicts
+                    // First we need to Pull and resolve any conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
+                    
                     if(!pullResult.isSuccessful()) {
-                        MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(), fWindow.getShell());
-                        handler.checkForMergeConflicts();
+                        monitor.done();
+                        
+                        Display.getCurrent().asyncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(),
+                                            fWindow.getShell());
+                                    boolean result = handler.checkForMergeConflicts();
+                                    if(result) {
+                                        handler.mergeAndCommit();
+                                        // We should return now and ask the user to try again, in case there have been more changes since this
+                                        MessageDialog.openInformation(fWindow.getShell(),
+                                                "Publish",
+                                                "Conflicts resolved. Please Publish again.");
+                                    }
+                                    else {
+                                        // User cancelled - do nothing (I think!)
+                                    }
+                                }
+                                catch(IOException | GitAPIException ex) {
+                                    displayErrorDialog(ex);
+                                }
+                            }
+                        });
                     }
-                    
-                    monitor.beginTask("Publishing", IProgressMonitor.UNKNOWN);
-                    
-                    // Push
-                    GraficoUtils.pushToRemote(getGitRepository(), userName, userPassword, this);
+                    else {
+                        monitor.beginTask("Publishing", IProgressMonitor.UNKNOWN);
+                        
+                        // Push
+                        GraficoUtils.pushToRemote(getGitRepository(), userName, userPassword, this);
+                    }
                 }
-                catch(GitAPIException | IOException ex) {
+                catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
-                    MessageDialog.openError(fWindow.getShell(),
-                            "Publish",
-                            "There was an error:" + " " +
-                                ex.getMessage());
                 }
                 finally {
                     monitor.done();
@@ -118,4 +139,14 @@ public class PushModelAction extends AbstractModelAction {
             }
         });
     }
+    
+    private void displayErrorDialog(Throwable ex) {
+        ex.printStackTrace();
+        
+        MessageDialog.openError(fWindow.getShell(),
+                "Publish",
+                "There was an error:" + " " +
+                    ex.getMessage());
+    }
+
 }
