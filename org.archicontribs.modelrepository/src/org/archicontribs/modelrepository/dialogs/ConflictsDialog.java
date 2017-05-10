@@ -5,21 +5,31 @@
  */
 package org.archicontribs.modelrepository.dialogs;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -27,6 +37,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
@@ -43,6 +54,8 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     private MergeConflictHandler fHandler;
     
     private CheckboxTableViewer fTableViewer;
+    
+    private Text fFileViewer;
     
     public ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
@@ -68,7 +81,12 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         GridLayout layout = new GridLayout(1, false);
         container.setLayout(layout);
         
-        createTableControl(container);
+        SashForm sash = new SashForm(container, SWT.VERTICAL);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        sash.setLayoutData(gd);
+        
+        createTableControl(sash);
+        createFileViewerControl(sash);
         
         return area;
     }
@@ -105,9 +123,47 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
         });
 
+        fTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
+                File localGitFolder = fHandler.getLocalGitFolder();
+                
+                Git git = null;
+                
+                try {
+                    git = Git.open(localGitFolder);
+                    
+                    String s = ""; //$NON-NLS-1$
+                    
+                    BufferedReader in = new BufferedReader(new FileReader(new File(localGitFolder, path)));
+                    String line;
+                    while((line = in.readLine()) != null) {
+                        s += line + "\n"; //$NON-NLS-1$
+                    }
+
+                    in.close();
+                    
+                    fFileViewer.setText(s);
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                finally {
+                    git.close();
+                }
+            }
+        });
+        
         // Label Provider
         fTableViewer.setLabelProvider(new LabelProvider());
         fTableViewer.setInput(""); // anything will do //$NON-NLS-1$
+    }
+    
+    private void createFileViewerControl(Composite parent) {
+        fFileViewer = new Text(parent, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
+        fFileViewer.setLayoutData(new GridData(GridData.FILL_BOTH));
+        fFileViewer.setBackground(fTableViewer.getControl().getBackground());
     }
     
     @Override

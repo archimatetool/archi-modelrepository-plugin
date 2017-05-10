@@ -124,6 +124,10 @@ public class MergeConflictHandler {
         checkoutCommand.call();
     }
     
+    public File getLocalGitFolder() {
+        return fLocalGitFolder;
+    }
+    
     public void resetToRemoteState() throws IOException, GitAPIException {
         resetToState("origin/master"); //$NON-NLS-1$
     }
