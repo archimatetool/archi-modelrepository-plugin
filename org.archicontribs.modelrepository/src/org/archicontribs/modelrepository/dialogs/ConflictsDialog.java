@@ -106,7 +106,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         // Columns
         TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
-        column1.getColumn().setText("Select to use theirs");
+        column1.getColumn().setText("Select to use online version, deselect to keep your version.");
         tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(100, true));
 
         // Content Provider
