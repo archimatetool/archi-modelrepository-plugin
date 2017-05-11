@@ -5,13 +5,11 @@
  */
 package org.archicontribs.modelrepository.dialogs;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -25,17 +23,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
@@ -68,7 +57,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     public ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
-        setTitle("Conflicts");
+        setTitle(Messages.ConflictsDialog_0);
         
         fHandler = handler;
     }
@@ -76,12 +65,12 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Conflicts");
+        shell.setText(Messages.ConflictsDialog_0);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("There are Conflicts", IMessageProvider.ERROR);
+        setMessage(Messages.ConflictsDialog_1, IMessageProvider.ERROR);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_IMPORT_PREF_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -99,9 +88,9 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         SashForm sash2 = new SashForm(sash, SWT.HORIZONTAL);
         sash2.setLayoutData(gd);
         
-        fFileViewerOurs = createFileViewerControl(sash2, "Local version");
-        fFileViewerDiff = createFileViewerControl(sash2, "Difference");
-        fFileViewerTheirs = createFileViewerControl(sash2, "Online version");
+        fFileViewerOurs = createFileViewerControl(sash2, Messages.ConflictsDialog_2);
+        fFileViewerDiff = createFileViewerControl(sash2, Messages.ConflictsDialog_3);
+        fFileViewerTheirs = createFileViewerControl(sash2, Messages.ConflictsDialog_4);
         
         sash.setWeights(new int[] { 30, 70 });
         
@@ -129,7 +118,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         // Columns
         TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
-        column1.getColumn().setText("Select to use online version, deselect to keep local version.");
+        column1.getColumn().setText(Messages.ConflictsDialog_5);
         tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(100, true));
 
         // Content Provider
@@ -152,9 +141,9 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
                 
                 try {
-                    fFileViewerOurs.setText(getFileContents(path, Constants.HEAD));
-                    fFileViewerTheirs.setText(getFileContents(path, "origin/master")); //$NON-NLS-1$
-                    fFileViewerDiff.setText(getWorkingTreeFileContents(path));
+                    fFileViewerOurs.setText(GraficoUtils.getFileContents(fHandler.getLocalGitFolder(), path, Constants.HEAD));
+                    fFileViewerTheirs.setText(GraficoUtils.getFileContents(fHandler.getLocalGitFolder(), path, "origin/master")); //$NON-NLS-1$
+                    fFileViewerDiff.setText(GraficoUtils.getWorkingTreeFileContents(fHandler.getLocalGitFolder(), path));
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
@@ -186,61 +175,6 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         text.setBackground(fTableViewer.getControl().getBackground());
         
         return text;
-    }
-    
-    /**
-     * Get the file contents of a file in HEAD or some other ref
-     */
-    private String getFileContents(String path, String ref) throws IOException {
-        String str = ""; //$NON-NLS-1$
-        
-        try(Repository repository = Git.open(fHandler.getLocalGitFolder()).getRepository()) {
-            ObjectId lastCommitId = repository.resolve(ref);
-
-            try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit commit = revWalk.parseCommit(lastCommitId);
-                RevTree tree = commit.getTree();
-
-                // now try to find a specific file
-                try(TreeWalk treeWalk = new TreeWalk(repository)) {
-                    treeWalk.addTree(tree);
-                    treeWalk.setRecursive(true);
-                    treeWalk.setFilter(PathFilter.create(path));
-
-                    if(!treeWalk.next()) {
-                        return "(File not found)";
-                    }
-
-                    ObjectId objectId = treeWalk.getObjectId(0);
-                    ObjectLoader loader = repository.open(objectId);
-
-                    str = new String(loader.getBytes());
-                }
-
-                revWalk.dispose();
-            }
-        }
-        
-        return str;
-    }
-
-    /**
-     * Get the file contents of a file in working tree
-     */
-    private String getWorkingTreeFileContents(String path) throws IOException {
-        String str = ""; //$NON-NLS-1$
-        
-        try(Git git = Git.open(fHandler.getLocalGitFolder())) {
-            BufferedReader in = new BufferedReader(new FileReader(new File(fHandler.getLocalGitFolder(), path)));
-            String line;
-            while((line = in.readLine()) != null) {
-                str += line + "\n"; //$NON-NLS-1$
-            }
-
-            in.close();
-        }
-        
-        return str;
     }
     
     @Override

@@ -5,7 +5,9 @@
  */
 package org.archicontribs.modelrepository.grafico;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -24,14 +26,21 @@ import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.swt.widgets.Shell;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -315,4 +324,70 @@ public class GraficoUtils {
             return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         }
     }
+    
+    /**
+     * Retune the contents of a file in the repo given its ref
+     * Ref could be "HEAD" or "origin/master" for example
+     * @param localGitFolder
+     * @param path
+     * @param ref
+     * @return
+     * @throws IOException
+     */
+    public static String getFileContents(File localGitFolder, String path, String ref) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Repository repository = Git.open(localGitFolder).getRepository()) {
+            ObjectId lastCommitId = repository.resolve(ref);
+
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(lastCommitId);
+                RevTree tree = commit.getTree();
+
+                // now try to find a specific file
+                try(TreeWalk treeWalk = new TreeWalk(repository)) {
+                    treeWalk.addTree(tree);
+                    treeWalk.setRecursive(true);
+                    treeWalk.setFilter(PathFilter.create(path));
+
+                    if(!treeWalk.next()) {
+                        return Messages.GraficoUtils_2;
+                    }
+
+                    ObjectId objectId = treeWalk.getObjectId(0);
+                    ObjectLoader loader = repository.open(objectId);
+
+                    str = new String(loader.getBytes());
+                }
+
+                revWalk.dispose();
+            }
+        }
+        
+        return str;
+    }
+
+    /**
+     * Get the file contents of a file in the working tree
+     * @param localGitFolder
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static String getWorkingTreeFileContents(File localGitFolder, String path) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Git git = Git.open(localGitFolder)) {
+            try(BufferedReader in = new BufferedReader(new FileReader(new File(localGitFolder, path)))) {
+                String line;
+                while((line = in.readLine()) != null) {
+                    str += line + "\n"; //$NON-NLS-1$
+                }
+            }
+        }
+        
+        return str;
+    }
+    
+
 }

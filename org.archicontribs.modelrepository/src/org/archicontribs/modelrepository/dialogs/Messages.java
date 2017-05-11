@@ -16,6 +16,18 @@ public class Messages extends NLS {
 
     public static String CloneInputDialog_4;
 
+    public static String ConflictsDialog_0;
+
+    public static String ConflictsDialog_1;
+
+    public static String ConflictsDialog_2;
+
+    public static String ConflictsDialog_3;
+
+    public static String ConflictsDialog_4;
+
+    public static String ConflictsDialog_5;
+
     public static String UserNamePasswordDialog_0;
 
     public static String UserNamePasswordDialog_1;
