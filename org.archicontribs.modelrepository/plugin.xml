@@ -49,7 +49,7 @@
                id="org.archicontribs.modelrepository.modelRepositoryView"
                minimized="false"
                relationship="stack"
-               relative="com.archimatetool.editor.treeModelView">
+               relative="com.archimatetool.help.hintsView">
          </view>
       </perspectiveExtension>
    </extension>
