@@ -15,7 +15,6 @@ import java.util.List;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -28,6 +27,15 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
@@ -35,6 +43,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
@@ -55,7 +64,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     private CheckboxTableViewer fTableViewer;
     
-    private Text fFileViewer;
+    private Text fFileViewerOurs, fFileViewerTheirs, fFileViewerDiff;
     
     public ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
@@ -86,7 +95,15 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         sash.setLayoutData(gd);
         
         createTableControl(sash);
-        createFileViewerControl(sash);
+        
+        SashForm sash2 = new SashForm(sash, SWT.HORIZONTAL);
+        sash2.setLayoutData(gd);
+        
+        fFileViewerOurs = createFileViewerControl(sash2, "Local version");
+        fFileViewerDiff = createFileViewerControl(sash2, "Difference");
+        fFileViewerTheirs = createFileViewerControl(sash2, "Online version");
+        
+        sash.setWeights(new int[] { 30, 70 });
         
         return area;
     }
@@ -127,20 +144,11 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
-                File localGitFolder = fHandler.getLocalGitFolder();
                 
-                try(Git git = Git.open(localGitFolder)) {
-                    String s = ""; //$NON-NLS-1$
-                    
-                    BufferedReader in = new BufferedReader(new FileReader(new File(localGitFolder, path)));
-                    String line;
-                    while((line = in.readLine()) != null) {
-                        s += line + "\n"; //$NON-NLS-1$
-                    }
-
-                    in.close();
-                    
-                    fFileViewer.setText(s);
+                try {
+                    fFileViewerOurs.setText(getFileContents(path, Constants.HEAD));
+                    fFileViewerTheirs.setText(getFileContents(path, "origin/master")); //$NON-NLS-1$
+                    fFileViewerDiff.setText(getWorkingTreeFileContents(path));
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
@@ -153,10 +161,78 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         fTableViewer.setInput(""); // anything will do //$NON-NLS-1$
     }
     
-    private void createFileViewerControl(Composite parent) {
-        fFileViewer = new Text(parent, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
-        fFileViewer.setLayoutData(new GridData(GridData.FILL_BOTH));
-        fFileViewer.setBackground(fTableViewer.getControl().getBackground());
+    private Text createFileViewerControl(Composite parent, String labelText) {
+        SashForm sash = new SashForm(parent, SWT.HORIZONTAL);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        sash.setLayoutData(gd);
+        
+        Composite client = new Composite(sash, SWT.NONE);
+        client.setLayoutData(new GridData(GridData.FILL_BOTH));
+        client.setLayout(new GridLayout());
+        
+        Label label = new Label(client, SWT.NONE);
+        label.setText(labelText);
+        
+        Text text = new Text(client, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+        text.setLayoutData(new GridData(GridData.FILL_BOTH));
+        text.setBackground(fTableViewer.getControl().getBackground());
+        
+        return text;
+    }
+    
+    /**
+     * Get the file contents of a file in HEAD or some other ref
+     */
+    private String getFileContents(String path, String ref) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Repository repository = Git.open(fHandler.getLocalGitFolder()).getRepository()) {
+            ObjectId lastCommitId = repository.resolve(ref);
+
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(lastCommitId);
+                RevTree tree = commit.getTree();
+
+                // now try to find a specific file
+                try(TreeWalk treeWalk = new TreeWalk(repository)) {
+                    treeWalk.addTree(tree);
+                    treeWalk.setRecursive(true);
+                    treeWalk.setFilter(PathFilter.create(path));
+
+                    if(!treeWalk.next()) {
+                        return "(File not found)";
+                    }
+
+                    ObjectId objectId = treeWalk.getObjectId(0);
+                    ObjectLoader loader = repository.open(objectId);
+
+                    str = new String(loader.getBytes());
+                }
+
+                revWalk.dispose();
+            }
+        }
+        
+        return str;
+    }
+
+    /**
+     * Get the file contents of a file in working tree
+     */
+    private String getWorkingTreeFileContents(String path) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Git git = Git.open(fHandler.getLocalGitFolder())) {
+            BufferedReader in = new BufferedReader(new FileReader(new File(fHandler.getLocalGitFolder(), path)));
+            String line;
+            while((line = in.readLine()) != null) {
+                str += line + "\n"; //$NON-NLS-1$
+            }
+
+            in.close();
+        }
+        
+        return str;
     }
     
     @Override
@@ -181,7 +257,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     @Override
     protected Point getDefaultDialogSize() {
-        return new Point(500, 350);
+        return new Point(700, 550);
     }
     
     @Override
