@@ -87,9 +87,7 @@ public class MergeConflictHandler {
     }
     
     public void mergeAndCommit() throws IOException, GitAPIException {
-        Git git = Git.open(fLocalGitFolder);
-        
-        try {
+        try(Git git = Git.open(fLocalGitFolder)) {
             if(fOurs != null && !fOurs.isEmpty()) {
                 checkout(git, Stage.OURS, fOurs);
             }
@@ -109,9 +107,6 @@ public class MergeConflictHandler {
             String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
             commitCommand.setAuthor(userName, userEmail);
             commitCommand.call();
-        }
-        finally {
-            git.close();
         }
     }
     
@@ -137,12 +132,12 @@ public class MergeConflictHandler {
     
     private void resetToState(String ref) throws IOException, GitAPIException {
         // Reset HARD  which will lose all changes
-        Git git = Git.open(fLocalGitFolder);
-        ResetCommand resetCommand = git.reset();
-        resetCommand.setRef(ref);
-        resetCommand.setMode(ResetType.HARD);
-        resetCommand.call();
-        git.close();
+        try(Git git = Git.open(fLocalGitFolder)) {
+            ResetCommand resetCommand = git.reset();
+            resetCommand.setRef(ref);
+            resetCommand.setMode(ResetType.HARD);
+            resetCommand.call();
+        }
     }
 
     public void setOursAndTheirs(List<String> ours, List<String> theirs) {

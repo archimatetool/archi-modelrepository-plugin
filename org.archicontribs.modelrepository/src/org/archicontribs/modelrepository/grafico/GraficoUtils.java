@@ -55,26 +55,17 @@ public class GraficoUtils {
      * @throws IOException
      */
     public static void cloneModel(File localGitFolder, String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
-        Git git = null;
-        
-        try {
-            CloneCommand cloneCommand = Git.cloneRepository();
-            cloneCommand.setDirectory(localGitFolder);
-            cloneCommand.setURI(repoURL);
-            cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
-            cloneCommand.setProgressMonitor(monitor);
+        CloneCommand cloneCommand = Git.cloneRepository();
+        cloneCommand.setDirectory(localGitFolder);
+        cloneCommand.setURI(repoURL);
+        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+        cloneCommand.setProgressMonitor(monitor);
             
-            git = cloneCommand.call();
-            
+        try(Git git = cloneCommand.call()) {
             // Use the same line endings
             StoredConfig config = git.getRepository().getConfig();
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
             config.save();
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
 
@@ -128,14 +119,11 @@ public class GraficoUtils {
      */
     public static RevCommit commitModel(IArchimateModel model, File localGitFolder, PersonIdent personIdent,
             String commitMessage) throws GitAPIException, IOException {
-        Git git = null;
         
-        try {
-            GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, localGitFolder);
+        GraficoModelExporter exporter = new GraficoModelExporter();
+        exporter.exportModelToLocalGitRepository(model, localGitFolder);
             
-            git = Git.open(localGitFolder);
-            
+        try(Git git = Git.open(localGitFolder)) {
             Status status = git.status().call();
             
             // Nothing changed
@@ -160,11 +148,6 @@ public class GraficoUtils {
             commitCommand.setMessage(commitMessage);
             return commitCommand.call();
         }
-        finally {
-            if(git != null) {
-                git.close();
-            }
-        }
     }
     
     /**
@@ -177,20 +160,11 @@ public class GraficoUtils {
      * @throws GitAPIException
      */
     public static Iterable<PushResult> pushToRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        Git git = null;
-        
-        try {
-            git = Git.open(localGitFolder);
-            
+        try(Git git = Git.open(localGitFolder)) {
             PushCommand pushCommand = git.push();
             pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pushCommand.setProgressMonitor(monitor);
             return pushCommand.call();
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
     
@@ -204,21 +178,12 @@ public class GraficoUtils {
      * @throws GitAPIException
      */
     public static PullResult pullFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        Git git = null;
-        
-        try {
-            git = Git.open(localGitFolder);
-            
+        try(Git git = Git.open(localGitFolder)) {
             PullCommand pullCommand = git.pull();
             pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pullCommand.setRebase(false); // Merge, not rebase
             pullCommand.setProgressMonitor(monitor);
             return pullCommand.call();
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
     
@@ -231,20 +196,11 @@ public class GraficoUtils {
      * @throws GitAPIException
      */
     public static FetchResult fetchFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        Git git = null;
-        
-        try {
-            git = Git.open(localGitFolder);
-            
+        try(Git git = Git.open(localGitFolder)) {
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
             return fetchCommand.call();
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
 
@@ -355,16 +311,8 @@ public class GraficoUtils {
      * @throws IOException
      */
     public static String getRepositoryURL(File localGitFolder) throws IOException {
-        Git git = null;
-        
-        try {
-            git = Git.open(localGitFolder);
+        try(Git git = Git.open(localGitFolder)) {
             return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
 }

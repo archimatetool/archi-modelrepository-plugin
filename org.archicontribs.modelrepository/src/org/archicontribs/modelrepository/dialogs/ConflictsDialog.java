@@ -129,11 +129,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
                 File localGitFolder = fHandler.getLocalGitFolder();
                 
-                Git git = null;
-                
-                try {
-                    git = Git.open(localGitFolder);
-                    
+                try(Git git = Git.open(localGitFolder)) {
                     String s = ""; //$NON-NLS-1$
                     
                     BufferedReader in = new BufferedReader(new FileReader(new File(localGitFolder, path)));
@@ -148,9 +144,6 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
-                }
-                finally {
-                    git.close();
                 }
             }
         });

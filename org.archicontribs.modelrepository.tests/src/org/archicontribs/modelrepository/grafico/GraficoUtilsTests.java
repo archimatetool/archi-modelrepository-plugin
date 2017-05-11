@@ -109,17 +109,10 @@ public class GraficoUtilsTests {
     public void createNewLocalGitRepository_CreatesNewRepo() throws Exception {
         File localGitFolder = new File(getTempTestsFolder(), "testRepo");
         String URL = "https://www.somewherethereish.net/myRepo.git";
-        Git git = null;
         
-        try {
-            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
+        try(Git git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL)) {
             assertNotNull(git);
             assertEquals("origin", git.getRepository().getRemoteName("refs/remotes/origin/"));
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
     
@@ -135,17 +128,10 @@ public class GraficoUtilsTests {
     public void getRepositoryURL_ShouldReturnURL() throws Exception {
         File localGitFolder = new File(getTempTestsFolder(), "testRepo");
         String URL = "https://www.somewherethereish.net/myRepo.git";
-        Git git = null;
         
-        try {
-            git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL);
+        try(Git git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL)) {
             assertNotNull(git);
             assertEquals(URL, GraficoUtils.getRepositoryURL(localGitFolder));
-        }
-        finally {
-            if(git != null) {
-                git.close();
-            }
         }
     }
     
