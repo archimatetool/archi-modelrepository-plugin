@@ -105,6 +105,12 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         sash.setWeights(new int[] { 30, 70 });
         
+        // Select first object in table
+        Object first = fTableViewer.getElementAt(0);
+        if(first != null) {
+            fTableViewer.setSelection(new StructuredSelection(first));
+        }
+        
         return area;
     }
     
@@ -123,7 +129,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         // Columns
         TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
-        column1.getColumn().setText("Select to use online version, deselect to keep your version.");
+        column1.getColumn().setText("Select to use online version, deselect to keep local version.");
         tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(100, true));
 
         // Content Provider
@@ -158,6 +164,8 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         // Label Provider
         fTableViewer.setLabelProvider(new LabelProvider());
+        
+        // Start the table
         fTableViewer.setInput(""); // anything will do //$NON-NLS-1$
     }
     
