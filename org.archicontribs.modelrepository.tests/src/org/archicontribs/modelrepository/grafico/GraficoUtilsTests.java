@@ -11,9 +11,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.GitHelper;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Repository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,6 +118,9 @@ public class GraficoUtilsTests {
         try(Git git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL)) {
             assertNotNull(git);
             assertEquals("origin", git.getRepository().getRemoteName("refs/remotes/origin/"));
+            assertEquals(localGitFolder, git.getRepository().getWorkTree());
+            assertFalse(git.getRepository().isBare());
+            assertEquals(URL, git.remoteList().call().get(0).getURIs().get(0).toASCIIString());
         }
     }
     
@@ -134,7 +142,37 @@ public class GraficoUtilsTests {
             assertEquals(URL, GraficoUtils.getRepositoryURL(localGitFolder));
         }
     }
-    
+
+    @Test
+    public void getFileContents_IsCorrect() throws Exception {
+        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
+        String contents = "Hello World!\nTesting.";
+        
+        try(Repository repo = GitHelper.createNewRepository(localGitFolder)) {
+            File file = new File(localGitFolder, "test.txt");
+            
+            try(FileWriter fw = new FileWriter(file)) {
+                fw.write(contents);
+                fw.flush();
+            }
+            
+            assertTrue(file.exists());
+            
+            // Add file to index
+            AddCommand addCommand = new AddCommand(repo);
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+            
+            // Commit file
+            CommitCommand commitCommand = Git.wrap(repo).commit();
+            commitCommand.setAuthor("Test", "Test");
+            commitCommand.setMessage("Message");
+            commitCommand.call();
+
+            assertEquals(contents, GraficoUtils.getFileContents(localGitFolder, "test.txt", "HEAD"));
+        }
+    }
     
     // Support
     
