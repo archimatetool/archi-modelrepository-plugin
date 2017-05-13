@@ -1,4 +1,4 @@
-# Archi Model Git Repository Plug-in
+# Archi Model Repository Plug-in
 
 Archi® is a free, open source, cross-platform tool and editor to create ArchiMate models.
 
@@ -11,7 +11,7 @@ The Archi website is here: [http://www.archimatetool.com](http://www.archimateto
 
 ## What is this?
 
-This is an extension to Archi that allows the sharing and versioning of Archi models in a Git Repository. It's a work in progress. Enjoy!
+This is an extension to Archi that allows the sharing and versioning of Archi models in a Repository. It's a work in progress. Enjoy!
 
 Here is a basic vision and principles guiding the work:
 ![architeamworkvision](https://cloud.githubusercontent.com/assets/5757396/25773905/66ecf38a-3286-11e7-807a-1be70e509a32.jpg)
