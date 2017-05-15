@@ -5,12 +5,11 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.IOException;
-
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
+
+import com.archimatetool.editor.model.IEditorModelManager;
 
 /**
  * Open Model Action
@@ -31,19 +30,6 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        if(GraficoUtils.locateModel(getGitRepository()) != null) {
-            MessageDialog.openInformation(fWindow.getShell(),
-                    "Open",
-                    "Model is already open.");
-        }
-        else {
-            try {
-                GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-
+        IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getGitRepository()));
     }
 }

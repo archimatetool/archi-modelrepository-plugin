@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -79,13 +78,14 @@ public class GraficoUtils {
     }
 
     /**
-     * Load a model from a local Git folder
+     * Load a model from the local Git folder XML files
+     * Note - The model will need to be checked and have a command stack and Archive manager added by IEditorModelManager.INSTANCE
      * @param localGitFolder
      * @param shell
      * @return The model
      * @throws IOException
      */
-    public static IArchimateModel loadModel(File localGitFolder, Shell shell) throws IOException {
+    public static IArchimateModel loadModelFromGraficoFiles(File localGitFolder, Shell shell) throws IOException {
         GraficoModelImporter importer = new GraficoModelImporter();
         IArchimateModel model = importer.importLocalGitRepositoryAsModel(localGitFolder);
         
@@ -96,23 +96,11 @@ public class GraficoUtils {
                     importer.getResolveStatus());
 
         }
-        else {
-            File tmpFile = getModelFileName(localGitFolder);
-            model.setFile(tmpFile); // Add a file name used to locate the model
-            
-            // If we have it open, close and re-open to refresh changes
-            IArchimateModel existingModel = locateModel(localGitFolder);
-            if(existingModel != null) {
-                // Set dirty state to non-dirty
-                CommandStack stack = (CommandStack)existingModel.getAdapter(CommandStack.class);
-                stack.flush();
-                // Close it
-                IEditorModelManager.INSTANCE.closeModel(existingModel);
-            }
-            
-            IEditorModelManager.INSTANCE.openModel(model); // Open it
-        }
-
+        
+        // Add a file name used to locate the model
+        File tmpFile = getModelFileName(localGitFolder);
+        model.setFile(tmpFile);
+        
         return model;
     }
 

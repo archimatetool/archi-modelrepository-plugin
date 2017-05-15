@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.model.IArchimateModel;
 
 /**
  * Refresh model action
@@ -43,21 +44,25 @@ public class RefreshModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // TODO we need to prompt user to save/commit changes before a pull and reload
-        
-        if(IEditorModelManager.INSTANCE.isModelLoaded(getGitRepository())) {
+        // If user's local copy needs saving
+        IArchimateModel openModel = GraficoUtils.locateModel(getGitRepository());
+        if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",
-                    "Model is already open. Close it and retry.");
+                    "Please save your model first.");
             return;
         }
         
+        // TODO - Commit any pending changes
+        
+        
+        // Get Credentials
         String credentials[] = null;
         try {
             credentials = UserDetails.getUserNameAndPasswordFromCredentialsFileOrDialog(getGitRepository(), fWindow.getShell());
         }
         catch(IOException ex) {
-            ex.printStackTrace();
+            displayErrorDialog(fWindow.getShell(), "Refresh", ex);
         }
         if(credentials == null) {
             return;
@@ -65,6 +70,16 @@ public class RefreshModelAction extends AbstractModelAction {
         
         final String userName = credentials[0];
         final String userPassword = credentials[1];
+        
+        // To be safe, close the model
+        if(openModel != null) {
+            try {
+                IEditorModelManager.INSTANCE.closeModel(openModel);
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+        }
         
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
@@ -103,9 +118,13 @@ public class RefreshModelAction extends AbstractModelAction {
                                 }
                             }
                             
-                            // Load
+                            // Reload the model
                             try {
-                                GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
+                                // Reload the model from the Grafico XML files
+                                IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(getGitRepository(), fWindow.getShell());
+                                
+                                // Open it, this will do the necessary checks and additions of adding a command stack and an archive manager
+                                IEditorModelManager.INSTANCE.openModel(model);
                             }
                             catch(IOException ex) {
                                 displayErrorDialog(fWindow.getShell(), "Refresh", ex);

@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.views;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AbstractModelAction;
@@ -26,7 +25,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -44,6 +42,8 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
+
+import com.archimatetool.editor.model.IEditorModelManager;
 
 
 /**
@@ -104,16 +104,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          */
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
-                File file = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
-                try {
-                    GraficoUtils.loadModel(file, getViewSite().getShell());
-                }
-                catch(IOException ex) {
-                    MessageDialog.openError(getViewSite().getShell(),
-                            "Open",
-                            "There was an error:" + " " +
-                                ex.getMessage());
-                }
+                File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
+                IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
             }
         });
 

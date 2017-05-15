@@ -27,7 +27,9 @@ import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
 
 /**
  * Clone a model
@@ -87,8 +89,14 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
-                    // Load
-                    GraficoUtils.loadModel(localGitFolder, fWindow.getShell());
+                    // Load it from Grafico files
+                    IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(localGitFolder, fWindow.getShell());
+                    
+                    // Open it, this will do the necessary checks and additions of adding a command stack and an archive manager
+                    IEditorModelManager.INSTANCE.openModel(model);
+                    
+                    // Save it to the temp file
+                    IEditorModelManager.INSTANCE.saveModel(model);
                     
                     // Store credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
