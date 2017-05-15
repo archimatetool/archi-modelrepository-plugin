@@ -17,7 +17,6 @@ import org.archicontribs.modelrepository.actions.OpenModelAction;
 import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
-import org.archicontribs.modelrepository.actions.SaveModelAction;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -71,7 +70,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     protected AbstractModelAction fActionRefresh;
     protected AbstractModelAction fActionDelete;
     
-    protected AbstractModelAction fActionSave;
     protected AbstractModelAction fActionCommit;
     protected AbstractModelAction fActionPush;
     
@@ -137,9 +135,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         fActionDelete = new DeleteModelAction(getViewSite().getWorkbenchWindow());
         fActionDelete.setEnabled(false);
-        
-        fActionSave = new SaveModelAction(getViewSite().getWorkbenchWindow());
-        fActionSave.setEnabled(false);
         
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
         fActionCommit.setEnabled(false);
@@ -215,7 +210,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         manager.add(fActionRefresh);
         manager.add(fActionOpen);
         manager.add(new Separator());
-        manager.add(fActionSave);
         manager.add(fActionCommit);
         manager.add(fActionPush);
     }
@@ -234,7 +228,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         fActionDelete.setGitRepository(file);
         
         // TODO: Actions that should in fact be bounded to an ArchimateModel and not a git repository 
-        fActionSave.setGitRepository(file);
         fActionCommit.setGitRepository(file);
         fActionPush.setGitRepository(file);
         
@@ -252,7 +245,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
             manager.add(fActionRefresh);
             manager.add(fActionOpen);
             manager.add(new Separator());
-            manager.add(fActionSave);
             manager.add(fActionCommit);
             manager.add(fActionPush);
             manager.add(new Separator());

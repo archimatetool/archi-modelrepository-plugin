@@ -33,8 +33,8 @@ public class CommitModelAction extends AbstractModelAction {
     public CommitModelAction(IWorkbenchWindow window) {
         fWindow = window;
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT_16));
-        setText("Commit");
-        setToolTipText("Commit");
+        setText("Commit Changes");
+        setToolTipText("Commit Changes");
     }
 
     @Override
@@ -43,7 +43,7 @@ public class CommitModelAction extends AbstractModelAction {
         
         if(model == null) {
             MessageDialog.openInformation(fWindow.getShell(),
-                    "Commit",
+                    "Commit Changes",
                     "Model is not open. Please open it first.");
             return;
         }
@@ -65,7 +65,7 @@ public class CommitModelAction extends AbstractModelAction {
                 GraficoUtils.commitModel(model, getGitRepository(), personIdent, commitMessage);
             }
             catch(IOException | GitAPIException ex) {
-                displayErrorDialog(fWindow.getShell(), "Commit", ex);
+                displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);
             }
         }
     }
