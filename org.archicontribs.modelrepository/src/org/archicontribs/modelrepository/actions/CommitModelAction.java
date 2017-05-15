@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
+import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -39,13 +40,35 @@ public class CommitModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        // TODO Do this without model loaded
         IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
-        
         if(model == null) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Commit Changes",
                     "Model is not open. Please open it first.");
             return;
+        }
+        
+        // Do the Grafico Export thing first
+        try {
+            GraficoModelExporter exporter = new GraficoModelExporter();
+            exporter.exportModelToLocalGitRepository(model, getGitRepository());
+        }
+        catch(IOException ex) {
+            displayErrorDialog(fWindow.getShell(), "Grafico Export", ex);
+        }
+        
+        // Then check if anything to commit
+        try {
+            if(!GraficoUtils.hasChangesToCommit(getGitRepository())) {
+                MessageDialog.openInformation(fWindow.getShell(),
+                        "Commit Changes",
+                        "Nothing to commit.");
+                return;
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);
         }
         
         CommitDialog commitDialog = new CommitDialog(fWindow.getShell());
@@ -62,7 +85,7 @@ public class CommitModelAction extends AbstractModelAction {
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                GraficoUtils.commitModel(model, getGitRepository(), personIdent, commitMessage);
+                GraficoUtils.commitChanges(getGitRepository(), personIdent, commitMessage);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);

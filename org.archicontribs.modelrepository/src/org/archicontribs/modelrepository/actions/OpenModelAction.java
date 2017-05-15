@@ -19,10 +19,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
  */
 public class OpenModelAction extends AbstractModelAction {
 	
-	private IWorkbenchWindow fWindow;
-
     public OpenModelAction(IWorkbenchWindow window) {
-        fWindow = window;
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_OPEN_16));
         setText("Open");
         setToolTipText("Open Model");

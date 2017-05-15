@@ -53,8 +53,13 @@ public class RefreshModelAction extends AbstractModelAction {
             return;
         }
         
-        // TODO - Commit any pending changes
-        
+        // TODO - Check whether there are actual changes rather than timestamp changes
+        if(GraficoUtils.hasLocalChanges(getGitRepository())) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Refresh",
+                    "Please commit your changes first.");
+            return;
+        }
         
         // Get Credentials
         String credentials[] = null;

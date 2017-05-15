@@ -105,7 +105,7 @@ public class GraficoUtils {
     }
 
     /**
-     * Commit a model with any changes to local repo
+     * Commit any changes
      * @param model
      * @param localGitFolder
      * @param personIdent
@@ -114,12 +114,7 @@ public class GraficoUtils {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static RevCommit commitModel(IArchimateModel model, File localGitFolder, PersonIdent personIdent,
-            String commitMessage) throws GitAPIException, IOException {
-        
-        GraficoModelExporter exporter = new GraficoModelExporter();
-        exporter.exportModelToLocalGitRepository(model, localGitFolder);
-            
+    public static RevCommit commitChanges(File localGitFolder, PersonIdent personIdent, String commitMessage) throws GitAPIException, IOException {
         try(Git git = Git.open(localGitFolder)) {
             Status status = git.status().call();
             
@@ -144,6 +139,20 @@ public class GraficoUtils {
             commitCommand.setAuthor(personIdent);
             commitCommand.setMessage(commitMessage);
             return commitCommand.call();
+        }
+    }
+    
+    /**
+     * Return true if there are local changes to commit in the working tree
+     * @param localGitFolder
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public static boolean hasChangesToCommit(File localGitFolder) throws IOException, GitAPIException {
+        try(Git git = Git.open(localGitFolder)) {
+            Status status = git.status().call();
+            return !status.isClean();
         }
     }
     
@@ -369,5 +378,22 @@ public class GraficoUtils {
         return str;
     }
     
-
+    /**
+     * Return true if the local temp.archimate file has been modified since last Grafico export
+     * @param localGitFolder
+     * @return
+     */
+    public static boolean hasLocalChanges(File localGitFolder) {
+        File localFile = getModelFileName(localGitFolder);
+        File gitModelFolder = new File(localGitFolder, IGraficoConstants.MODEL_FOLDER);
+        
+        if(!localFile.exists() || !gitModelFolder.exists()) {
+            return false;
+        }
+        
+        long localFileLastModified = localFile.lastModified();
+        long gitFolderLastModified = gitModelFolder.lastModified();
+        
+        return localFileLastModified > gitFolderLastModified;
+    }
 }

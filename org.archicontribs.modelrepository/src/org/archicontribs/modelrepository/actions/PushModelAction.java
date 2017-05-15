@@ -22,6 +22,9 @@ import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.model.IArchimateModel;
+
 /**
  * PushModelAction
  * 
@@ -40,6 +43,26 @@ public class PushModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        // TODO Check and warn if commits are needed
+        // TODO Offer choice to Push anyway
+
+        // If user's local copy needs saving
+        IArchimateModel openModel = GraficoUtils.locateModel(getGitRepository());
+        if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Publish",
+                    "Please save your model first.");
+            return;
+        }
+        
+        // TODO - Check whether there are actual changes rather than timestamp changes
+        if(GraficoUtils.hasLocalChanges(getGitRepository())) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Publish",
+                    "Please commit your changes first.");
+            return;
+        }
+        
         boolean doPush = MessageDialog.openConfirm(fWindow.getShell(),
                 "Publish",
                 "Publish changes?");
