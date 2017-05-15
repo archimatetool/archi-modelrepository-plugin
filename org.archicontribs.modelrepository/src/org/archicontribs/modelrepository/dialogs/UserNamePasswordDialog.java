@@ -45,7 +45,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     @Override
     protected Control createDialogArea(Composite parent) {
         setMessage(Messages.UserNamePasswordDialog_1, IMessageProvider.INFORMATION);
-        setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_PROPERTIES_VIEW_ICON));
+        setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);

@@ -95,7 +95,7 @@ public class PushModelAction extends AbstractModelAction {
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog(ex);
+                                    displayErrorDialog(fWindow.getShell(), "Publish", ex);
                                 }
                             }
                         });
@@ -139,14 +139,4 @@ public class PushModelAction extends AbstractModelAction {
             }
         });
     }
-    
-    private void displayErrorDialog(Throwable ex) {
-        ex.printStackTrace();
-        
-        MessageDialog.openError(fWindow.getShell(),
-                "Publish",
-                "There was an error:" + " " +
-                    ex.getMessage());
-    }
-
 }

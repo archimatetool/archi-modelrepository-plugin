@@ -99,7 +99,7 @@ public class RefreshModelAction extends AbstractModelAction {
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog(ex);
+                                    displayErrorDialog(fWindow.getShell(), "Refresh", ex);
                                 }
                             }
                             
@@ -108,13 +108,13 @@ public class RefreshModelAction extends AbstractModelAction {
                                 GraficoUtils.loadModel(getGitRepository(), fWindow.getShell());
                             }
                             catch(IOException ex) {
-                                displayErrorDialog(ex);
+                                displayErrorDialog(fWindow.getShell(), "Refresh", ex);
                             }
                         }
                     });
                 }
                 catch(GitAPIException | IOException ex) {
-                    displayErrorDialog(ex);
+                    displayErrorDialog(fWindow.getShell(), "Refresh", ex);
                 }
                 finally {
                     monitor.done();
@@ -145,14 +145,5 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         });
         
-    }
-    
-    private void displayErrorDialog(Throwable ex) {
-        ex.printStackTrace();
-        
-        MessageDialog.openError(fWindow.getShell(),
-                "Refresh",
-                "There was an error:" + " " +
-                    ex.getMessage());
     }
 }

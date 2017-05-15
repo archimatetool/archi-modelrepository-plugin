@@ -31,7 +31,7 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        if(GraficoUtils.isModelLoaded(getGitRepository())) {
+        if(GraficoUtils.locateModel(getGitRepository()) != null) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Open",
                     "Model is already open.");

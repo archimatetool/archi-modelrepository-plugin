@@ -9,17 +9,15 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
-import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -41,52 +39,34 @@ public class CommitModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        if(!GraficoUtils.isModelLoaded(getGitRepository())) {
+        IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
+        
+        if(model == null) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Commit",
-                    "Model is not open. Hit Refresh!");
+                    "Model is not open. Please open it first.");
             return;
         }
         
-        boolean doCommit = MessageDialog.openConfirm(fWindow.getShell(),
-                "Commit",
-                "Commit changes?");
+        CommitDialog commitDialog = new CommitDialog(fWindow.getShell());
+        int response = commitDialog.open();
         
-        if(doCommit) {
-            IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
-            if(model != null) {
-                try {
-                    String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-                    String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                    
-                    if(!StringUtils.isSet(userName) || !StringUtils.isSet(userEmail)) {
-                        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                                    "Commit",
-                                    "User name and/or email not set. Set now?");
-                        if(response) {
-                            // Open Preferences
-                            PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(fWindow.getShell(),
-                                    ModelRepositoryPreferencePage.ID, null, null);
-                            if(dialog != null) {
-                                //ModelRepositoryPreferencePage page = (ModelRepositoryPreferencePage)dialog.getSelectedPage();
-                                //page.selectSomeTab();
-                                dialog.open();
-                                return;
-                            }
-                        }
-                        else{
-                            return;
-                        }
-                    }
-                    
-                    PersonIdent personIdent = new PersonIdent(userName, userEmail);
-                    String commitMessage = "Test commit message from model repo!";
-                    GraficoUtils.commitModel(model, getGitRepository(), personIdent, commitMessage);
-                }
-                catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
-                }
+        if(response == Window.OK) {
+            String userName = commitDialog.getUserName();
+            String userEmail = commitDialog.getUserEmail();
+            String commitMessage = commitDialog.getCommitMessage();
+            PersonIdent personIdent = new PersonIdent(userName, userEmail);
+            
+            // Store Prefs
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_NAME, userName);
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
+
+            try {
+                GraficoUtils.commitModel(model, getGitRepository(), personIdent, commitMessage);
             }
-        } 
+            catch(IOException | GitAPIException ex) {
+                displayErrorDialog(fWindow.getShell(), "Commit", ex);
+            }
+        }
     }
 }

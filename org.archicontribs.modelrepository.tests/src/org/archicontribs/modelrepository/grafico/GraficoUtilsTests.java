@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.grafico;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -85,20 +86,13 @@ public class GraficoUtilsTests {
     }
 
     @Test
-    public void isModelLoaded_IsLoadedInModelsTree() {
-        File localGitFolder = new File("/temp/folder");
-        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
-        
-        IEditorModelManager.INSTANCE.openModel(model);
-        assertTrue(GraficoUtils.isModelLoaded(localGitFolder));
-    }
-
-    @Test
     public void locateModel_LocateNewModel() {
         File localGitFolder = new File("/temp/folder");
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         model.setFile(GraficoUtils.getModelFileName(localGitFolder));
+        
+        // Not open
+        assertNull(GraficoUtils.locateModel(localGitFolder));
         
         IEditorModelManager.INSTANCE.openModel(model);
         assertEquals(model, GraficoUtils.locateModel(localGitFolder));

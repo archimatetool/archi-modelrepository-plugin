@@ -253,14 +253,6 @@ public class GraficoUtils {
     }
     
     /**
-     * @param localGitFolder
-     * @return True if a model based on the local git folder name is loaded in the models tree
-     */
-    public static boolean isModelLoaded(File localGitFolder) {
-        return IEditorModelManager.INSTANCE.isModelLoaded(getModelFileName(localGitFolder));
-    }
-    
-    /**
      * Locate a model in the models tree based on its file location
      * @param localGitFolder
      * @return
