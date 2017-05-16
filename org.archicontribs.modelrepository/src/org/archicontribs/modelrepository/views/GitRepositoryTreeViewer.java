@@ -94,24 +94,6 @@ public class GitRepositoryTreeViewer extends TreeViewer {
         Display.getDefault().timerExec(TIMERDELAY, fTimer);
     }
     
-    /* 
-     * Over-ride - make sure we have a folder!
-     */
-    @Override
-    public void refresh() {
-        fRootFolder.mkdirs();
-        super.refresh();
-    }
-    
-    /* 
-     * Over-ride - make sure we have a folder!
-     */
-    @Override
-    public void refresh(final Object element) {
-        fRootFolder.mkdirs();
-        super.refresh(element);
-    }
-    
     /**
      * Dispose of stuff
      */
@@ -152,12 +134,15 @@ public class GitRepositoryTreeViewer extends TreeViewer {
         public Object [] getChildren(Object parent) {
         	// Only show top level folders that are git repos
             if(parent instanceof File) {
-                return ((File)parent).listFiles(new FileFilter() {
-                    public boolean accept(File child) {
-                        return GraficoUtils.isGitRepository(child);
-                    }
-                });
+                if(((File)parent).exists()) {
+                    return ((File)parent).listFiles(new FileFilter() {
+                        public boolean accept(File child) {
+                            return GraficoUtils.isGitRepository(child);
+                        }
+                    });
+                }
             }
+            
             return new Object[0];
         }
         
