@@ -5,10 +5,22 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import java.io.IOException;
+
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.FileUtils;
+import com.archimatetool.model.IArchimateModel;
+
+/**
+ * Delete local repo folder
+ * 
+ * @author Phillip Beauvoir
+ */
 public class DeleteModelAction extends AbstractModelAction {
 	
 	private IWorkbenchWindow fWindow;
@@ -22,6 +34,27 @@ public class DeleteModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-    	MessageDialog.openInformation(fWindow.getShell(), this.getText(), this.getToolTipText());
+        boolean confirm = MessageDialog.openConfirm(fWindow.getShell(), "Delete", "Are you sure you want to delete this local repository?");
+        
+        if(!confirm) {
+            return;
+        }
+        
+        try {
+            // Close the model in the tree
+            IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
+            if(model != null) {
+                boolean didClose = IEditorModelManager.INSTANCE.closeModel(model);
+                if(!didClose) {
+                    return;
+                }
+            }
+            
+            // Delete
+            FileUtils.deleteFolder(getGitRepository());
+        }
+        catch(IOException ex) {
+            displayErrorDialog(fWindow.getShell(), "Delete", ex);
+        }
     }
 }
