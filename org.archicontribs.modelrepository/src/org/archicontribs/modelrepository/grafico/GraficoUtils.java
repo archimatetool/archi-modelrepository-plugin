@@ -82,13 +82,20 @@ public class GraficoUtils {
      * Note - The model will need to be checked and have a command stack and Archive manager added by IEditorModelManager.INSTANCE
      * @param localGitFolder
      * @param shell
-     * @return The model
+     * @return The model or null
      * @throws IOException
      */
     public static IArchimateModel loadModelFromGraficoFiles(File localGitFolder, Shell shell) throws IOException {
         GraficoModelImporter importer = new GraficoModelImporter();
         IArchimateModel model = importer.importLocalGitRepositoryAsModel(localGitFolder);
         
+        // Add a file name used to locate the model
+        if(model != null) {
+            File tmpFile = getModelFileName(localGitFolder);
+            model.setFile(tmpFile);
+        }
+
+        // Errors
         if(importer.getResolveStatus() != null) {
             ErrorDialog.openError(shell,
                     Messages.GraficoUtils_0,
@@ -96,10 +103,6 @@ public class GraficoUtils {
                     importer.getResolveStatus());
 
         }
-        
-        // Add a file name used to locate the model
-        File tmpFile = getModelFileName(localGitFolder);
-        model.setFile(tmpFile);
         
         return model;
     }

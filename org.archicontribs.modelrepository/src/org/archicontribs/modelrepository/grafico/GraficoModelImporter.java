@@ -75,12 +75,16 @@ public class GraficoModelImporter implements IGraficoConstants {
             throw new IOException("Folder was null"); //$NON-NLS-1$
         }
     	
-    	// Define source folders for model and images
+    	// Create folders for model and images
     	File modelFolder = new File(gitRepoFolder, MODEL_FOLDER);
-    	File imagesFolder = new File(gitRepoFolder, IMAGES_FOLDER);
+        modelFolder.mkdirs();
+
+        File imagesFolder = new File(gitRepoFolder, IMAGES_FOLDER);
+    	imagesFolder.mkdirs();
     	
-    	if(!modelFolder.isDirectory()) {
-    	    throw new IOException("Folder is not a directory"); //$NON-NLS-1$
+    	// If the top folder.xml does not exist then there is nothing to import, so return null
+    	if(!(new File(modelFolder, FOLDER_XML)).isFile()) {
+    	    return null;
     	}
     	
     	// Create ResourceSet
@@ -98,12 +102,10 @@ public class GraficoModelImporter implements IGraficoConstants {
     	
     	// Resolve proxies
     	fResolveErrors = null;
-    	
     	resolveProxies(model);
-    	
-    	if(imagesFolder.isDirectory()) {
-    		loadImages(model, imagesFolder);
-    	}
+
+    	// Load images
+    	loadImages(model, imagesFolder);
 
     	return model;
     }

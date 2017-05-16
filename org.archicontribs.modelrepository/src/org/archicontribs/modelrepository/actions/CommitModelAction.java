@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -42,10 +43,18 @@ public class CommitModelAction extends AbstractModelAction {
     public void run() {
         // TODO Do this without model loaded
         IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
+        
         if(model == null) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Commit Changes",
                     "Model is not open. Please open it first.");
+            return;
+        }
+        
+        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            MessageDialog.openInformation(fWindow.getShell(),
+                    "Publish",
+                    "Please save your model first.");
             return;
         }
         

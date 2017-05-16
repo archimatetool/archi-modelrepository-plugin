@@ -128,8 +128,10 @@ public class RefreshModelAction extends AbstractModelAction {
                                 // Reload the model from the Grafico XML files
                                 IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(getGitRepository(), fWindow.getShell());
                                 
-                                // Open it, this will do the necessary checks and additions of adding a command stack and an archive manager
-                                IEditorModelManager.INSTANCE.openModel(model);
+                                // Open it, this will do the necessary checks and add a command stack and an archive manager
+                                if(model != null) {
+                                    IEditorModelManager.INSTANCE.openModel(model);
+                                }
                             }
                             catch(IOException ex) {
                                 displayErrorDialog(fWindow.getShell(), "Refresh", ex);

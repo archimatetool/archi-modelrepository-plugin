@@ -89,16 +89,28 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
-                    // Load it from Grafico files
+                    // Load it from the Grafico files if we can
                     IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(localGitFolder, fWindow.getShell());
                     
-                    // Open it, this will do the necessary checks and additions of adding a command stack and an archive manager
-                    IEditorModelManager.INSTANCE.openModel(model);
+                    // We have it
+                    if(model != null) {
+                        // Open it first. This will do the necessary checks and add a command stack and an archive manager so we can save it
+                        IEditorModelManager.INSTANCE.openModel(model);
+                        
+                        // Save it as the temp file
+                        IEditorModelManager.INSTANCE.saveModel(model);
+                    }
+                    // We couldn't load it from Grafico so create a new blank model
+                    else {
+                        // New one. This will open in the tree
+                        model = IEditorModelManager.INSTANCE.createNewModel();
+                        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
+                        
+                        // And Save it
+                        IEditorModelManager.INSTANCE.saveModel(model);
+                    }
                     
-                    // Save it to the temp file
-                    IEditorModelManager.INSTANCE.saveModel(model);
-                    
-                    // Store credentials if option is set
+                    // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
                         SimpleCredentialsStorage sc = new SimpleCredentialsStorage(localGitFolder);
                         sc.store(userName, userPassword);
