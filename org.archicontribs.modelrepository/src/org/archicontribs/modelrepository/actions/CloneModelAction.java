@@ -122,11 +122,7 @@ public class CloneModelAction extends AbstractModelAction {
                     }
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
-                    ex.printStackTrace();
-                    MessageDialog.openError(fWindow.getShell(),
-                            Messages.CloneModelAction_0,
-                            Messages.CloneModelAction_3 + " " + //$NON-NLS-1$
-                            ex.getMessage());
+                    displayErrorDialog(fWindow.getShell(), Messages.CloneModelAction_0, ex);
                 }
                 finally {
                     monitor.done();

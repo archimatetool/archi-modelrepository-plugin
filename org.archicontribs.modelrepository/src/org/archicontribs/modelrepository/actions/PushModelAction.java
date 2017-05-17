@@ -137,7 +137,7 @@ public class PushModelAction extends AbstractModelAction {
                     }
                 }
                 catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
+                    displayErrorDialog(fWindow.getShell(), "Publish", ex);
                 }
                 finally {
                     monitor.done();

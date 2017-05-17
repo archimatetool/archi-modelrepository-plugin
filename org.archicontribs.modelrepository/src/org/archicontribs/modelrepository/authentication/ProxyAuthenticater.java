@@ -15,6 +15,8 @@ import java.net.Proxy.Type;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 
@@ -91,5 +93,9 @@ public class ProxyAuthenticater {
             }
         });      
 
+        // Test the connection
+        URL url = new URL("http://localhost"); //$NON-NLS-1$
+        URLConnection connection = url.openConnection();
+        connection.connect();
     }
 }
