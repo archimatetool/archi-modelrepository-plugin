@@ -7,7 +7,6 @@ package org.archicontribs.modelrepository.preferences;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -35,6 +34,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.ui.UIUtils;
+import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -254,8 +254,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         try {
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE);
-            fProxyUserNameTextField.setText(sc.getUserName());
-            fProxyUserPasswordTextField.setText(sc.getUserPassword());
+            fProxyUserNameTextField.setText(StringUtils.safeString(sc.getUserName()));
+            fProxyUserPasswordTextField.setText(StringUtils.safeString(sc.getUserPassword()));
         }
         catch(IOException ex) {
             ex.printStackTrace();

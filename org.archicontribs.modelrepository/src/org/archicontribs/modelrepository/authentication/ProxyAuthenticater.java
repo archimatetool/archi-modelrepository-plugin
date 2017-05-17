@@ -22,6 +22,8 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 
+import com.archimatetool.editor.utils.StringUtils;
+
 /**
  * ProxyAuthenticater
  * 
@@ -54,6 +56,10 @@ public class ProxyAuthenticater {
             final String userName = sc.getUserName();
             final String password = sc.getUserPassword();
             
+            if(!StringUtils.isSet(userName) || !StringUtils.isSet(password)) {
+                return;
+            }
+            
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
@@ -67,6 +73,10 @@ public class ProxyAuthenticater {
         
         final String hostName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
         final int port = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+        
+        if(!StringUtils.isSet(hostName)) {
+            return;
+        }
         
         final InetSocketAddress address = new InetSocketAddress(InetAddress.getByName(hostName), port);
         

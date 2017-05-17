@@ -83,6 +83,10 @@ public class SimpleCredentialsStorage {
     }
     
     public String getUserName() throws IOException {
+        if(!hasCredentialsFile()) {
+            return null;
+        }
+        
         BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()));
         String str = in.readLine();
         in.close();
@@ -90,6 +94,10 @@ public class SimpleCredentialsStorage {
     }
     
     public String getUserPassword() throws IOException {
+        if(!hasCredentialsFile()) {
+            return null;
+        }
+        
         BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()));
         in.readLine();
         String str = in.readLine();
