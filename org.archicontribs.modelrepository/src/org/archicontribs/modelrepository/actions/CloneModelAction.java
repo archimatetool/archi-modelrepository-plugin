@@ -13,9 +13,11 @@ import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -84,6 +86,9 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     monitor.beginTask(Messages.CloneModelAction_4, IProgressMonitor.UNKNOWN);
                     
+                    // Proxy check
+                    ProxyAuthenticater.update();
+                    
                     // Clone
                     GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword, this);
                     
@@ -112,7 +117,7 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(localGitFolder);
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(localGitFolder, ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
                         sc.store(userName, userPassword);
                     }
                 }

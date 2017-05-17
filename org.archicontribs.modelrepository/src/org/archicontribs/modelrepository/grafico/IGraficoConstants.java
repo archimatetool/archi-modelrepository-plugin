@@ -27,4 +27,13 @@ public interface IGraficoConstants {
      */
     String MODEL_FOLDER = "model"; //$NON-NLS-1$
 
+    /**
+     * File name of user name/password for each git repo
+     */
+    String REPO_CREDENTIALS_FILE = "credentials"; //$NON-NLS-1$
+    
+    /**
+     * File name of user name/password for Proxy Server
+     */
+    String PROXY_CREDENTIALS_FILE = "proxy_credentials"; //$NON-NLS-1$
 }

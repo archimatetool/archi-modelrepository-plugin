@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.authentication.UserDetails;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
+import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -73,7 +75,8 @@ public class PushModelAction extends AbstractModelAction {
         
         String credentials[] = null;
         try {
-            credentials = UserDetails.getUserNameAndPasswordFromCredentialsFileOrDialog(getGitRepository(), fWindow.getShell());
+            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getGitFolder(),
+                    IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
             ex.printStackTrace();
@@ -92,6 +95,9 @@ public class PushModelAction extends AbstractModelAction {
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                 try {
                     this.monitor = monitor;
+                    
+                    // Proxy
+                    ProxyAuthenticater.update();
                     
                     // First we need to Pull and resolve any conflicts
                     PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);

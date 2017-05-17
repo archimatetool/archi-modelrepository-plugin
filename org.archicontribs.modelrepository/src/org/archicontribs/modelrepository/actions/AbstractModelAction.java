@@ -25,6 +25,10 @@ public abstract class AbstractModelAction extends Action {
 	    return fGitRepoFolder;
 	}
 	
+	public File getGitFolder() {
+	    return new File(fGitRepoFolder, ".git"); //$NON-NLS-1$
+	}
+	
     protected void displayErrorDialog(Shell shell, String title, Throwable ex) {
         ex.printStackTrace();
         

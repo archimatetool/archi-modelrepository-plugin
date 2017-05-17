@@ -6,12 +6,20 @@
 package org.archicontribs.modelrepository.preferences;
 
 import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -49,6 +57,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     private Button fStoreCredentialsButton;
     
+    private Button fUseProxyButton, fRequiresProxyAuthenticationButton;
+    private Text fProxyHostTextField;
+    private Text fProxyPortTextField;
+    private Text fProxyUserNameTextField;
+    private Text fProxyUserPasswordTextField;
+    
 	public ModelRepositoryPreferencePage() {
 		setPreferenceStore(ModelRepositoryPlugin.INSTANCE.getPreferenceStore());
 	}
@@ -61,13 +75,16 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         Composite client = new Composite(parent, SWT.NULL);
         client.setLayout(new GridLayout());
         
+        Label label = new Label(client, SWT.NULL);
+        label.setText("NOTICE - passwords are encrypted but could still be discovered!");
+        
         // User details
         Group userDetailsGroup = new Group(client, SWT.NULL);
         userDetailsGroup.setText("User Details");
         userDetailsGroup.setLayout(new GridLayout(2, false));
         userDetailsGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        Label label = new Label(userDetailsGroup, SWT.NULL);
+        label = new Label(userDetailsGroup, SWT.NULL);
         label.setText("Name:");
         
         fUserNameTextField = new Text(userDetailsGroup, SWT.BORDER | SWT.SINGLE);
@@ -112,22 +129,100 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         });
         
         Group otherGroup = new Group(client, SWT.NULL);
-        otherGroup.setText("Testing");
+        otherGroup.setText("Repository");
         otherGroup.setLayout(new GridLayout(3, false));
         otherGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Store Credentials
         fStoreCredentialsButton = new Button(otherGroup, SWT.CHECK);
-        fStoreCredentialsButton.setText("Store each repository's user name and password in an encrypted file.");
+        fStoreCredentialsButton.setText("Store each repository's user name and password in an encrypted file");
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         fStoreCredentialsButton.setLayoutData(gd);
         label = new Label(otherGroup, SWT.NULL);
-        label.setText("WARNING - This is for testing only. The password is encrypted but could be discovered!");
-        label.setLayoutData(gd);
-        label = new Label(otherGroup, SWT.NULL);
         label.setText("If not enabled you will be prompted for user name and password for each action.");
         label.setLayoutData(gd);
+        
+        // Proxy
+        Group proxyGroup = new Group(client, SWT.NULL);
+        proxyGroup.setText("Proxy");
+        proxyGroup.setLayout(new GridLayout(4, false));
+        proxyGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        fUseProxyButton = new Button(proxyGroup, SWT.CHECK);
+        fUseProxyButton.setText("Enable Proxy");
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 4;
+        fUseProxyButton.setLayoutData(gd);
+        fUseProxyButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateProxyControls();
+            }
+        });
+        
+        label = new Label(proxyGroup, SWT.NULL);
+        label.setText("Host:");
+        fProxyHostTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
+        fProxyHostTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fProxyHostTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fProxyHostTextField);
+
+        label = new Label(proxyGroup, SWT.NULL);
+        label.setText("Port:");
+        fProxyPortTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
+        fProxyPortTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fProxyPortTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fProxyPortTextField);
+        
+        fProxyPortTextField.addVerifyListener(new VerifyListener() {
+            @Override
+            public void verifyText(VerifyEvent e) {
+                String currentText = ((Text)e.widget).getText();
+                String port = currentText.substring(0, e.start) + e.text + currentText.substring(e.end);
+                try {
+                    int portNum = Integer.valueOf(port);
+                    if(portNum < 0 || portNum > 65535) {
+                        e.doit = false;
+                    }
+                }
+                catch(NumberFormatException ex) {
+                    if(!port.equals("")) { //$NON-NLS-1$
+                        e.doit = false;
+                    }
+                }
+            }
+        });
+        
+        fRequiresProxyAuthenticationButton = new Button(proxyGroup, SWT.CHECK);
+        fRequiresProxyAuthenticationButton.setText("Requires Authentication");
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 4;
+        fRequiresProxyAuthenticationButton.setLayoutData(gd);
+        fRequiresProxyAuthenticationButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateProxyControls();
+            }
+        });
+        
+        label = new Label(proxyGroup, SWT.NULL);
+        label.setText("User:");
+        fProxyUserNameTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
+        fProxyUserNameTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fProxyUserNameTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fProxyUserNameTextField);
+        
+        label = new Label(proxyGroup, SWT.NULL);
+        label.setText("Password:");
+        fProxyUserPasswordTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE | SWT.PASSWORD);
+        fProxyUserPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fProxyUserPasswordTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fProxyUserPasswordTextField);
 
         setValues();
         
@@ -150,6 +245,23 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserEmailTextField.setText(getPreferenceStore().getString(PREFS_COMMIT_USER_EMAIL));
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         fStoreCredentialsButton.setSelection(getPreferenceStore().getBoolean(PREFS_STORE_REPO_CREDENTIALS));
+        
+        fUseProxyButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_USE));
+        fProxyHostTextField.setText(getPreferenceStore().getString(PREFS_PROXY_HOST));
+        fProxyPortTextField.setText(getPreferenceStore().getString(PREFS_PROXY_PORT));
+        fRequiresProxyAuthenticationButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_REQUIRES_AUTHENTICATION));
+        
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.PROXY_CREDENTIALS_FILE);
+            fProxyUserNameTextField.setText(sc.getUserName());
+            fProxyUserPasswordTextField.setText(sc.getUserPassword());
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        updateProxyControls();
     }
     
     @Override
@@ -158,6 +270,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_COMMIT_USER_EMAIL, fUserEmailTextField.getText());
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
+        
+        getPreferenceStore().setValue(PREFS_PROXY_USE, fUseProxyButton.getSelection());
+        getPreferenceStore().setValue(PREFS_PROXY_HOST, fProxyHostTextField.getText());
+        getPreferenceStore().setValue(PREFS_PROXY_PORT, fProxyPortTextField.getText());
+        getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
+        
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.PROXY_CREDENTIALS_FILE);
+            sc.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
+        }
+        catch(NoSuchAlgorithmException | InvalidKeySpecException | IOException ex) {
+            ex.printStackTrace();
+        }
         
         return true;
     }
@@ -168,6 +294,24 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserEmailTextField.setText(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
         fStoreCredentialsButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_STORE_REPO_CREDENTIALS));
+        
+        fUseProxyButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_PROXY_USE));
+        fProxyHostTextField.setText(getPreferenceStore().getDefaultString(PREFS_PROXY_HOST));
+        fProxyPortTextField.setText(getPreferenceStore().getDefaultString(PREFS_PROXY_PORT));
+        fRequiresProxyAuthenticationButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_PROXY_REQUIRES_AUTHENTICATION));
+        fProxyUserNameTextField.setText(""); //$NON-NLS-1$
+        fProxyUserPasswordTextField.setText(""); //$NON-NLS-1$
+        
+        updateProxyControls();
+    }
+    
+    private void updateProxyControls() {
+        fProxyHostTextField.setEnabled(fUseProxyButton.getSelection());
+        fProxyPortTextField.setEnabled(fUseProxyButton.getSelection());
+
+        fRequiresProxyAuthenticationButton.setEnabled(fUseProxyButton.getSelection());
+        fProxyUserNameTextField.setEnabled(fUseProxyButton.getSelection() && fRequiresProxyAuthenticationButton.getSelection());
+        fProxyUserPasswordTextField.setEnabled(fUseProxyButton.getSelection() && fRequiresProxyAuthenticationButton.getSelection());
     }
     
     public void init(IWorkbench workbench) {

@@ -31,5 +31,10 @@ implements IPreferenceConstants {
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, ""); //$NON-NLS-1$
 		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository").getAbsolutePath()); //$NON-NLS-1$
 		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, false);
+		
+		store.setDefault(PREFS_PROXY_USE, false);
+		store.setDefault(PREFS_PROXY_REQUIRES_AUTHENTICATION, false);
+		store.setDefault(PREFS_PROXY_PORT, 8088);
+		store.setDefault(PREFS_PROXY_HOST, "localhost"); //$NON-NLS-1$
     }
 }
