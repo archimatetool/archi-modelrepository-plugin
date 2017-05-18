@@ -197,11 +197,11 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         manager.add(fActionClone);
-        manager.add(new Separator());
         manager.add(fActionDelete);
+        manager.add(new Separator());
         manager.add(fActionRefresh);
         manager.add(fActionOpen);
-        manager.add(new Separator());
+        //manager.add(new Separator());
         manager.add(fActionCommit);
         manager.add(fActionPush);
     }
@@ -232,11 +232,11 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         manager.add(fActionClone);
 
         if(!isEmpty) {
-            manager.add(new Separator());
             manager.add(fActionDelete);
+            manager.add(new Separator());
             manager.add(fActionRefresh);
             manager.add(fActionOpen);
-            manager.add(new Separator());
+            //manager.add(new Separator());
             manager.add(fActionCommit);
             manager.add(fActionPush);
             manager.add(new Separator());
