@@ -52,6 +52,8 @@ public class ProxyAuthenticater {
         boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
 
         if(useAuthentication) {
+            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+            
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE);
             
@@ -80,12 +82,18 @@ public class ProxyAuthenticater {
             return;
         }
         
-        final InetSocketAddress address = new InetSocketAddress(InetAddress.getByName(hostName), port);
+        InetAddress addr = InetAddress.getByName(hostName);
+        if(!addr.isReachable(2000)) {
+            throw new IOException("Cannot connect to proxy: " + hostName);
+        }
+        
+        final InetSocketAddress socketAddress = new InetSocketAddress(addr, port);
+        final Proxy proxy = new Proxy(Type.HTTP, socketAddress);
         
         ProxySelector.setDefault(new ProxySelector() {
             @Override
             public List<Proxy> select(URI uri) {
-                return Arrays.asList(new Proxy(Type.HTTP, address));
+                return Arrays.asList(proxy);
             }
 
             @Override
@@ -94,8 +102,8 @@ public class ProxyAuthenticater {
         });      
 
         // Test the connection
-        URL url = new URL("http://localhost"); //$NON-NLS-1$
-        URLConnection connection = url.openConnection();
+        URL url = new URL("https://www.google.com/"); //$NON-NLS-1$
+        URLConnection connection = url.openConnection(proxy);
         connection.connect();
     }
 }
