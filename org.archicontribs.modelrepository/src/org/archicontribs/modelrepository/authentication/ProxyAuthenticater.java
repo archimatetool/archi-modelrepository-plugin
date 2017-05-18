@@ -41,7 +41,7 @@ public class ProxyAuthenticater {
      * Get settings from user prefs
      * @throws IOException
      */
-    public static void update() throws IOException {
+    public static void update(String repositoryURL) throws IOException {
         boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
         if(!useProxy) {
             Authenticator.setDefault(null);
@@ -101,9 +101,9 @@ public class ProxyAuthenticater {
             }
         });      
 
-        // Test the connection
-        URL url = new URL("https://www.google.com/"); //$NON-NLS-1$
-        URLConnection connection = url.openConnection(proxy);
+        // Test the connection with the repository URL
+        URL testURL = new URL(repositoryURL);
+        URLConnection connection = testURL.openConnection(proxy);
         connection.connect();
     }
 }

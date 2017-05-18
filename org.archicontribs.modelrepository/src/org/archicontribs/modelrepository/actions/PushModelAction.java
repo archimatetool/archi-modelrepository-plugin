@@ -49,7 +49,7 @@ public class PushModelAction extends AbstractModelAction {
         // TODO Offer choice to Push anyway
 
         // If user's local copy needs saving
-        IArchimateModel openModel = GraficoUtils.locateModel(getGitRepository());
+        IArchimateModel openModel = GraficoUtils.locateModel(getLocalRepositoryFolder());
         if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Publish",
@@ -58,7 +58,7 @@ public class PushModelAction extends AbstractModelAction {
         }
         
         // TODO - Check whether there are actual changes rather than timestamp changes
-        if(GraficoUtils.hasLocalChanges(getGitRepository())) {
+        if(GraficoUtils.hasLocalChanges(getLocalRepositoryFolder())) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Publish",
                     "Please commit your changes first.");
@@ -75,7 +75,7 @@ public class PushModelAction extends AbstractModelAction {
         
         String credentials[] = null;
         try {
-            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getGitFolder(),
+            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getLocalGitFolder(),
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
@@ -97,10 +97,10 @@ public class PushModelAction extends AbstractModelAction {
                     this.monitor = monitor;
                     
                     // Proxy
-                    ProxyAuthenticater.update();
+                    ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(getLocalRepositoryFolder()));
                     
                     // First we need to Pull and resolve any conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getLocalRepositoryFolder(), userName, userPassword, this);
                     
                     if(!pullResult.isSuccessful()) {
                         monitor.done();
@@ -109,7 +109,7 @@ public class PushModelAction extends AbstractModelAction {
                             @Override
                             public void run() {
                                 try {
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(),
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getLocalRepositoryFolder(),
                                             fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
@@ -133,7 +133,7 @@ public class PushModelAction extends AbstractModelAction {
                         monitor.beginTask("Publishing", IProgressMonitor.UNKNOWN);
                         
                         // Push
-                        GraficoUtils.pushToRemote(getGitRepository(), userName, userPassword, this);
+                        GraficoUtils.pushToRemote(getLocalRepositoryFolder(), userName, userPassword, this);
                     }
                 }
                 catch(IOException | GitAPIException ex) {

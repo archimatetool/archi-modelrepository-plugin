@@ -27,6 +27,6 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getGitRepository()));
+        IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
     }
 }

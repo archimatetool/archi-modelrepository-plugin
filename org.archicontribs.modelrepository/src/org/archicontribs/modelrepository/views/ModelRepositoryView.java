@@ -215,15 +215,15 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         //boolean isEmpty = selection.isEmpty();
         
         // Actions that need a git repository
-        fActionRefresh.setGitRepository(file);
-        fActionOpen.setGitRepository(file);
-        fActionDelete.setGitRepository(file);
+        fActionRefresh.setLocalRepositoryFolder(file);
+        fActionOpen.setLocalRepositoryFolder(file);
+        fActionDelete.setLocalRepositoryFolder(file);
         
         // TODO: Actions that should in fact be bounded to an ArchimateModel and not a git repository 
-        fActionCommit.setGitRepository(file);
-        fActionPush.setGitRepository(file);
+        fActionCommit.setLocalRepositoryFolder(file);
+        fActionPush.setLocalRepositoryFolder(file);
         
-        fActionProperties.setGitRepository(file);
+        fActionProperties.setLocalRepositoryFolder(file);
     }
     
     protected void fillContextMenu(IMenuManager manager) {

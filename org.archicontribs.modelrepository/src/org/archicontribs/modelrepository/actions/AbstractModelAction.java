@@ -16,16 +16,16 @@ public abstract class AbstractModelAction extends Action {
 	
 	private File fGitRepoFolder;
 	 
-	public void setGitRepository(File folder) {
+	public void setLocalRepositoryFolder(File folder) {
         fGitRepoFolder = folder;
         setEnabled(GraficoUtils.isGitRepository(folder));
 	}
 	
-	public File getGitRepository() {
+	public File getLocalRepositoryFolder() {
 	    return fGitRepoFolder;
 	}
 	
-	public File getGitFolder() {
+	public File getLocalGitFolder() {
 	    return new File(fGitRepoFolder, ".git"); //$NON-NLS-1$
 	}
 	

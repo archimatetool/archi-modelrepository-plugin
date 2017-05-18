@@ -42,7 +42,7 @@ public class CommitModelAction extends AbstractModelAction {
     @Override
     public void run() {
         // TODO Do this without model loaded
-        IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
+        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
         
         if(model == null) {
             MessageDialog.openInformation(fWindow.getShell(),
@@ -61,7 +61,7 @@ public class CommitModelAction extends AbstractModelAction {
         // Do the Grafico Export thing first
         try {
             GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, getGitRepository());
+            exporter.exportModelToLocalGitRepository(model, getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             displayErrorDialog(fWindow.getShell(), "Grafico Export", ex);
@@ -69,7 +69,7 @@ public class CommitModelAction extends AbstractModelAction {
         
         // Then check if anything to commit
         try {
-            if(!GraficoUtils.hasChangesToCommit(getGitRepository())) {
+            if(!GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
                 MessageDialog.openInformation(fWindow.getShell(),
                         "Commit Changes",
                         "Nothing to commit.");
@@ -94,7 +94,7 @@ public class CommitModelAction extends AbstractModelAction {
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                GraficoUtils.commitChanges(getGitRepository(), personIdent, commitMessage);
+                GraficoUtils.commitChanges(getLocalRepositoryFolder(), personIdent, commitMessage);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);

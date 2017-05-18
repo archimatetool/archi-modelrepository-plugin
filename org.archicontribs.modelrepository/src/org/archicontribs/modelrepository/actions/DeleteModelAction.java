@@ -42,7 +42,7 @@ public class DeleteModelAction extends AbstractModelAction {
         
         try {
             // Close the model in the tree
-            IArchimateModel model = GraficoUtils.locateModel(getGitRepository());
+            IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
             if(model != null) {
                 boolean didClose = IEditorModelManager.INSTANCE.closeModel(model);
                 if(!didClose) {
@@ -51,7 +51,7 @@ public class DeleteModelAction extends AbstractModelAction {
             }
             
             // Delete
-            FileUtils.deleteFolder(getGitRepository());
+            FileUtils.deleteFolder(getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             displayErrorDialog(fWindow.getShell(), "Delete", ex);

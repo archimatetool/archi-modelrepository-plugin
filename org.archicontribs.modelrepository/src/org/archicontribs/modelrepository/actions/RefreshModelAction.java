@@ -47,7 +47,7 @@ public class RefreshModelAction extends AbstractModelAction {
     @Override
     public void run() {
         // If user's local copy needs saving
-        IArchimateModel openModel = GraficoUtils.locateModel(getGitRepository());
+        IArchimateModel openModel = GraficoUtils.locateModel(getLocalRepositoryFolder());
         if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",
@@ -56,7 +56,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         
         // TODO - Check whether there are actual changes rather than timestamp changes
-        if(GraficoUtils.hasLocalChanges(getGitRepository())) {
+        if(GraficoUtils.hasLocalChanges(getLocalRepositoryFolder())) {
             MessageDialog.openInformation(fWindow.getShell(),
                     "Refresh",
                     "Please commit your changes first.");
@@ -66,7 +66,7 @@ public class RefreshModelAction extends AbstractModelAction {
         // Get Credentials
         String credentials[] = null;
         try {
-            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getGitFolder(), 
+            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getLocalGitFolder(), 
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
@@ -100,10 +100,10 @@ public class RefreshModelAction extends AbstractModelAction {
                     monitor.beginTask("Refreshing", IProgressMonitor.UNKNOWN);
                     
                     // Proxy
-                    ProxyAuthenticater.update();
+                    ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(getLocalRepositoryFolder()));
                     
                     // First we need to Pull and check for conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getGitRepository(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getLocalRepositoryFolder(), userName, userPassword, this);
                     
                     monitor.done();
                     
@@ -113,7 +113,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             // Conflict merger
                             if(!pullResult.isSuccessful()) {
                                 try {
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getGitRepository(), fWindow.getShell());
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getLocalRepositoryFolder(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
                                         handler.mergeAndCommit();
@@ -132,7 +132,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             // Reload the model
                             try {
                                 // Reload the model from the Grafico XML files
-                                IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(getGitRepository(), fWindow.getShell());
+                                IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(getLocalRepositoryFolder(), fWindow.getShell());
                                 
                                 // Open it, this will do the necessary checks and add a command stack and an archive manager
                                 if(model != null) {
