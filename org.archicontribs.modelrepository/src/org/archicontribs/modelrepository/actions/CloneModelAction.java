@@ -86,7 +86,7 @@ public class CloneModelAction extends AbstractModelAction {
                     monitor.beginTask(Messages.CloneModelAction_4, IProgressMonitor.UNKNOWN);
                     
                     // Proxy check
-                    ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(localGitFolder));
+                    ProxyAuthenticater.update(repoURL);
                     
                     // Clone
                     GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword, this);
