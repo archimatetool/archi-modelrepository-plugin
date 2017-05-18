@@ -45,7 +45,7 @@ public class MergeConflictHandler {
         fShell = shell;
     }
     
-    public boolean checkForMergeConflicts() throws IOException, GitAPIException {
+    public boolean checkForMergeConflicts() throws IOException {
         // This could be null if Rebase is the default behaviour on the repo rather than merge when a Pull is done
         if(fMergeResult == null) {
             throw new IOException("MergeResult was null"); //$NON-NLS-1$
@@ -111,7 +111,7 @@ public class MergeConflictHandler {
     }
     
     // Check out conflicting files either from us or them
-    private void checkout(Git git, Stage stage, List<String> paths) throws IOException, GitAPIException {
+    private void checkout(Git git, Stage stage, List<String> paths) throws GitAPIException {
         CheckoutCommand checkoutCommand = git.checkout();
         checkoutCommand.setStage(stage);
         checkoutCommand.addPaths(paths);

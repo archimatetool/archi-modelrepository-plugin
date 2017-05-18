@@ -8,7 +8,6 @@ package org.archicontribs.modelrepository.preferences;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
@@ -281,7 +280,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
                     IGraficoConstants.PROXY_CREDENTIALS_FILE);
             sc.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
         }
-        catch(NoSuchAlgorithmException | InvalidKeySpecException | IOException ex) {
+        catch(NoSuchAlgorithmException | IOException ex) {
             ex.printStackTrace();
         }
         

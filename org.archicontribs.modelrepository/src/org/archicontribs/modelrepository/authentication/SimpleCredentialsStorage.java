@@ -14,7 +14,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
@@ -57,7 +56,7 @@ public class SimpleCredentialsStorage {
                 try {
                     sc.store(userName, userPassword);
                 }
-                catch(NoSuchAlgorithmException | InvalidKeySpecException ex) {
+                catch(NoSuchAlgorithmException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -75,7 +74,7 @@ public class SimpleCredentialsStorage {
         fStorageFileName = storageFileName;
     }
 
-    public void store(String userName, String password) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public void store(String userName, String password) throws IOException, NoSuchAlgorithmException {
         Writer out = new OutputStreamWriter(new FileOutputStream(getCredentialsFile()));
         out.append(encrypt(userName) + "\n"); //$NON-NLS-1$
         out.append(encrypt(password));

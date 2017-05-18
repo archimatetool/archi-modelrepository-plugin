@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -121,7 +120,7 @@ public class CloneModelAction extends AbstractModelAction {
                         sc.store(userName, userPassword);
                     }
                 }
-                catch(GitAPIException | IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+                catch(GitAPIException | IOException | NoSuchAlgorithmException ex) {
                     displayErrorDialog(fWindow.getShell(), Messages.CloneModelAction_0, ex);
                 }
                 finally {
