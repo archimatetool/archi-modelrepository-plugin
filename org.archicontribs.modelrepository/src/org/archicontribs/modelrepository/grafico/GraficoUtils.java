@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -40,7 +39,6 @@ import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.eclipse.swt.widgets.Shell;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -75,36 +73,6 @@ public class GraficoUtils {
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
             config.save();
         }
-    }
-
-    /**
-     * Load a model from the local Git folder XML files
-     * Note - The model will need to be checked and have a command stack and Archive manager added by IEditorModelManager.INSTANCE
-     * @param localGitFolder
-     * @param shell
-     * @return The model or null
-     * @throws IOException
-     */
-    public static IArchimateModel loadModelFromGraficoFiles(File localGitFolder, Shell shell) throws IOException {
-        GraficoModelImporter importer = new GraficoModelImporter();
-        IArchimateModel model = importer.importLocalGitRepositoryAsModel(localGitFolder);
-        
-        // Add a file name used to locate the model
-        if(model != null) {
-            File tmpFile = getModelFileName(localGitFolder);
-            model.setFile(tmpFile);
-        }
-
-        // Errors
-        if(importer.getResolveStatus() != null) {
-            ErrorDialog.openError(shell,
-                    Messages.GraficoUtils_0,
-                    Messages.GraficoUtils_1,
-                    importer.getResolveStatus());
-
-        }
-        
-        return model;
     }
 
     /**
@@ -343,7 +311,7 @@ public class GraficoUtils {
                     treeWalk.setFilter(PathFilter.create(path));
 
                     if(!treeWalk.next()) {
-                        return Messages.GraficoUtils_2;
+                        return Messages.GraficoUtils_0;
                     }
 
                     ObjectId objectId = treeWalk.getObjectId(0);

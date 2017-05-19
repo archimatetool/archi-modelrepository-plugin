@@ -8,15 +8,9 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.dialogs.CommitDialog;
-import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -25,15 +19,19 @@ import com.archimatetool.model.IArchimateModel;
 /**
  * Commit Model Action
  * 
+ * 1. Offer to save the model
+ * 2. Create Grafico files from the model
+ * 3. Check if there is anything to Commit
+ * 4. Show Commit dialog
+ * 5. Commit
+ * 
  * @author Jean-Baptiste Sarrodie
  * @author Phillip Beauvoir
  */
 public class CommitModelAction extends AbstractModelAction {
 	
-	private IWorkbenchWindow fWindow;
-
     public CommitModelAction(IWorkbenchWindow window) {
-        fWindow = window;
+        super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT_16));
         setText("Commit Changes");
         setToolTipText("Commit Changes");
@@ -41,64 +39,41 @@ public class CommitModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // TODO Do this without model loaded
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        // This will either return the already open model or will actually open it
+        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
         
         if(model == null) {
-            MessageDialog.openInformation(fWindow.getShell(),
+            MessageDialog.openError(fWindow.getShell(),
                     "Commit Changes",
-                    "Model is not open. Please open it first.");
+                    "Model was null opening.");
             return;
         }
         
+        // Offer to save it if dirty
+        // We need to do this to keep grafico and temp files in sync
         if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            MessageDialog.openInformation(fWindow.getShell(),
-                    "Publish",
-                    "Please save your model first.");
-            return;
-        }
-        
-        // Do the Grafico Export thing first
-        try {
-            GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, getLocalRepositoryFolder());
-        }
-        catch(IOException ex) {
-            displayErrorDialog(fWindow.getShell(), "Grafico Export", ex);
-        }
-        
-        // Then check if anything to commit
-        try {
-            if(!GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
-                MessageDialog.openInformation(fWindow.getShell(),
-                        "Commit Changes",
-                        "Nothing to commit.");
+            if(!offerToSaveModel(model)) {
                 return;
             }
         }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);
+        
+        // Do the Grafico Export first
+        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        
+        // Then Commit
+        try {
+            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+                offerToCommitChanges();
+            }
+            else {
+                MessageDialog.openInformation(fWindow.getShell(),
+                        "Commit Changes",
+                        "Nothing to commit.");
+            }
         }
-        
-        CommitDialog commitDialog = new CommitDialog(fWindow.getShell());
-        int response = commitDialog.open();
-        
-        if(response == Window.OK) {
-            String userName = commitDialog.getUserName();
-            String userEmail = commitDialog.getUserEmail();
-            String commitMessage = commitDialog.getCommitMessage();
-            PersonIdent personIdent = new PersonIdent(userName, userEmail);
-            
-            // Store Prefs
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_NAME, userName);
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
-
-            try {
-                GraficoUtils.commitChanges(getLocalRepositoryFolder(), personIdent, commitMessage);
-            }
-            catch(IOException | GitAPIException ex) {
-                displayErrorDialog(fWindow.getShell(), "Commit Changes", ex);
-            }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog("Commit Changes", ex);
         }
     }
 }

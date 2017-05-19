@@ -30,15 +30,21 @@ import com.archimatetool.model.IArchimateModel;
 /**
  * Refresh model action
  * 
+ * 1. Offer to save the model
+ * 2. If there are changes offer to Commit
+ * 3. Get credentials for Pull
+ * 4. Check Proxy
+ * 5. Pull from Remote
+ * 6. Handle Merge conflicts
+ * 7. Reload temp file from Grafico files
+ * 
  * @author Jean-Baptiste Sarrodie
  * @author Phillip Beauvoir
  */
 public class RefreshModelAction extends AbstractModelAction {
 	
-	private IWorkbenchWindow fWindow;
-
     public RefreshModelAction(IWorkbenchWindow window) {
-        fWindow = window;
+        super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH_16));
         setText("Refresh");
         setToolTipText("Refresh Local Copy");
@@ -46,20 +52,38 @@ public class RefreshModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // If user's local copy needs saving
-        IArchimateModel openModel = GraficoUtils.locateModel(getLocalRepositoryFolder());
-        if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
-            MessageDialog.openInformation(fWindow.getShell(),
+        // This will either return the already open model or will actually open it
+        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        
+        if(model == null) {
+            MessageDialog.openError(fWindow.getShell(),
                     "Refresh",
-                    "Please save your model first.");
+                    "Model was null opening.");
             return;
         }
         
-        // TODO - Check whether there are actual changes rather than timestamp changes
-        if(GraficoUtils.hasLocalChanges(getLocalRepositoryFolder())) {
-            MessageDialog.openInformation(fWindow.getShell(),
-                    "Refresh",
-                    "Please commit your changes first.");
+        // Offer to save it if dirty
+        // We need to do this to keep grafico and temp files in sync
+        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            if(!offerToSaveModel(model)) {
+                return;
+            }
+        }
+        
+        // Do the Grafico Export first
+        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        
+        // Then offer to Commit
+        try {
+            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+                if(!offerToCommitChanges()) {
+                    return;
+                }
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog("Commit Changes", ex);
             return;
         }
         
@@ -70,7 +94,8 @@ public class RefreshModelAction extends AbstractModelAction {
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
-            displayErrorDialog(fWindow.getShell(), "Refresh", ex);
+            displayErrorDialog("Credentials", ex);
+            return;
         }
         if(credentials == null) {
             return;
@@ -79,14 +104,13 @@ public class RefreshModelAction extends AbstractModelAction {
         final String userName = credentials[0];
         final String userPassword = credentials[1];
         
-        // To be safe, close the model
-        if(openModel != null) {
-            try {
-                IEditorModelManager.INSTANCE.closeModel(openModel);
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-            }
+        // Close the model
+        // TODO this needs changing in the Archi API
+        try {
+            IEditorModelManager.INSTANCE.closeModel(model);
+        }
+        catch(IOException ex) {
+            displayErrorDialog("Close", ex);
         }
         
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
@@ -125,28 +149,22 @@ public class RefreshModelAction extends AbstractModelAction {
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog(fWindow.getShell(), "Refresh", ex);
+                                    displayErrorDialog("Refresh", ex);
                                 }
                             }
                             
-                            // Reload the model
+                            // Reload the model from the Grafico XML files
                             try {
-                                // Reload the model from the Grafico XML files
-                                IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(getLocalRepositoryFolder(), fWindow.getShell());
-                                
-                                // Open it, this will do the necessary checks and add a command stack and an archive manager
-                                if(model != null) {
-                                    IEditorModelManager.INSTANCE.openModel(model);
-                                }
+                                loadModelFromGraficoFiles(getLocalRepositoryFolder());
                             }
                             catch(IOException ex) {
-                                displayErrorDialog(fWindow.getShell(), "Refresh", ex);
+                                displayErrorDialog("Refresh", ex);
                             }
                         }
                     });
                 }
                 catch(GitAPIException | IOException ex) {
-                    displayErrorDialog(fWindow.getShell(), "Refresh", ex);
+                    displayErrorDialog("Refresh", ex);
                 }
                 finally {
                     monitor.done();

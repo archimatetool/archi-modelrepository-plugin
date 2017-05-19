@@ -134,7 +134,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
         fActionPush.setEnabled(false);
         
-        fActionProperties = new PropertiesAction();
+        fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
         fActionProperties.setEnabled(false);
         
         // Register the Keybinding for actions

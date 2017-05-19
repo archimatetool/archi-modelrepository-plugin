@@ -34,15 +34,20 @@ import com.archimatetool.model.IArchimateModel;
 
 /**
  * Clone a model
+ * 
+ * 1. Get user credentials
+ * 2. Check Proxy
+ * 3. Clone from Remote
+ * 4. If Grafico files exist load the model from the Grafico files and save it as temp file
+ * 5. If Grafico files do not exist create a new temp model and save it
+ * 6. Store user credentials if prefs agree
  */
 public class CloneModelAction extends AbstractModelAction {
-	
-	private IWorkbenchWindow fWindow;
 	
 	// Set this to true to store user name and password in a simple encrypted file called "credentials" in the repo's .git folder
 	// It's not the most secure algorithm so you have been warned!
     public CloneModelAction(IWorkbenchWindow window) {
-        fWindow = window;
+        super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE_16));
         setText(Messages.CloneModelAction_0);
         setToolTipText(Messages.CloneModelAction_1);
@@ -63,14 +68,14 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        File localGitFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+        File localRepoFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                 GraficoUtils.getLocalGitFolderName(repoURL));
         
         // Folder is not empty
-        if(localGitFolder.exists() && localGitFolder.isDirectory() && localGitFolder.list().length > 0) {
+        if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
                     Messages.CloneModelAction_0,
-                    Messages.CloneModelAction_2 + " " + localGitFolder.getAbsolutePath()); //$NON-NLS-1$
+                    Messages.CloneModelAction_2 + " " + localRepoFolder.getAbsolutePath()); //$NON-NLS-1$
 
             return;
         }
@@ -89,26 +94,18 @@ public class CloneModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Clone
-                    GraficoUtils.cloneModel(localGitFolder, repoURL, userName, userPassword, this);
+                    GraficoUtils.cloneModel(localRepoFolder, repoURL, userName, userPassword, this);
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
                     // Load it from the Grafico files if we can
-                    IArchimateModel model = GraficoUtils.loadModelFromGraficoFiles(localGitFolder, fWindow.getShell());
+                    IArchimateModel graficoModel = loadModelFromGraficoFiles(localRepoFolder);
                     
-                    // We have it
-                    if(model != null) {
-                        // Open it first. This will do the necessary checks and add a command stack and an archive manager so we can save it
-                        IEditorModelManager.INSTANCE.openModel(model);
-                        
-                        // Save it as the temp file
-                        IEditorModelManager.INSTANCE.saveModel(model);
-                    }
                     // We couldn't load it from Grafico so create a new blank model
-                    else {
+                    if(graficoModel == null) {
                         // New one. This will open in the tree
-                        model = IEditorModelManager.INSTANCE.createNewModel();
-                        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
+                        IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
+                        model.setFile(GraficoUtils.getModelFileName(localRepoFolder));
                         
                         // And Save it
                         IEditorModelManager.INSTANCE.saveModel(model);
@@ -116,12 +113,12 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(localGitFolder, ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(localRepoFolder, ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
                         sc.store(userName, userPassword);
                     }
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException ex) {
-                    displayErrorDialog(fWindow.getShell(), Messages.CloneModelAction_0, ex);
+                    displayErrorDialog(Messages.CloneModelAction_0, ex);
                 }
                 finally {
                     monitor.done();

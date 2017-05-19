@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.actions;
 
 import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.ui.services.ViewManager;
 
@@ -14,7 +15,9 @@ import com.archimatetool.editor.ui.services.ViewManager;
  */
 public class PropertiesAction extends AbstractModelAction {
 	
-    public PropertiesAction() {
+    public PropertiesAction(IWorkbenchWindow window) {
+        super(window);
+        
         setText("P&roperties");
         // Ensures key binding is displayed
         setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);

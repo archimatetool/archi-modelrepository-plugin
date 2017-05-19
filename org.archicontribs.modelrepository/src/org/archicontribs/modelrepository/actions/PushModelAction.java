@@ -28,16 +28,22 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
- * PushModelAction
+ * Push Model Action ("Publish")
+ * 
+ * 1. Offer to save the model
+ * 2. If there are changes offer to Commit
+ * 3. Get credentials for Push
+ * 4. Check Proxy
+ * 5. Pull from Remote
+ * 6. Handle Merge conflicts
+ * 7. Push to Remote
  * 
  * @author Phillip Beauvoir
  */
 public class PushModelAction extends AbstractModelAction {
 	
-	private IWorkbenchWindow fWindow;
-
     public PushModelAction(IWorkbenchWindow window) {
-        fWindow = window;
+        super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH_16));
         setText("Publish");
         setToolTipText("Publish Changes to Remote");
@@ -45,41 +51,50 @@ public class PushModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // TODO Check and warn if commits are needed
-        // TODO Offer choice to Push anyway
-
-        // If user's local copy needs saving
-        IArchimateModel openModel = GraficoUtils.locateModel(getLocalRepositoryFolder());
-        if(openModel != null && IEditorModelManager.INSTANCE.isModelDirty(openModel)) {
-            MessageDialog.openInformation(fWindow.getShell(),
-                    "Publish",
-                    "Please save your model first.");
+        // This will either return the already open model or will actually open it
+        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        
+        if(model == null) {
+            MessageDialog.openError(fWindow.getShell(),
+                    "Publish Changes",
+                    "Model was null opening.");
             return;
         }
         
-        // TODO - Check whether there are actual changes rather than timestamp changes
-        if(GraficoUtils.hasLocalChanges(getLocalRepositoryFolder())) {
-            MessageDialog.openInformation(fWindow.getShell(),
-                    "Publish",
-                    "Please commit your changes first.");
+        // Offer to save it if dirty
+        // We need to do this to keep grafico and temp files in sync
+        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            if(!offerToSaveModel(model)) {
+                return;
+            }
+        }
+        
+        // Do the Grafico Export first
+        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        
+        // Then offer to Commit
+        try {
+            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+                if(!offerToCommitChanges()) {
+                    return;
+                }
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog("Commit Changes", ex);
             return;
         }
         
-        boolean doPush = MessageDialog.openConfirm(fWindow.getShell(),
-                "Publish",
-                "Publish changes?");
-        
-        if(!doPush) {
-            return;
-        }
-        
+        // Get credentials for the Push action
         String credentials[] = null;
         try {
             credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getLocalGitFolder(),
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
-            ex.printStackTrace();
+            displayErrorDialog("Credentials", ex);
+            return;
         }
         if(credentials == null) {
             return;
@@ -124,7 +139,7 @@ public class PushModelAction extends AbstractModelAction {
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog(fWindow.getShell(), "Publish", ex);
+                                    displayErrorDialog("Publish", ex);
                                 }
                             }
                         });
@@ -137,7 +152,7 @@ public class PushModelAction extends AbstractModelAction {
                     }
                 }
                 catch(IOException | GitAPIException ex) {
-                    displayErrorDialog(fWindow.getShell(), "Publish", ex);
+                    displayErrorDialog("Publish", ex);
                 }
                 finally {
                     monitor.done();

@@ -23,10 +23,8 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class DeleteModelAction extends AbstractModelAction {
 	
-	private IWorkbenchWindow fWindow;
-
     public DeleteModelAction(IWorkbenchWindow window) {
-        fWindow = window;
+        super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE_16));
         setText("Delete");
         setToolTipText("Delete Local Copy");
@@ -54,7 +52,7 @@ public class DeleteModelAction extends AbstractModelAction {
             FileUtils.deleteFolder(getLocalRepositoryFolder());
         }
         catch(IOException ex) {
-            displayErrorDialog(fWindow.getShell(), "Delete", ex);
+            displayErrorDialog("Delete", ex);
         }
     }
 }
