@@ -22,8 +22,8 @@ public class OpenModelAction extends AbstractModelAction {
     public OpenModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_OPEN_16));
-        setText("Open");
-        setToolTipText("Open Model");
+        setText(Messages.OpenModelAction_0);
+        setToolTipText(Messages.OpenModelAction_1);
     }
 
     @Override

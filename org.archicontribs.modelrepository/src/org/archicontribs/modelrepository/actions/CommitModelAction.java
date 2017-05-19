@@ -33,8 +33,8 @@ public class CommitModelAction extends AbstractModelAction {
     public CommitModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT_16));
-        setText("Commit Changes");
-        setToolTipText("Commit Changes");
+        setText(Messages.CommitModelAction_0);
+        setToolTipText(Messages.CommitModelAction_0);
     }
 
     @Override
@@ -45,8 +45,8 @@ public class CommitModelAction extends AbstractModelAction {
         
         if(model == null) {
             MessageDialog.openError(fWindow.getShell(),
-                    "Commit Changes",
-                    "Model was null opening.");
+                    Messages.CommitModelAction_0,
+                    Messages.CommitModelAction_1);
             return;
         }
         
@@ -68,12 +68,12 @@ public class CommitModelAction extends AbstractModelAction {
             }
             else {
                 MessageDialog.openInformation(fWindow.getShell(),
-                        "Commit Changes",
-                        "Nothing to commit.");
+                        Messages.CommitModelAction_0,
+                        Messages.CommitModelAction_2);
             }
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Commit Changes", ex);
+            displayErrorDialog(Messages.CommitModelAction_0, ex);
         }
     }
 }

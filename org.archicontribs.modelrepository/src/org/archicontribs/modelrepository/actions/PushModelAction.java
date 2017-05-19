@@ -45,8 +45,8 @@ public class PushModelAction extends AbstractModelAction {
     public PushModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH_16));
-        setText("Publish");
-        setToolTipText("Publish Changes to Remote");
+        setText(Messages.PushModelAction_0);
+        setToolTipText(Messages.PushModelAction_1);
     }
 
     @Override
@@ -57,8 +57,8 @@ public class PushModelAction extends AbstractModelAction {
         
         if(model == null) {
             MessageDialog.openError(fWindow.getShell(),
-                    "Publish Changes",
-                    "Model was null opening.");
+                    Messages.PushModelAction_2,
+                    Messages.PushModelAction_3);
             return;
         }
         
@@ -82,7 +82,7 @@ public class PushModelAction extends AbstractModelAction {
             }
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Commit Changes", ex);
+            displayErrorDialog(Messages.PushModelAction_4, ex);
             return;
         }
         
@@ -93,7 +93,7 @@ public class PushModelAction extends AbstractModelAction {
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
-            displayErrorDialog("Credentials", ex);
+            displayErrorDialog(Messages.PushModelAction_5, ex);
             return;
         }
         if(credentials == null) {
@@ -131,28 +131,28 @@ public class PushModelAction extends AbstractModelAction {
                                         handler.mergeAndCommit();
                                         // We should return now and ask the user to try again, in case there have been more changes since this
                                         MessageDialog.openInformation(fWindow.getShell(),
-                                                "Publish",
-                                                "Conflicts resolved. Please Publish again.");
+                                                Messages.PushModelAction_0,
+                                                Messages.PushModelAction_6);
                                     }
                                     else {
                                         // User cancelled - do nothing (I think!)
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog("Publish", ex);
+                                    displayErrorDialog(Messages.PushModelAction_0, ex);
                                 }
                             }
                         });
                     }
                     else {
-                        monitor.beginTask("Publishing", IProgressMonitor.UNKNOWN);
+                        monitor.beginTask(Messages.PushModelAction_7, IProgressMonitor.UNKNOWN);
                         
                         // Push
                         GraficoUtils.pushToRemote(getLocalRepositoryFolder(), userName, userPassword, this);
                     }
                 }
                 catch(IOException | GitAPIException ex) {
-                    displayErrorDialog("Publish", ex);
+                    displayErrorDialog(Messages.PushModelAction_0, ex);
                 }
                 finally {
                     monitor.done();

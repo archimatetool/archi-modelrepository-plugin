@@ -289,6 +289,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     }
 
     public String getSearchExpression(Object target) {
-        return "Repository View";
+        return Messages.ModelRepositoryView_0;
     }
 }

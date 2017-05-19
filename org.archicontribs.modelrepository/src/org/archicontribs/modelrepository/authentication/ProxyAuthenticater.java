@@ -84,7 +84,7 @@ public class ProxyAuthenticater {
         
         InetAddress addr = InetAddress.getByName(hostName);
         if(!addr.isReachable(2000)) {
-            throw new IOException("Cannot connect to proxy: " + hostName);
+            throw new IOException(Messages.ProxyAuthenticater_0 + " " + hostName); //$NON-NLS-1$
         }
         
         final InetSocketAddress socketAddress = new InetSocketAddress(addr, port);

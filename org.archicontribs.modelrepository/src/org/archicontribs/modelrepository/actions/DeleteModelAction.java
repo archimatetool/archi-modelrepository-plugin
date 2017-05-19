@@ -26,13 +26,13 @@ public class DeleteModelAction extends AbstractModelAction {
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE_16));
-        setText("Delete");
-        setToolTipText("Delete Local Copy");
+        setText(Messages.DeleteModelAction_0);
+        setToolTipText(Messages.DeleteModelAction_1);
     }
 
     @Override
     public void run() {
-        boolean confirm = MessageDialog.openConfirm(fWindow.getShell(), "Delete", "Are you sure you want to delete this local repository?");
+        boolean confirm = MessageDialog.openConfirm(fWindow.getShell(), Messages.DeleteModelAction_0, Messages.DeleteModelAction_2);
         
         if(!confirm) {
             return;
@@ -52,7 +52,7 @@ public class DeleteModelAction extends AbstractModelAction {
             FileUtils.deleteFolder(getLocalRepositoryFolder());
         }
         catch(IOException ex) {
-            displayErrorDialog("Delete", ex);
+            displayErrorDialog(Messages.DeleteModelAction_0, ex);
         }
     }
 }

@@ -75,16 +75,16 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         client.setLayout(new GridLayout());
         
         Label label = new Label(client, SWT.NULL);
-        label.setText("NOTICE - passwords are encrypted but could still be discovered!");
+        label.setText(Messages.ModelRepositoryPreferencePage_0);
         
         // User details
         Group userDetailsGroup = new Group(client, SWT.NULL);
-        userDetailsGroup.setText("User Details");
+        userDetailsGroup.setText(Messages.ModelRepositoryPreferencePage_1);
         userDetailsGroup.setLayout(new GridLayout(2, false));
         userDetailsGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         label = new Label(userDetailsGroup, SWT.NULL);
-        label.setText("Name:");
+        label.setText(Messages.ModelRepositoryPreferencePage_2);
         
         fUserNameTextField = new Text(userDetailsGroup, SWT.BORDER | SWT.SINGLE);
         fUserNameTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -92,7 +92,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         UIUtils.conformSingleTextControl(fUserNameTextField);
 
         label = new Label(userDetailsGroup, SWT.NULL);
-        label.setText("Email:");
+        label.setText(Messages.ModelRepositoryPreferencePage_3);
         
         fUserEmailTextField = new Text(userDetailsGroup, SWT.BORDER | SWT.SINGLE);
         fUserEmailTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -100,7 +100,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         UIUtils.conformSingleTextControl(fUserEmailTextField);
         
         Group settingsGroup = new Group(client, SWT.NULL);
-        settingsGroup.setText("Settings");
+        settingsGroup.setText(Messages.ModelRepositoryPreferencePage_4);
         settingsGroup.setLayout(new GridLayout(3, false));
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.widthHint = 500;
@@ -108,7 +108,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         // Repo folder location
         label = new Label(settingsGroup, SWT.NULL);
-        label.setText("Local repository folder:");
+        label.setText(Messages.ModelRepositoryPreferencePage_5);
         
         fUserRepoFolderTextField = new Text(settingsGroup, SWT.BORDER | SWT.SINGLE);
         fUserRepoFolderTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -116,7 +116,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         UIUtils.conformSingleTextControl(fUserRepoFolderTextField);
         
         Button folderButton = new Button(settingsGroup, SWT.PUSH);
-        folderButton.setText("Choose...");
+        folderButton.setText(Messages.ModelRepositoryPreferencePage_6);
         folderButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -128,28 +128,28 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         });
         
         Group otherGroup = new Group(client, SWT.NULL);
-        otherGroup.setText("Repository");
+        otherGroup.setText(Messages.ModelRepositoryPreferencePage_7);
         otherGroup.setLayout(new GridLayout(3, false));
         otherGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Store Credentials
         fStoreCredentialsButton = new Button(otherGroup, SWT.CHECK);
-        fStoreCredentialsButton.setText("Store each repository's user name and password in an encrypted file");
+        fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         fStoreCredentialsButton.setLayoutData(gd);
         label = new Label(otherGroup, SWT.NULL);
-        label.setText("If not enabled you will be prompted for user name and password for each action.");
+        label.setText(Messages.ModelRepositoryPreferencePage_9);
         label.setLayoutData(gd);
         
         // Proxy
         Group proxyGroup = new Group(client, SWT.NULL);
-        proxyGroup.setText("Proxy");
+        proxyGroup.setText(Messages.ModelRepositoryPreferencePage_10);
         proxyGroup.setLayout(new GridLayout(4, false));
         proxyGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         fUseProxyButton = new Button(proxyGroup, SWT.CHECK);
-        fUseProxyButton.setText("Enable Proxy");
+        fUseProxyButton.setText(Messages.ModelRepositoryPreferencePage_11);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 4;
         fUseProxyButton.setLayoutData(gd);
@@ -161,7 +161,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         });
         
         label = new Label(proxyGroup, SWT.NULL);
-        label.setText("Host:");
+        label.setText(Messages.ModelRepositoryPreferencePage_12);
         fProxyHostTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
         fProxyHostTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fProxyHostTextField.setEnabled(false);
@@ -169,7 +169,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         UIUtils.conformSingleTextControl(fProxyHostTextField);
 
         label = new Label(proxyGroup, SWT.NULL);
-        label.setText("Port:");
+        label.setText(Messages.ModelRepositoryPreferencePage_13);
         fProxyPortTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
         fProxyPortTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fProxyPortTextField.setEnabled(false);
@@ -196,7 +196,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         });
         
         fRequiresProxyAuthenticationButton = new Button(proxyGroup, SWT.CHECK);
-        fRequiresProxyAuthenticationButton.setText("Requires Authentication");
+        fRequiresProxyAuthenticationButton.setText(Messages.ModelRepositoryPreferencePage_14);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 4;
         fRequiresProxyAuthenticationButton.setLayoutData(gd);
@@ -208,7 +208,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         });
         
         label = new Label(proxyGroup, SWT.NULL);
-        label.setText("User:");
+        label.setText(Messages.ModelRepositoryPreferencePage_15);
         fProxyUserNameTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE);
         fProxyUserNameTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fProxyUserNameTextField.setEnabled(false);
@@ -216,7 +216,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         UIUtils.conformSingleTextControl(fProxyUserNameTextField);
         
         label = new Label(proxyGroup, SWT.NULL);
-        label.setText("Password:");
+        label.setText(Messages.ModelRepositoryPreferencePage_16);
         fProxyUserPasswordTextField = new Text(proxyGroup, SWT.BORDER | SWT.SINGLE | SWT.PASSWORD);
         fProxyUserPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fProxyUserPasswordTextField.setEnabled(false);
@@ -230,8 +230,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
 
     private String chooseFolderPath() {
         DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
-        dialog.setText("Local repository folder");
-        dialog.setMessage("Choose the top level folder where repositories are stored.");
+        dialog.setText(Messages.ModelRepositoryPreferencePage_17);
+        dialog.setMessage(Messages.ModelRepositoryPreferencePage_18);
         File file = new File(fUserRepoFolderTextField.getText());
         if(file.exists()) {
             dialog.setFilterPath(fUserRepoFolderTextField.getText());

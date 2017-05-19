@@ -66,7 +66,7 @@ public abstract class AbstractModelAction extends Action {
         
         MessageDialog.openError(fWindow.getShell(),
                 title,
-                "There was an error:" +
+                Messages.AbstractModelAction_0 +
                     " " + //$NON-NLS-1$
                     ex.getMessage());
     }
@@ -77,15 +77,15 @@ public abstract class AbstractModelAction extends Action {
      */
     protected boolean offerToSaveModel(IArchimateModel model) {
         boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                "Save",
-                "The model needs saving before you proceed, would you like to save it now?");
+                Messages.AbstractModelAction_1,
+                Messages.AbstractModelAction_2);
 
         if(response) {
             try {
                 IEditorModelManager.INSTANCE.saveModel(model);
             }
             catch(IOException ex) {
-                displayErrorDialog("Save", ex);
+                displayErrorDialog(Messages.AbstractModelAction_1, ex);
             }
         }
         
@@ -109,8 +109,8 @@ public abstract class AbstractModelAction extends Action {
             // Errors
             if(importer.getResolveStatus() != null) {
                 ErrorDialog.openError(fWindow.getShell(),
-                        "Import",
-                        "Errors occurred",
+                        Messages.AbstractModelAction_3,
+                        Messages.AbstractModelAction_4,
                         importer.getResolveStatus());
 
             }
@@ -136,7 +136,7 @@ public abstract class AbstractModelAction extends Action {
             exporter.exportModelToLocalGitRepository(model, localRepoFolder);
         }
         catch(IOException ex) {
-            displayErrorDialog("Grafico Export", ex);
+            displayErrorDialog(Messages.AbstractModelAction_5, ex);
         }
     }
     
@@ -162,7 +162,7 @@ public abstract class AbstractModelAction extends Action {
                 GraficoUtils.commitChanges(getLocalRepositoryFolder(), personIdent, commitMessage);
             }
             catch(IOException | GitAPIException ex) {
-                displayErrorDialog("Commit Changes", ex);
+                displayErrorDialog(Messages.AbstractModelAction_6, ex);
                 return false;
             }
             

@@ -46,8 +46,8 @@ public class RefreshModelAction extends AbstractModelAction {
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH_16));
-        setText("Refresh");
-        setToolTipText("Refresh Local Copy");
+        setText(Messages.RefreshModelAction_0);
+        setToolTipText(Messages.RefreshModelAction_1);
     }
 
     @Override
@@ -58,8 +58,8 @@ public class RefreshModelAction extends AbstractModelAction {
         
         if(model == null) {
             MessageDialog.openError(fWindow.getShell(),
-                    "Refresh",
-                    "Model was null opening.");
+                    Messages.RefreshModelAction_0,
+                    Messages.RefreshModelAction_2);
             return;
         }
         
@@ -83,7 +83,7 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Commit Changes", ex);
+            displayErrorDialog(Messages.RefreshModelAction_3, ex);
             return;
         }
         
@@ -94,7 +94,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
-            displayErrorDialog("Credentials", ex);
+            displayErrorDialog(Messages.RefreshModelAction_4, ex);
             return;
         }
         if(credentials == null) {
@@ -110,7 +110,7 @@ public class RefreshModelAction extends AbstractModelAction {
             IEditorModelManager.INSTANCE.closeModel(model);
         }
         catch(IOException ex) {
-            displayErrorDialog("Close", ex);
+            displayErrorDialog(Messages.RefreshModelAction_5, ex);
         }
         
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
@@ -121,7 +121,7 @@ public class RefreshModelAction extends AbstractModelAction {
                 try {
                     this.monitor = monitor;
                     
-                    monitor.beginTask("Refreshing", IProgressMonitor.UNKNOWN);
+                    monitor.beginTask(Messages.RefreshModelAction_6, IProgressMonitor.UNKNOWN);
                     
                     // Proxy
                     ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(getLocalRepositoryFolder()));
@@ -149,7 +149,7 @@ public class RefreshModelAction extends AbstractModelAction {
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
-                                    displayErrorDialog("Refresh", ex);
+                                    displayErrorDialog(Messages.RefreshModelAction_0, ex);
                                 }
                             }
                             
@@ -158,13 +158,13 @@ public class RefreshModelAction extends AbstractModelAction {
                                 loadModelFromGraficoFiles(getLocalRepositoryFolder());
                             }
                             catch(IOException ex) {
-                                displayErrorDialog("Refresh", ex);
+                                displayErrorDialog(Messages.RefreshModelAction_0, ex);
                             }
                         }
                     });
                 }
                 catch(GitAPIException | IOException ex) {
-                    displayErrorDialog("Refresh", ex);
+                    displayErrorDialog(Messages.RefreshModelAction_0, ex);
                 }
                 finally {
                     monitor.done();

@@ -18,7 +18,7 @@ public class PropertiesAction extends AbstractModelAction {
     public PropertiesAction(IWorkbenchWindow window) {
         super(window);
         
-        setText("P&roperties");
+        setText(Messages.PropertiesAction_0);
         // Ensures key binding is displayed
         setActionDefinitionId(IWorkbenchCommandConstants.FILE_PROPERTIES);
     }

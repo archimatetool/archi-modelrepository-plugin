@@ -37,18 +37,18 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     
     public CommitDialog(Shell parentShell) {
         super(parentShell, DIALOG_ID);
-        setTitle("Commit");
+        setTitle(Messages.CommitDialog_0);
     }
 
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Commit");
+        shell.setText(Messages.CommitDialog_0);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("Please enter user details and a commit message", IMessageProvider.INFORMATION);
+        setMessage(Messages.CommitDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -62,7 +62,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
         
         Label label = new Label(container, SWT.NONE);
-        label.setText("User name:");
+        label.setText(Messages.CommitDialog_2);
         
         fTextUserName = new Text(container, SWT.BORDER);
         fTextUserName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -71,7 +71,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         UIUtils.conformSingleTextControl(fTextUserName);
         
         label = new Label(container, SWT.NONE);
-        label.setText("User email:");
+        label.setText(Messages.CommitDialog_3);
         
         fTextUserEmail = new Text(container, SWT.BORDER);
         fTextUserEmail.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -83,7 +83,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         new Label(container, SWT.NONE);
         
         label = new Label(container, SWT.NONE);
-        label.setText("Commit message:");
+        label.setText(Messages.CommitDialog_4);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         label.setLayoutData(gd);
