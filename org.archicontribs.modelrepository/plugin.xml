@@ -6,27 +6,57 @@
       <command
             defaultHandler="org.archicontribs.modelrepository.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
-            name="Model Repository">
+            name="%command.name">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.ShowHistoryViewHandler"
+            id="org.archicontribs.modelrepository.command.showHistoryView"
+            name="Repository History">
       </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"
-            locationURI="menu:window?after=show_view_append">
+            locationURI="menu:window?after=com.archimatetool.hammer.menuitem.showValidatorView">
          <command
                commandId="org.archicontribs.modelrepository.command.showRepositoryView"
-               label="Model Repository"
+               icon="img/plugin.png"
+               id="org.archicontribs.modelrepository.menuitem.showRepositoryView"
+               label="%command.label"
                style="push">
          </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
-            locationURI="toolbar:toolbar_views?after=append">
+            locationURI="toolbar:toolbar_views?after=com.archimatetool.hammer.toolbaritem.showValidatorView">
          <command
                commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                icon="img/plugin.png"
-               label="Model Repository"
+               id="org.archicontribs.modelrepository.toolbaritem.showRepositoryView"
+               label="%command.label.0"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:window?after=org.archicontribs.modelrepository.menuitem.showRepositoryView">
+         <command
+               commandId="org.archicontribs.modelrepository.command.showHistoryView"
+               icon="img/history_view.png"
+               id="org.archicontribs.modelrepository.menuitem.showHistoryView"
+               label="Repository History"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:toolbar_views?after=org.archicontribs.modelrepository.toolbaritem.showRepositoryView">
+         <command
+               commandId="org.archicontribs.modelrepository.command.showHistoryView"
+               icon="img/history_view.png"
+               id="org.archicontribs.modelrepository.toolbaritem.showHistoryView"
+               label="Repository History"
                style="push">
          </command>
       </menuContribution>
@@ -37,7 +67,14 @@
             class="org.archicontribs.modelrepository.views.ModelRepositoryView"
             icon="img/plugin.png"
             id="org.archicontribs.modelrepository.modelRepositoryView"
-            name="Model Repository"
+            name="%view.name"
+            restorable="true">
+      </view>
+      <view
+            class="org.archicontribs.modelrepository.views.HistoryView"
+            icon="img/history_view.png"
+            id="org.archicontribs.modelrepository.historyView"
+            name="Repository History"
             restorable="true">
       </view>
    </extension>
@@ -51,6 +88,12 @@
                relationship="stack"
                relative="com.archimatetool.help.hintsView">
          </view>
+         <view
+               id="org.archicontribs.modelrepository.historyView"
+               minimized="false"
+               relationship="stack"
+               relative="com.archimatetool.zest.zestView">
+         </view>
       </perspectiveExtension>
    </extension>
    <extension
@@ -63,7 +106,7 @@
       <page
             class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
             id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
-            name="Model Repository">
+            name="%page.name">
       </page>
    </extension>
    <extension
@@ -87,7 +130,7 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="Info">
+               label="%propertyTab.label">
          </propertyTab>
       </propertyTabs>
    </extension>

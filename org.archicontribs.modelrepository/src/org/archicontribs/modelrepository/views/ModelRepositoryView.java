@@ -60,7 +60,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /**
      * The Repository Viewer
      */
-    private GitRepositoryTreeViewer fTreeViewer;
+    private ModelRepositoryTreeViewer fTreeViewer;
     
     /*
      * Actions
@@ -82,7 +82,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     @Override
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
-        fTreeViewer = new GitRepositoryTreeViewer(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), parent);
+        fTreeViewer = new ModelRepositoryTreeViewer(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), parent);
         
         makeActions();
         registerGlobalActions();

@@ -26,7 +26,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Repository Tree Viewer
  */
-public class GitRepositoryTreeViewer extends TreeViewer {
+public class ModelRepositoryTreeViewer extends TreeViewer {
     /**
      * The Root Folder we are exploring
      */
@@ -45,7 +45,7 @@ public class GitRepositoryTreeViewer extends TreeViewer {
     /**
      * Constructor
      */
-    public GitRepositoryTreeViewer(File rootFolder, Composite parent) {
+    public ModelRepositoryTreeViewer(File rootFolder, Composite parent) {
         super(parent, SWT.MULTI);
         
         fRootFolder = rootFolder;

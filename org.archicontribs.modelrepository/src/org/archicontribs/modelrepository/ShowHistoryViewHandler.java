@@ -5,7 +5,7 @@
  */
 package org.archicontribs.modelrepository;
 
-import org.archicontribs.modelrepository.views.ModelRepositoryView;
+import org.archicontribs.modelrepository.views.HistoryView;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -14,14 +14,14 @@ import com.archimatetool.editor.ui.services.ViewManager;
 
 
 /**
- * Show Repository View
+ * Show History View
  * 
  * @author Phillip Beauvoir
  */
-public class ShowRepositoryViewHandler extends AbstractHandler {
+public class ShowHistoryViewHandler extends AbstractHandler {
 
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ViewManager.toggleViewPart(ModelRepositoryView.ID, true);
+        ViewManager.toggleViewPart(HistoryView.ID, true);
         return null;
     }
 
