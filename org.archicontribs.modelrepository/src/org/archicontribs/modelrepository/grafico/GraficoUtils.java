@@ -115,13 +115,13 @@ public class GraficoUtils {
     
     /**
      * Return true if there are local changes to commit in the working tree
-     * @param localGitFolder
+     * @param localRepoFolder
      * @return
      * @throws IOException
      * @throws GitAPIException
      */
-    public static boolean hasChangesToCommit(File localGitFolder) throws IOException, GitAPIException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static boolean hasChangesToCommit(File localRepoFolder) throws IOException, GitAPIException {
+        try(Git git = Git.open(localRepoFolder)) {
             Status status = git.status().call();
             return !status.isClean();
         }
@@ -136,8 +136,8 @@ public class GraficoUtils {
      * @throws IOException
      * @throws GitAPIException
      */
-    public static Iterable<PushResult> pushToRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static Iterable<PushResult> pushToRemote(File localRepoFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(localRepoFolder)) {
             PushCommand pushCommand = git.push();
             pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pushCommand.setProgressMonitor(monitor);
@@ -147,15 +147,15 @@ public class GraficoUtils {
     
     /**
      * Pull from Remote
-     * @param localGitFolder
+     * @param localRepoFolder
      * @param userName
      * @param userPassword
      * @return 
      * @throws IOException
      * @throws GitAPIException
      */
-    public static PullResult pullFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static PullResult pullFromRemote(File localRepoFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(localRepoFolder)) {
             PullCommand pullCommand = git.pull();
             pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             pullCommand.setRebase(false); // Merge, not rebase
@@ -166,14 +166,14 @@ public class GraficoUtils {
     
     /**
      * Fetch from Remote
-     * @param localGitFolder
+     * @param localRepoFolder
      * @param userName
      * @param userPassword
      * @throws IOException
      * @throws GitAPIException
      */
-    public static FetchResult fetchFromRemote(File localGitFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static FetchResult fetchFromRemote(File localRepoFolder, String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(localRepoFolder)) {
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
@@ -222,11 +222,11 @@ public class GraficoUtils {
     
     /**
      * Locate a model in the models tree based on its file location
-     * @param localGitFolder
+     * @param localRepoFolder
      * @return
      */
-    public static IArchimateModel locateModel(File localGitFolder) {
-        File tmpFileName = getModelFileName(localGitFolder);
+    public static IArchimateModel locateModel(File localRepoFolder) {
+        File tmpFileName = getModelFileName(localRepoFolder);
         
         for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {
             if(tmpFileName.equals(model.getFile())) {
@@ -242,26 +242,26 @@ public class GraficoUtils {
      * @param localGitFolder
      * @return
      */
-    public static File getModelFileName(File localGitFolder) {
-        return new File(localGitFolder, "/.git/temp.archimate"); //$NON-NLS-1$
+    public static File getModelFileName(File localRepoFolder) {
+        return new File(localRepoFolder, "/.git/temp.archimate"); //$NON-NLS-1$
     }
     
     /**
      * Create a new, local Git repository with name set to "origin"
-     * @param localGitFolder
+     * @param localRepoFolder
      * @param URL online URL
      * @return The Git object
      * @throws GitAPIException
      * @throws IOException
      * @throws URISyntaxException
      */
-    public static Git createNewLocalGitRepository(File localGitFolder, String URL) throws GitAPIException, IOException, URISyntaxException {
-        if(localGitFolder.exists() && localGitFolder.list().length > 0) {
-            throw new IOException("Directory: " + localGitFolder + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
+    public static Git createNewLocalGitRepository(File localRepoFolder, String URL) throws GitAPIException, IOException, URISyntaxException {
+        if(localRepoFolder.exists() && localRepoFolder.list().length > 0) {
+            throw new IOException("Directory: " + localRepoFolder + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
         }
         
         InitCommand initCommand = Git.init();
-        initCommand.setDirectory(localGitFolder);
+        initCommand.setDirectory(localRepoFolder);
         Git git = initCommand.call();
         
         RemoteAddCommand remoteAddCommand = git.remoteAdd();
@@ -275,12 +275,12 @@ public class GraficoUtils {
     /**
      * Return the URL of the Git repo, taken from local config file.
      * We assume that there is only one remote per repo, and its name is "origin"
-     * @param localGitFolder
+     * @param localRepoFolder
      * @return The URL or null if not found
      * @throws IOException
      */
-    public static String getRepositoryURL(File localGitFolder) throws IOException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static String getRepositoryURL(File localRepoFolder) throws IOException {
+        try(Git git = Git.open(localRepoFolder)) {
             return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         }
     }
@@ -288,16 +288,16 @@ public class GraficoUtils {
     /**
      * Retune the contents of a file in the repo given its ref
      * Ref could be "HEAD" or "origin/master" for example
-     * @param localGitFolder
+     * @param localRepoFolder
      * @param path
      * @param ref
      * @return
      * @throws IOException
      */
-    public static String getFileContents(File localGitFolder, String path, String ref) throws IOException {
+    public static String getFileContents(File localRepoFolder, String path, String ref) throws IOException {
         String str = ""; //$NON-NLS-1$
         
-        try(Repository repository = Git.open(localGitFolder).getRepository()) {
+        try(Repository repository = Git.open(localRepoFolder).getRepository()) {
             ObjectId lastCommitId = repository.resolve(ref);
 
             try(RevWalk revWalk = new RevWalk(repository)) {
@@ -329,16 +329,16 @@ public class GraficoUtils {
 
     /**
      * Get the file contents of a file in the working tree
-     * @param localGitFolder
+     * @param localRepoFolder
      * @param path
      * @return
      * @throws IOException
      */
-    public static String getWorkingTreeFileContents(File localGitFolder, String path) throws IOException {
+    public static String getWorkingTreeFileContents(File localRepoFolder, String path) throws IOException {
         String str = ""; //$NON-NLS-1$
         
-        try(Git git = Git.open(localGitFolder)) {
-            try(BufferedReader in = new BufferedReader(new FileReader(new File(localGitFolder, path)))) {
+        try(Git git = Git.open(localRepoFolder)) {
+            try(BufferedReader in = new BufferedReader(new FileReader(new File(localRepoFolder, path)))) {
                 String line;
                 while((line = in.readLine()) != null) {
                     str += line + "\n"; //$NON-NLS-1$
@@ -351,12 +351,12 @@ public class GraficoUtils {
     
     /**
      * Return true if the local temp.archimate file has been modified since last Grafico export
-     * @param localGitFolder
+     * @param localRepoFolder
      * @return
      */
-    public static boolean hasLocalChanges(File localGitFolder) {
-        File localFile = getModelFileName(localGitFolder);
-        File gitModelFolder = new File(localGitFolder, IGraficoConstants.MODEL_FOLDER);
+    public static boolean hasLocalChanges(File localRepoFolder) {
+        File localFile = getModelFileName(localRepoFolder);
+        File gitModelFolder = new File(localRepoFolder, IGraficoConstants.MODEL_FOLDER);
         
         if(!localFile.exists() || !gitModelFolder.exists()) {
             return false;
