@@ -45,6 +45,7 @@ import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributo
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.services.ViewManager;
 
 
 /**
@@ -107,8 +108,10 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          */
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
-                File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
-                IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
+                //File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
+                //IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
+                ViewManager.showViewPart(HistoryView.ID, false);
+                getViewer().setSelection(getViewer().getSelection());
             }
         });
 

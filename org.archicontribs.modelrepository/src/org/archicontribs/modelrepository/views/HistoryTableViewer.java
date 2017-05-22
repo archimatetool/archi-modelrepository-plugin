@@ -5,13 +5,27 @@
  */
 package org.archicontribs.modelrepository.views;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -31,8 +45,6 @@ public class HistoryTableViewer extends TableViewer {
         
         setContentProvider(new HistoryContentProvider());
         setLabelProvider(new HistoryLabelProvider());
-        
-        setInput(""); //$NON-NLS-1$
     }
 
     /**
@@ -71,15 +83,43 @@ public class HistoryTableViewer extends TableViewer {
      * The Model for the Table.
      */
     class HistoryContentProvider implements IStructuredContentProvider {
+        List<RevCommit> commits = new ArrayList<RevCommit>();
         
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+            if(!(newInput instanceof File)) {
+                return;
+            }
+            
+            File folder = (File)newInput;
+            
+            commits = new ArrayList<RevCommit>();
+            
+            // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
+            try(Git git = Git.open(folder)) {
+                // get a list of all known heads, tags, remotes, ...
+                Collection<Ref> allRefs = git.getRepository().getAllRefs().values();
+                
+                // a RevWalk allows to walk over commits based on some filtering that is defined
+                try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+                    for(Ref ref : allRefs ) {
+                        revWalk.markStart(revWalk.parseCommit(ref.getObjectId()));
+                    }
+                    
+                    for(RevCommit commit : revWalk ) {
+                        commits.add(commit);
+                    }
+                }
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
         }
         
         public void dispose() {
         }
         
         public Object[] getElements(Object parent) {
-            return new Object[] {};
+            return commits.toArray();
         }
     }
     
@@ -87,20 +127,35 @@ public class HistoryTableViewer extends TableViewer {
 	// ===================================== Label Model ==============================================
 	// ===============================================================================================
 
-    class HistoryLabelProvider extends LabelProvider {
+    class HistoryLabelProvider extends LabelProvider implements ITableLabelProvider {
+        
+        DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
         @Override
-        public String getText(Object obj) {
-            return ""; //$NON-NLS-1$
+        public Image getColumnImage(Object element, int columnIndex) {
+            return null;
         }
-        
+
         @Override
-        public Image getImage(Object obj) {
-            Image image = null;
+        public String getColumnText(Object element, int columnIndex) {
+            RevCommit commit = (RevCommit)element;
             
-            
-            
-            return image;
+            switch(columnIndex) {
+                case 0:
+                    return commit.getName().substring(0, 8);
+                    
+                case 1:
+                    return commit.getShortMessage();
+                    
+                case 2:
+                    return commit.getAuthorIdent().getName();
+                
+                case 3:
+                    return dateFormat.format(new Date(commit.getCommitTime() * 1000L));
+                    
+                default:
+                    return null;
+            }
         }
     }
 }
