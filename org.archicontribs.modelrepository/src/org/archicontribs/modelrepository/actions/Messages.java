@@ -6,6 +6,10 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "org.archicontribs.modelrepository.actions.messages"; //$NON-NLS-1$
 
+    public static String AbortChangesAction_0;
+
+    public static String AbortChangesAction_1;
+
     public static String AbstractModelAction_0;
 
     public static String AbstractModelAction_1;
