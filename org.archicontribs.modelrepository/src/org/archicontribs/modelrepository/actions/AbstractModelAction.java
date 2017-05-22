@@ -30,7 +30,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public abstract class AbstractModelAction extends Action {
+public abstract class AbstractModelAction extends Action implements IGraficoModelAction {
 	
 	private File fGitRepoFolder;
 	
@@ -40,19 +40,19 @@ public abstract class AbstractModelAction extends Action {
 	    fWindow = window;
 	}
 	 
-	public void setLocalRepositoryFolder(File folder) {
+	@Override
+    public void setLocalRepositoryFolder(File folder) {
         fGitRepoFolder = folder;
         setEnabled(GraficoUtils.isGitRepository(folder));
 	}
 	
-	public File getLocalRepositoryFolder() {
+	@Override
+    public File getLocalRepositoryFolder() {
 	    return fGitRepoFolder;
 	}
 	
-	/**
-	 * @return The local git folder
-	 */
-	public File getLocalGitFolder() {
+	@Override
+    public File getLocalGitFolder() {
 	    return new File(fGitRepoFolder, ".git"); //$NON-NLS-1$
 	}
 	

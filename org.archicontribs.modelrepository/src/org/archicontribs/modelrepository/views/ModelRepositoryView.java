@@ -8,10 +8,11 @@ package org.archicontribs.modelrepository.views;
 import java.io.File;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.actions.AbstractModelAction;
+import org.archicontribs.modelrepository.actions.AbortChangesAction;
 import org.archicontribs.modelrepository.actions.CloneModelAction;
 import org.archicontribs.modelrepository.actions.CommitModelAction;
 import org.archicontribs.modelrepository.actions.DeleteModelAction;
+import org.archicontribs.modelrepository.actions.IGraficoModelAction;
 import org.archicontribs.modelrepository.actions.OpenModelAction;
 import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
@@ -64,16 +65,18 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /*
      * Actions
      */
-    protected AbstractModelAction fActionClone;
+    protected IGraficoModelAction fActionClone;
     
-    protected AbstractModelAction fActionOpen;
-    protected AbstractModelAction fActionRefresh;
-    protected AbstractModelAction fActionDelete;
+    protected IGraficoModelAction fActionOpen;
+    protected IGraficoModelAction fActionRefresh;
+    protected IGraficoModelAction fActionDelete;
     
-    protected AbstractModelAction fActionCommit;
-    protected AbstractModelAction fActionPush;
+    protected IGraficoModelAction fActionAbortChanges;
     
-    protected AbstractModelAction fActionProperties;
+    protected IGraficoModelAction fActionCommit;
+    protected IGraficoModelAction fActionPush;
+    
+    protected IGraficoModelAction fActionProperties;
     
 
     @Override
@@ -127,6 +130,9 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         fActionDelete = new DeleteModelAction(getViewSite().getWorkbenchWindow());
         fActionDelete.setEnabled(false);
+        
+        fActionAbortChanges = new AbortChangesAction(getViewSite().getWorkbenchWindow());
+        fActionAbortChanges.setEnabled(false);
         
         fActionCommit = new CommitModelAction(getViewSite().getWorkbenchWindow());
         fActionCommit.setEnabled(false);
@@ -198,6 +204,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         manager.add(fActionClone);
         manager.add(fActionDelete);
+        manager.add(fActionAbortChanges);
         manager.add(new Separator());
         manager.add(fActionRefresh);
         manager.add(fActionOpen);
@@ -212,14 +219,12 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
      */
     public void updateActions(ISelection selection) {
         File file = (File)((IStructuredSelection)selection).getFirstElement();
-        //boolean isEmpty = selection.isEmpty();
         
-        // Actions that need a git repository
         fActionRefresh.setLocalRepositoryFolder(file);
         fActionOpen.setLocalRepositoryFolder(file);
         fActionDelete.setLocalRepositoryFolder(file);
+        fActionAbortChanges.setLocalRepositoryFolder(file);
         
-        // TODO: Actions that should in fact be bounded to an ArchimateModel and not a git repository 
         fActionCommit.setLocalRepositoryFolder(file);
         fActionPush.setLocalRepositoryFolder(file);
         
@@ -233,6 +238,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
 
         if(!isEmpty) {
             manager.add(fActionDelete);
+            manager.add(fActionAbortChanges);
             manager.add(new Separator());
             manager.add(fActionRefresh);
             manager.add(fActionOpen);

@@ -30,5 +30,6 @@ public interface IModelRepositoryImages {
     String ICON_DELETE_16 = IMGPATH + "delete.png"; //$NON-NLS-1$
     String ICON_COMMIT_16 = IMGPATH + "commit.png"; //$NON-NLS-1$
     String ICON_PUSH_16 = IMGPATH + "push.png"; //$NON-NLS-1$
+    String ICON_ABORT_16 = IMGPATH + "abort.png"; //$NON-NLS-1$
     
 }
