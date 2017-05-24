@@ -5,7 +5,7 @@
  */
 package org.archicontribs.modelrepository;
 
-import org.archicontribs.modelrepository.views.ModelRepositoryView;
+import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

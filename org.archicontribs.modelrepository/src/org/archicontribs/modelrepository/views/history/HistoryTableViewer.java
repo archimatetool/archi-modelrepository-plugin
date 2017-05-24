@@ -3,12 +3,11 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.views;
+package org.archicontribs.modelrepository.views.history;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

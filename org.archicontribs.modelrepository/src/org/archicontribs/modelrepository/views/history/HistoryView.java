@@ -3,11 +3,12 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.views;
+package org.archicontribs.modelrepository.views.history;
 
 import java.io.File;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -25,10 +26,10 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
@@ -52,16 +53,17 @@ implements IContextProvider, ISelectionListener {
      * The Viewer
      */
     private HistoryTableViewer fTableViewer;
-    private Label fRepoLabel;
+    private CLabel fRepoLabel;
     
     @Override
     public void createPartControl(Composite parent) {
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
         layout.marginHeight = 0;
+        layout.verticalSpacing = 0;
         parent.setLayout(layout);
         
-        fRepoLabel = new Label(parent, SWT.NONE);
+        fRepoLabel = new CLabel(parent, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         Composite tableComp = new Composite(parent, SWT.NONE);

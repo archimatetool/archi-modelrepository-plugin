@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.views;
+package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
 import java.io.FileFilter;

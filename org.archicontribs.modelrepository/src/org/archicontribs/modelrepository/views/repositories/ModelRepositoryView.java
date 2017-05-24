@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.views;
+package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
 
@@ -17,7 +17,7 @@ import org.archicontribs.modelrepository.actions.OpenModelAction;
 import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.views.history.HistoryView;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -44,7 +44,6 @@ import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.ViewManager;
 
 

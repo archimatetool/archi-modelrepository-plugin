@@ -5,7 +5,7 @@
  */
 package org.archicontribs.modelrepository;
 
-import org.archicontribs.modelrepository.views.HistoryView;
+import org.archicontribs.modelrepository.views.history.HistoryView;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

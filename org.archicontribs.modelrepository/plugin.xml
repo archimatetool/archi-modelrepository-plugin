@@ -64,14 +64,14 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            class="org.archicontribs.modelrepository.views.ModelRepositoryView"
+            class="org.archicontribs.modelrepository.views.repositories.ModelRepositoryView"
             icon="img/plugin.png"
             id="org.archicontribs.modelrepository.modelRepositoryView"
             name="%view.name"
             restorable="true">
       </view>
       <view
-            class="org.archicontribs.modelrepository.views.HistoryView"
+            class="org.archicontribs.modelrepository.views.history.HistoryView"
             icon="img/history_view.png"
             id="org.archicontribs.modelrepository.historyView"
             name="Repository History"
