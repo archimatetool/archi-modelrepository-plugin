@@ -257,7 +257,7 @@ public class GraficoUtils {
      */
     public static Git createNewLocalGitRepository(File localRepoFolder, String URL) throws GitAPIException, IOException, URISyntaxException {
         if(localRepoFolder.exists() && localRepoFolder.list().length > 0) {
-            throw new IOException("Directory: " + localRepoFolder + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
+            throw new IOException("Directory: " + localRepoFolder.getAbsolutePath() + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
         }
         
         InitCommand initCommand = Git.init();
@@ -268,6 +268,11 @@ public class GraficoUtils {
         remoteAddCommand.setName("origin"); //$NON-NLS-1$
         remoteAddCommand.setUri(new URIish(URL));
         remoteAddCommand.call();
+        
+        // Use the same line endings
+        StoredConfig config = git.getRepository().getConfig();
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
+        config.save();
         
         return git;
     }
