@@ -25,7 +25,7 @@ public class DeleteModelAction extends AbstractModelAction {
 	
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
         setText(Messages.DeleteModelAction_0);
         setToolTipText(Messages.DeleteModelAction_1);
     }

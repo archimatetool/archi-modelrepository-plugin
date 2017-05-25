@@ -48,7 +48,7 @@ public class CloneModelAction extends AbstractModelAction {
 	// It's not the most secure algorithm so you have been warned!
     public CloneModelAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE));
         setText(Messages.CloneModelAction_0);
         setToolTipText(Messages.CloneModelAction_1);
     }

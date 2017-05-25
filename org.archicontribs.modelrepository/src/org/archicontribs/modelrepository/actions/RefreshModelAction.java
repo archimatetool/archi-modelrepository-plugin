@@ -45,7 +45,7 @@ public class RefreshModelAction extends AbstractModelAction {
 	
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
         setText(Messages.RefreshModelAction_0);
         setToolTipText(Messages.RefreshModelAction_1);
     }

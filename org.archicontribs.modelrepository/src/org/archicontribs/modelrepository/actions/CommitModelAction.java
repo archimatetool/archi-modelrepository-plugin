@@ -32,7 +32,7 @@ public class CommitModelAction extends AbstractModelAction {
 	
     public CommitModelAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT));
         setText(Messages.CommitModelAction_0);
         setToolTipText(Messages.CommitModelAction_0);
     }

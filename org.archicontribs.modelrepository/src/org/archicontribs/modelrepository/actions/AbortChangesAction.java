@@ -29,7 +29,7 @@ public class AbortChangesAction extends AbstractModelAction {
 	
     public AbortChangesAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_ABORT_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_ABORT));
         setText(Messages.AbortChangesAction_0);
         setToolTipText(Messages.AbortChangesAction_0);
     }

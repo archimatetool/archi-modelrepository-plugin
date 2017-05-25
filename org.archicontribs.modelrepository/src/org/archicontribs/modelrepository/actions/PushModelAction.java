@@ -44,7 +44,7 @@ public class PushModelAction extends AbstractModelAction {
 	
     public PushModelAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH_16));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH));
         setText(Messages.PushModelAction_0);
         setToolTipText(Messages.PushModelAction_1);
     }
