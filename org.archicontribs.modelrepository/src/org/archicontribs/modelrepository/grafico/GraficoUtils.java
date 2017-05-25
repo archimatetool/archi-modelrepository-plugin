@@ -60,9 +60,9 @@ public class GraficoUtils {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static void cloneModel(File localGitFolder, String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
+    public static void cloneModel(File localRepoFolder, String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setDirectory(localGitFolder);
+        cloneCommand.setDirectory(localRepoFolder);
         cloneCommand.setURI(repoURL);
         cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
         cloneCommand.setProgressMonitor(monitor);
@@ -85,8 +85,8 @@ public class GraficoUtils {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static RevCommit commitChanges(File localGitFolder, PersonIdent personIdent, String commitMessage) throws GitAPIException, IOException {
-        try(Git git = Git.open(localGitFolder)) {
+    public static RevCommit commitChanges(File localRepoFolder, PersonIdent personIdent, String commitMessage) throws GitAPIException, IOException {
+        try(Git git = Git.open(localRepoFolder)) {
             Status status = git.status().call();
             
             // Nothing changed
