@@ -22,6 +22,7 @@ import com.archimatetool.editor.ui.IArchiImages;
  * Clone Input Dialog
  * 
  * @author Jean-Baptiste Sarrodie
+ * @author Phil Beauvoir
  */
 public class CloneInputDialog extends TitleAreaDialog {
 
@@ -55,46 +56,21 @@ public class CloneInputDialog extends TitleAreaDialog {
         GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
 
-        createURL(container);
-        createUsername(container);
-        createPassword(container);
-
+        txtURL = createTextField(container, Messages.CloneInputDialog_2, SWT.NONE);
+        txtUsername = createTextField(container, Messages.CloneInputDialog_3, SWT.NONE);
+        txtPassword = createTextField(container, Messages.CloneInputDialog_4, SWT.PASSWORD);
+        
         return area;
     }
-
-    private void createURL(Composite container) {
-        Label lbt = new Label(container, SWT.NONE);
-        lbt.setText(Messages.CloneInputDialog_2);
-
-        GridData data = new GridData();
-        data.grabExcessHorizontalSpace = true;
-        data.horizontalAlignment = GridData.FILL;
-
-        txtURL = new Text(container, SWT.BORDER);
-        txtURL.setLayoutData(data);
-    }
     
-    private void createUsername(Composite container) {
-        Label lbt = new Label(container, SWT.NONE);
-        lbt.setText(Messages.CloneInputDialog_3);
-
-        GridData data = new GridData();
-        data.grabExcessHorizontalSpace = true;
-        data.horizontalAlignment = GridData.FILL;
-
-        txtUsername = new Text(container, SWT.BORDER);
-        txtUsername.setLayoutData(data);
-    }
-
-    private void createPassword(Composite container) {
-        Label lbt = new Label(container, SWT.NONE);
-        lbt.setText(Messages.CloneInputDialog_4);
-
-        GridData data = new GridData();
-        data.grabExcessHorizontalSpace = true;
-        data.horizontalAlignment = GridData.FILL;
-        txtPassword = new Text(container, SWT.BORDER | SWT.PASSWORD);
-        txtPassword.setLayoutData(data);
+    private Text createTextField(Composite container, String message, int style) {
+        Label label = new Label(container, SWT.NONE);
+        label.setText(message);
+        
+        Text txt = new Text(container, SWT.BORDER | style);
+        txt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        return txt;
     }
 
     @Override
