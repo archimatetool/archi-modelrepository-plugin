@@ -17,7 +17,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -37,6 +36,8 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+
+import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 
 
 /**
@@ -74,7 +75,7 @@ implements IContextProvider, ISelectionListener {
         gd.heightHint = 50;
         tableComp.setLayoutData(gd);
 
-        tableComp.setLayout(new TableColumnLayout());
+        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
         
         // Create the Viewer first
         fTableViewer = new HistoryTableViewer(tableComp);
@@ -203,6 +204,9 @@ implements IContextProvider, ISelectionListener {
         if(part instanceof ModelRepositoryView  && selected instanceof File) {
             fRepoLabel.setText("Repository:" + " " + ((File)selected).getName());
             getViewer().setInput(selected);
+            
+            // Do the table kludge
+            ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
         }
     }
     
