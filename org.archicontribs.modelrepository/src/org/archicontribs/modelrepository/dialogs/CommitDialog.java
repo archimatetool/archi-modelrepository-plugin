@@ -120,8 +120,8 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
 
     @Override
     protected void okPressed() {
-        fUserEmail = fTextUserEmail.getText();
-        fUserName = fTextUserName.getText();
+        fUserEmail = fTextUserEmail.getText().trim();
+        fUserName = fTextUserName.getText().trim();
         fCommitMessage = fTextCommitMessage.getText();
         
         super.okPressed();

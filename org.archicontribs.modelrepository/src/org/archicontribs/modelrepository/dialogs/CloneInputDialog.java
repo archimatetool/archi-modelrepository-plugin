@@ -81,9 +81,9 @@ public class CloneInputDialog extends TitleAreaDialog {
     // save content of the Text fields because they get disposed
     // as soon as the Dialog closes
     private void saveInput() {
-        username = txtUsername.getText();
-        password = txtPassword.getText();
-        URL = txtURL.getText();
+        username = txtUsername.getText().trim();
+        password = txtPassword.getText().trim();
+        URL = txtURL.getText().trim();
     }
 
     @Override
