@@ -171,4 +171,8 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         
         return false;
     }
+    
+    @Override
+    public void dispose() {
+    }
 }

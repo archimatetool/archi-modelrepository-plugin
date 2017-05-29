@@ -32,4 +32,8 @@ public interface IGraficoModelAction extends IAction {
      */
     File getLocalGitFolder();
 
+    /**
+     * Dispose of action
+     */
+    void dispose();
 }
