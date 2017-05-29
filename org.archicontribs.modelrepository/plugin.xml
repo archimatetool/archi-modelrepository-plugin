@@ -13,6 +13,11 @@
             id="org.archicontribs.modelrepository.command.showHistoryView"
             name="Repository History">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.CreateRepoFromModelHandler"
+            id="org.archicontribs.modelrepository.command.createRepoFromModel"
+            name="Create Repository from Selected Model">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -57,6 +62,29 @@
                icon="img/history_view.png"
                id="org.archicontribs.modelrepository.toolbaritem.showHistoryView"
                label="Repository History"
+               style="push">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.archimatetool.editor.treeModelView?after=append_extensions">
+         <command
+               commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+               id="org.archicontribs.modelrepository.popupmenu.createRepoFromModel"
+               label="Create Repository from Selected Model..."
+               style="push">
+         </command>
+         <separator
+               name="org.archicontribs.modelrepository.popup.separator"
+               visible="true">
+         </separator>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:tools?after=com.archimatetool.hammer.menuitem.validate">
+         <command
+               commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+               label="Create Repository from Selected Model..."
                style="push">
          </command>
       </menuContribution>
