@@ -43,9 +43,16 @@ public class ProxyAuthenticater {
      */
     public static void update(String repositoryURL) throws IOException {
         boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
+        
         if(!useProxy) {
             Authenticator.setDefault(null);
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
+            
+            // Test the connection - this is better to do it now
+            URL testURL = new URL(repositoryURL);
+            URLConnection connection = testURL.openConnection();
+            connection.connect();
+            
             return;
         }
         
