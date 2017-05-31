@@ -119,7 +119,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     monitor.subTask("Committing");
 
                     // Commit changes
-                    GraficoUtils.commitChanges(localRepoFolder, new PersonIdent(userName, "phil@phil.com"), "Test");
+                    String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
+                    String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
+                    GraficoUtils.commitChanges(localRepoFolder, new PersonIdent(author, email), "First Commit");
                     
                     monitor.subTask("Pushing");
                     
