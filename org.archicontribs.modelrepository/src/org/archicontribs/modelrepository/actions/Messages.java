@@ -64,6 +64,12 @@ public class Messages extends NLS {
 
     public static String DeleteModelAction_2;
 
+    public static String ExtractModelFromCommitAction_0;
+
+    public static String ExtractModelFromCommitAction_1;
+
+    public static String ExtractModelFromCommitAction_2;
+
     public static String OpenModelAction_0;
 
     public static String OpenModelAction_1;

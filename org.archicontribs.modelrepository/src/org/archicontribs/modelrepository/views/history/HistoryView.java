@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.views.history;
 import java.io.File;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -24,6 +25,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.layout.GridData;
@@ -55,6 +57,18 @@ implements IContextProvider, ISelectionListener {
      */
     private HistoryTableViewer fTableViewer;
     private CLabel fRepoLabel;
+    
+    /*
+     * Actions
+     */
+    private ExtractModelFromCommitAction fActionExtractCommit;
+    
+    
+    /*
+     * Selected repo file
+     */
+    private File fSelectedRepoFile;
+
     
     @Override
     public void createPartControl(Composite parent) {
@@ -116,6 +130,8 @@ implements IContextProvider, ISelectionListener {
      * Make local actions
      */
     protected void makeActions() {
+        fActionExtractCommit = new ExtractModelFromCommitAction(getViewSite().getWorkbenchWindow());
+        fActionExtractCommit.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -166,21 +182,26 @@ implements IContextProvider, ISelectionListener {
         IToolBarManager manager = bars.getToolBarManager();
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
+        
+        manager.add(fActionExtractCommit);
+        
         manager.add(new Separator());
     }
     
     /**
-     * Update the Local Actions depending on the selection 
+     * Update the Local Actions depending on the local selection 
      * @param selection
      */
     public void updateActions(ISelection selection) {
-        // Object o = ((IStructuredSelection)selection).getFirstElement();
+        RevCommit commit = (RevCommit)((IStructuredSelection)selection).getFirstElement();
         
+        fActionExtractCommit.setCommit(commit);
     }
     
     protected void fillContextMenu(IMenuManager manager) {
         // boolean isEmpty = getViewer().getSelection().isEmpty();
 
+        manager.add(fActionExtractCommit);
     }
 
     /**
@@ -201,12 +222,16 @@ implements IContextProvider, ISelectionListener {
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
-        if(part instanceof ModelRepositoryView  && selected instanceof File) {
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + ((File)selected).getName()); //$NON-NLS-1$
+        if(part instanceof ModelRepositoryView && selected instanceof File) {
+            fSelectedRepoFile = (File)selected;
+            
+            fRepoLabel.setText(Messages.HistoryView_0 + " " + fSelectedRepoFile.getName()); //$NON-NLS-1$
             getViewer().setInput(selected);
             
             // Do the table kludge
             ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
+            
+            fActionExtractCommit.setLocalRepositoryFolder(fSelectedRepoFile);
         }
     }
     
