@@ -48,9 +48,6 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
         
         deleteFolder(tempOutputFolder);
         
-        // Create a .git folder as this will be used by loadModelFromGraficoFiles() 
-        new File(tempOutputFolder, ".git").mkdirs(); //$NON-NLS-1$
-        
         // Wlak the tree and get the contents of the commit
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
