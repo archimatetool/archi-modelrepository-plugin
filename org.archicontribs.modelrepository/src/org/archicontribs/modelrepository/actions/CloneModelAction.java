@@ -44,8 +44,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class CloneModelAction extends AbstractModelAction {
 	
-	// Set this to true to store user name and password in a simple encrypted file called "credentials" in the repo's .git folder
-	// It's not the most secure algorithm so you have been warned!
     public CloneModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE));
