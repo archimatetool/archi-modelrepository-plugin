@@ -49,9 +49,7 @@ public class ProxyAuthenticater {
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
             
             // Test the connection - this is better to do it now
-            URL testURL = new URL(repositoryURL);
-            URLConnection connection = testURL.openConnection();
-            connection.connect();
+            testConnection(repositoryURL, null);
             
             return;
         }
@@ -109,8 +107,32 @@ public class ProxyAuthenticater {
         });      
 
         // Test the connection with the repository URL
+        testConnection(repositoryURL, proxy);
+    }
+    
+    /**
+     * Test a connection
+     * @param repositoryURL
+     * @param proxy
+     * @throws IOException 
+     */
+    private static void testConnection(String repositoryURL, Proxy proxy) throws IOException {
         URL testURL = new URL(repositoryURL);
-        URLConnection connection = testURL.openConnection(proxy);
+        
+        // TODO: localhost https connections throw certificate exceptions
+        if("localhost".equals(testURL.getHost()) || "127.0.0.1".equals(testURL.getHost())) { //$NON-NLS-1$ //$NON-NLS-2$
+            return;
+        }
+        
+        URLConnection connection;
+        
+        if(proxy != null) {
+            connection = testURL.openConnection(proxy);
+        }
+        else {
+            connection = testURL.openConnection();
+        }
+        
         connection.connect();
     }
 }
