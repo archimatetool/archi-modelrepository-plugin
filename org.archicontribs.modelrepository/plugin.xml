@@ -4,19 +4,24 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
-            defaultHandler="org.archicontribs.modelrepository.ShowRepositoryViewHandler"
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
-            name="%command.name">
+            name="Show Model Repository View">
       </command>
       <command
-            defaultHandler="org.archicontribs.modelrepository.ShowHistoryViewHandler"
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showHistoryView"
-            name="Repository History">
+            name="Show Repository History View">
       </command>
       <command
-            defaultHandler="org.archicontribs.modelrepository.CreateRepoFromModelHandler"
+            defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
             id="org.archicontribs.modelrepository.command.createRepoFromModel"
             name="Create Repository from Selected Model">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.RefreshModelHandler"
+            id="org.archicontribs.modelrepository.command.refreshModel"
+            name="Refresh Model">
       </command>
    </extension>
    <extension
@@ -70,6 +75,12 @@
                label="Create Repository from Selected Model..."
                style="push">
          </command>
+         <command
+               commandId="org.archicontribs.modelrepository.command.refreshModel"
+               icon="img/pull.png"
+               label="Refresh Local Copy"
+               style="push">
+         </command>
          <separator
                name="org.archicontribs.modelrepository.popup.end"
                visible="true">
@@ -84,6 +95,12 @@
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                   label="Create Repository from Selected Model..."
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  label="Refresh Local Copy"
                   style="push">
             </command>
          </menu>
