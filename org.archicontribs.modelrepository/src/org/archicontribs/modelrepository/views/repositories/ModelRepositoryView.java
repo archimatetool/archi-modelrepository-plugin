@@ -65,18 +65,18 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /*
      * Actions
      */
-    protected IGraficoModelAction fActionClone;
+    private IGraficoModelAction fActionClone;
     
-    protected IGraficoModelAction fActionOpen;
-    protected IGraficoModelAction fActionRefresh;
-    protected IGraficoModelAction fActionDelete;
+    private IGraficoModelAction fActionOpen;
+    private IGraficoModelAction fActionRefresh;
+    private IGraficoModelAction fActionDelete;
     
-    protected IGraficoModelAction fActionAbortChanges;
+    private IGraficoModelAction fActionAbortChanges;
     
-    protected IGraficoModelAction fActionCommit;
-    protected IGraficoModelAction fActionPush;
+    private IGraficoModelAction fActionCommit;
+    private IGraficoModelAction fActionPush;
     
-    protected IGraficoModelAction fActionProperties;
+    private IGraficoModelAction fActionProperties;
     
 
     @Override
