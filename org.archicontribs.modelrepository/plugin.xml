@@ -31,6 +31,13 @@
                label="%command.label"
                style="push">
          </command>
+         <command
+               commandId="org.archicontribs.modelrepository.command.showHistoryView"
+               icon="img/history_view.png"
+               id="org.archicontribs.modelrepository.menuitem.showHistoryView"
+               label="Repository History"
+               style="push">
+         </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
@@ -42,21 +49,6 @@
                label="%command.label.0"
                style="push">
          </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="menu:window?after=org.archicontribs.modelrepository.menuitem.showRepositoryView">
-         <command
-               commandId="org.archicontribs.modelrepository.command.showHistoryView"
-               icon="img/history_view.png"
-               id="org.archicontribs.modelrepository.menuitem.showHistoryView"
-               label="Repository History"
-               style="push">
-         </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="toolbar:toolbar_views?after=org.archicontribs.modelrepository.toolbaritem.showRepositoryView">
          <command
                commandId="org.archicontribs.modelrepository.command.showHistoryView"
                icon="img/history_view.png"
@@ -68,6 +60,10 @@
       <menuContribution
             allPopups="true"
             locationURI="popup:com.archimatetool.editor.treeModelView?after=append_extensions">
+         <separator
+               name="org.archicontribs.modelrepository.popup.start"
+               visible="true">
+         </separator>
          <command
                commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                id="org.archicontribs.modelrepository.popupmenu.createRepoFromModel"
@@ -75,18 +71,29 @@
                style="push">
          </command>
          <separator
-               name="org.archicontribs.modelrepository.popup.separator"
+               name="org.archicontribs.modelrepository.popup.end"
                visible="true">
          </separator>
       </menuContribution>
       <menuContribution
             allPopups="false"
-            locationURI="menu:tools?after=com.archimatetool.hammer.menuitem.validate">
-         <command
-               commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
-               label="Create Repository from Selected Model..."
-               style="push">
-         </command>
+            locationURI="menu:org.eclipse.ui.main.menu?after=tools">
+         <menu
+               id="repository"
+               label="Repository">
+            <command
+                  commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+                  label="Create Repository from Selected Model..."
+                  style="push">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=toolbar_views">
+         <toolbar
+               id="org.archicontribs.modelrepository.toolbar">
+         </toolbar>
       </menuContribution>
    </extension>
    <extension
