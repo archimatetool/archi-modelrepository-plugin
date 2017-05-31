@@ -147,4 +147,9 @@ public class CloneModelAction extends AbstractModelAction {
             }
         });
     }
+    
+    @Override
+    protected boolean shouldBeEnabled() {
+        return true;
+    }
 }

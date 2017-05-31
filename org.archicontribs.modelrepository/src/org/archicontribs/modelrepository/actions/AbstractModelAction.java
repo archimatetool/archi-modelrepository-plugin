@@ -43,7 +43,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	@Override
     public void setLocalRepositoryFolder(File folder) {
         fGitRepoFolder = folder;
-        setEnabled(GraficoUtils.isGitRepository(folder));
+        setEnabled(shouldBeEnabled());
 	}
 	
 	@Override
@@ -54,6 +54,14 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	@Override
     public File getLocalGitFolder() {
 	    return new File(fGitRepoFolder, ".git"); //$NON-NLS-1$
+	}
+	
+	/**
+	 * @return true if this action should be enabled
+	 * The defult is to return true if the underlying folder is a git folder
+	 */
+	protected boolean shouldBeEnabled() {
+	    return GraficoUtils.isGitRepository(fGitRepoFolder);
 	}
 	
     /**
