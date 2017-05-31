@@ -202,7 +202,7 @@ implements IContextProvider, ISelectionListener {
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
         if(part instanceof ModelRepositoryView  && selected instanceof File) {
-            fRepoLabel.setText("Repository:" + " " + ((File)selected).getName());
+            fRepoLabel.setText(Messages.HistoryView_0 + " " + ((File)selected).getName()); //$NON-NLS-1$
             getViewer().setInput(selected);
             
             // Do the table kludge
@@ -230,6 +230,6 @@ implements IContextProvider, ISelectionListener {
     }
 
     public String getSearchExpression(Object target) {
-        return "History View";
+        return Messages.HistoryView_1;
     }
 }

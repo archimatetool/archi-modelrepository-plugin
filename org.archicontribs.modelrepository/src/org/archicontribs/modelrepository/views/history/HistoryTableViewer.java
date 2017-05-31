@@ -56,19 +56,19 @@ public class HistoryTableViewer extends TableViewer {
         TableColumnLayout tableLayout = (TableColumnLayout)parent.getLayout();
         
         TableViewerColumn column = new TableViewerColumn(this, SWT.NONE, 0);
-        column.getColumn().setText("Id");
+        column.getColumn().setText(Messages.HistoryTableViewer_0);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 1);
-        column.getColumn().setText("Message");
+        column.getColumn().setText(Messages.HistoryTableViewer_1);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(50, false));
 
         column = new TableViewerColumn(this, SWT.NONE, 2);
-        column.getColumn().setText("Author");
+        column.getColumn().setText(Messages.HistoryTableViewer_2);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     
         column = new TableViewerColumn(this, SWT.NONE, 3);
-        column.getColumn().setText("Date");
+        column.getColumn().setText(Messages.HistoryTableViewer_3);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     
     }

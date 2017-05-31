@@ -37,18 +37,18 @@ public class NewModelRepoDialog extends TitleAreaDialog {
 
     public NewModelRepoDialog(Shell parentShell) {
         super(parentShell);
-        setTitle("New Model Repository");
+        setTitle(Messages.NewModelRepoDialog_0);
     }
 
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("New Model Repository");
+        shell.setText(Messages.NewModelRepoDialog_0);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("Please enter the URL of the remote model and user credentials", IMessageProvider.INFORMATION);
+        setMessage(Messages.NewModelRepoDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -57,10 +57,10 @@ public class NewModelRepoDialog extends TitleAreaDialog {
         GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
 
-        txtURL = createTextField(container, "URL:", SWT.NONE);
-        txtModelName = createTextField(container, "Model name:", SWT.NONE);
-        txtUsername = createTextField(container, "User Name:", SWT.NONE);
-        txtPassword = createTextField(container, "Password:", SWT.PASSWORD);
+        txtURL = createTextField(container, Messages.NewModelRepoDialog_2, SWT.NONE);
+        txtModelName = createTextField(container, Messages.NewModelRepoDialog_3, SWT.NONE);
+        txtUsername = createTextField(container, Messages.NewModelRepoDialog_4, SWT.NONE);
+        txtPassword = createTextField(container, Messages.NewModelRepoDialog_5, SWT.PASSWORD);
 
         return area;
     }

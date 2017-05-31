@@ -42,6 +42,22 @@ public class Messages extends NLS {
 
     public static String CommitModelAction_2;
 
+    public static String CreateRepoFromModelAction_0;
+
+    public static String CreateRepoFromModelAction_1;
+
+    public static String CreateRepoFromModelAction_2;
+
+    public static String CreateRepoFromModelAction_3;
+
+    public static String CreateRepoFromModelAction_4;
+
+    public static String CreateRepoFromModelAction_5;
+
+    public static String CreateRepoFromModelAction_6;
+
+    public static String CreateRepoFromModelAction_7;
+
     public static String DeleteModelAction_0;
 
     public static String DeleteModelAction_1;

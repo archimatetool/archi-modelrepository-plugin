@@ -50,8 +50,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         fModel = model;
         
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CREATE_REPOSITORY));
-        setText("Create Repository from this Model");
-        setToolTipText("Create Repository from this Model");
+        setText(Messages.CreateRepoFromModelAction_0);
+        setToolTipText(Messages.CreateRepoFromModelAction_0);
     }
 
     @Override
@@ -81,8 +81,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         // Folder is not empty
         if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
-                    "Create a new Model Repository",
-                    "Local Folder is not empty:" + " " + localRepoFolder.getAbsolutePath());
+                    Messages.CreateRepoFromModelAction_1,
+                    Messages.CreateRepoFromModelAction_2 +
+                    " " + localRepoFolder.getAbsolutePath()); //$NON-NLS-1$
 
             return;
         }
@@ -95,7 +96,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 try {
                     this.monitor = monitor;
                     
-                    monitor.beginTask("Creating new repository", IProgressMonitor.UNKNOWN);
+                    monitor.beginTask(Messages.CreateRepoFromModelAction_3, IProgressMonitor.UNKNOWN);
                     
                     // Proxy check
                     ProxyAuthenticater.update(repoURL);
@@ -116,14 +117,14 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     // Export to Grafico
                     exportModelToGraficoFiles(fModel, localRepoFolder);
                     
-                    monitor.subTask("Committing");
+                    monitor.subTask(Messages.CreateRepoFromModelAction_4);
 
                     // Commit changes
                     String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
                     String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                    GraficoUtils.commitChanges(localRepoFolder, new PersonIdent(author, email), "First Commit");
+                    GraficoUtils.commitChanges(localRepoFolder, new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
                     
-                    monitor.subTask("Pushing");
+                    monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
                     // Push
                     GraficoUtils.pushToRemote(localRepoFolder, userName, userPassword, null);
@@ -135,7 +136,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     }
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException | URISyntaxException ex) {
-                    displayErrorDialog("New Model Repository", ex);
+                    displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
                 }
                 finally {
                     monitor.done();
