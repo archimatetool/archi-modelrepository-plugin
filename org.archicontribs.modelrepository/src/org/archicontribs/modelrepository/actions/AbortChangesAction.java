@@ -26,12 +26,22 @@ import com.archimatetool.model.IArchimateModel;
  * @author Phillip Beauvoir
  */
 public class AbortChangesAction extends AbstractModelAction {
+    
+    private IArchimateModel fModel;
 	
     public AbortChangesAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_ABORT));
         setText(Messages.AbortChangesAction_0);
         setToolTipText(Messages.AbortChangesAction_0);
+    }
+
+    public AbortChangesAction(IWorkbenchWindow window, IArchimateModel model) {
+        this(window);
+        fModel = model;
+        if(fModel != null) {
+            setLocalRepositoryFolder(fModel.getFile().getParentFile().getParentFile());
+        }
     }
 
     @Override
@@ -59,7 +69,12 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
-            IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+            IArchimateModel model = fModel;
+            
+            if(model == null) {
+                model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+            }
+            
             IEditorModelManager.INSTANCE.closeModel(model);
             loadModelFromGraficoFiles(getLocalRepositoryFolder());
         }

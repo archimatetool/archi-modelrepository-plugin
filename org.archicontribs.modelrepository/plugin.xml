@@ -19,9 +19,29 @@
             name="Create Repository from Selected Model">
       </command>
       <command
+            defaultHandler="org.archicontribs.modelrepository.actions.CloneModelHandler"
+            id="org.archicontribs.modelrepository.command.cloneModel"
+            name="Clone Model">
+      </command>
+      <command
             defaultHandler="org.archicontribs.modelrepository.actions.RefreshModelHandler"
             id="org.archicontribs.modelrepository.command.refreshModel"
             name="Refresh Model">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.CommitModelHandler"
+            id="org.archicontribs.modelrepository.command.commitModel"
+            name="Commit Changes">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.PushModelHandler"
+            id="org.archicontribs.modelrepository.command.pushModel"
+            name="Publish Changes">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.AbortChangesHandler"
+            id="org.archicontribs.modelrepository.command.abortChanges"
+            name="Abort Unpublished Changes">
       </command>
    </extension>
    <extension
@@ -33,14 +53,14 @@
                commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                icon="img/plugin.png"
                id="org.archicontribs.modelrepository.menuitem.showRepositoryView"
-               label="%command.label"
+               label="%model_repository"
                style="push">
          </command>
          <command
                commandId="org.archicontribs.modelrepository.command.showHistoryView"
                icon="img/history_view.png"
                id="org.archicontribs.modelrepository.menuitem.showHistoryView"
-               label="Repository History"
+               label="%history_repository"
                style="push">
          </command>
       </menuContribution>
@@ -51,40 +71,77 @@
                commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                icon="img/plugin.png"
                id="org.archicontribs.modelrepository.toolbaritem.showRepositoryView"
-               label="%command.label.0"
+               label="%model_repository"
                style="push">
          </command>
          <command
                commandId="org.archicontribs.modelrepository.command.showHistoryView"
                icon="img/history_view.png"
                id="org.archicontribs.modelrepository.toolbaritem.showHistoryView"
-               label="Repository History"
+               label="%history_repository"
                style="push">
          </command>
       </menuContribution>
       <menuContribution
             allPopups="true"
-            locationURI="popup:com.archimatetool.editor.treeModelView?after=append_extensions">
-         <separator
-               name="org.archicontribs.modelrepository.popup.start"
-               visible="true">
-         </separator>
-         <command
-               commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
-               id="org.archicontribs.modelrepository.popupmenu.createRepoFromModel"
-               label="Create Repository from Selected Model..."
-               style="push">
-         </command>
-         <command
-               commandId="org.archicontribs.modelrepository.command.refreshModel"
-               icon="img/pull.png"
-               label="Refresh Local Copy"
-               style="push">
-         </command>
-         <separator
-               name="org.archicontribs.modelrepository.popup.end"
-               visible="true">
-         </separator>
+            locationURI="popup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmeu.validate">
+         <menu
+               id="org.archicontribs.modelrepository.menu"
+               label="Repository">
+            <separator
+                  name="org.archicontribs.modelrepository.popup.start"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.cloneModel"
+                  icon="img/add_obj.png"
+                  label="Add Remote Model"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  id="org.archicontribs.modelrepository.popupmenu.createRepoFromModel"
+                  label="Create Repository from Selected Model"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.popup.separator1"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  label="Refresh Local Copy"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  label="Commit Changes"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.pushModel"
+                  icon="img/push.png"
+                  label="Publish Changes"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.popup.separator2"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.abortChanges"
+                  icon="img/abort.png"
+                  label="Abort Unpublished Changes"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.popup.end"
+                  visible="true">
+            </separator>
+         </menu>
       </menuContribution>
       <menuContribution
             allPopups="false"
@@ -93,14 +150,47 @@
                id="repository"
                label="Repository">
             <command
-                  commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
-                  label="Create Repository from Selected Model..."
+                  commandId="org.archicontribs.modelrepository.command.cloneModel"
+                  icon="img/add_obj.png"
+                  label="Add Remote Model"
                   style="push">
             </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  label="Create Repository from Selected Model"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.menu.separator1"
+                  visible="true">
+            </separator>
             <command
                   commandId="org.archicontribs.modelrepository.command.refreshModel"
                   icon="img/pull.png"
                   label="Refresh Local Copy"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  label="Commit Changes"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.pushModel"
+                  icon="img/push.png"
+                  label="Publish Changes"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.separator2"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.abortChanges"
+                  icon="img/abort.png"
+                  label="Abort Unpublished Changes"
                   style="push">
             </command>
          </menu>
@@ -119,14 +209,14 @@
             class="org.archicontribs.modelrepository.views.repositories.ModelRepositoryView"
             icon="img/plugin.png"
             id="org.archicontribs.modelrepository.modelRepositoryView"
-            name="%view.name"
+            name="%model_repository"
             restorable="true">
       </view>
       <view
             class="org.archicontribs.modelrepository.views.history.HistoryView"
             icon="img/history_view.png"
             id="org.archicontribs.modelrepository.historyView"
-            name="Repository History"
+            name="%history_repository"
             restorable="true">
       </view>
    </extension>
@@ -158,7 +248,7 @@
       <page
             class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
             id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
-            name="%page.name">
+            name="%info">
       </page>
    </extension>
    <extension
@@ -182,7 +272,7 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="%propertyTab.label">
+               label="%info">
          </propertyTab>
       </propertyTabs>
    </extension>

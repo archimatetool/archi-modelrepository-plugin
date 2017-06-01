@@ -29,6 +29,8 @@ import com.archimatetool.model.IArchimateModel;
  * @author Phillip Beauvoir
  */
 public class CommitModelAction extends AbstractModelAction {
+    
+    private IArchimateModel fModel;
 	
     public CommitModelAction(IWorkbenchWindow window) {
         super(window);
@@ -37,11 +39,23 @@ public class CommitModelAction extends AbstractModelAction {
         setToolTipText(Messages.CommitModelAction_0);
     }
 
+    public CommitModelAction(IWorkbenchWindow window, IArchimateModel model) {
+        this(window);
+        fModel = model;
+        if(fModel != null) {
+            setLocalRepositoryFolder(fModel.getFile().getParentFile().getParentFile());
+        }
+    }
+
     @Override
     public void run() {
+        IArchimateModel model = fModel;
+        
         // This will either return the already open model or will actually open it
         // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        if(model == null) {
+            model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        }
         
         if(model == null) {
             MessageDialog.openError(fWindow.getShell(),

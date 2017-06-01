@@ -209,15 +209,15 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         manager.add(new Separator());
         
-        manager.add(fActionDelete);
-        manager.add(fActionAbortChanges);
-        
-        manager.add(new Separator());
-        
         manager.add(fActionRefresh);
         manager.add(fActionOpen);
         manager.add(fActionCommit);
         manager.add(fActionPush);
+
+        manager.add(new Separator());
+        
+        manager.add(fActionDelete);
+        manager.add(fActionAbortChanges);
     }
     
     /**
@@ -246,16 +246,16 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         if(!isEmpty) {
             manager.add(new Separator());
             
-            manager.add(fActionDelete);
-            
-            manager.add(fActionAbortChanges);
-            manager.add(new Separator());
-            
             manager.add(fActionRefresh);
             manager.add(fActionOpen);
             manager.add(fActionCommit);
             manager.add(fActionPush);
 
+            manager.add(new Separator());
+
+            manager.add(fActionDelete);
+            manager.add(fActionAbortChanges);
+            
             manager.add(new Separator());
             
             manager.add(fActionProperties);
