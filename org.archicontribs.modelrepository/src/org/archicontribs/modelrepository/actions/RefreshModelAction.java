@@ -56,7 +56,7 @@ public class RefreshModelAction extends AbstractModelAction {
         this(window);
         fModel = model;
         if(fModel != null) {
-            setLocalRepositoryFolder(fModel.getFile().getParentFile().getParentFile());
+            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(fModel));
         }
     }
     

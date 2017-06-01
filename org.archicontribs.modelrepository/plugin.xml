@@ -48,6 +48,11 @@
             id="org.archicontribs.modelrepository.command.showInHistoryView"
             name="Show in History">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowInRepositoryViewHandler"
+            id="org.archicontribs.modelrepository.command.showInRepositoryView"
+            name="Show in Model Repository">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -82,14 +87,13 @@
          <command
                commandId="org.archicontribs.modelrepository.command.showHistoryView"
                icon="img/history_view.png"
-               id="org.archicontribs.modelrepository.toolbaritem.showHistoryView"
-               label="%history_repository"
+               id="org.arpopup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmenu.validatesitory"
                style="push">
          </command>
       </menuContribution>
       <menuContribution
             allPopups="true"
-            locationURI="popup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmeu.validate">
+            locationURI="popup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popup.separator">
          <menu
                id="org.archicontribs.modelrepository.menu"
                label="Repository">
@@ -150,6 +154,12 @@
                   commandId="org.archicontribs.modelrepository.command.showInHistoryView"
                   icon="img/history_view.png"
                   label="Show in History"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
+                  icon="img/plugin.png"
+                  label="Show in Model Repository"
                   style="push">
             </command>
             <separator
@@ -216,6 +226,12 @@
                   commandId="org.archicontribs.modelrepository.command.showInHistoryView"
                   icon="img/history_view.png"
                   label="Show in History"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
+                  icon="img/plugin.png"
+                  label="Show in Model Repository"
                   style="push">
             </command>
          </menu>

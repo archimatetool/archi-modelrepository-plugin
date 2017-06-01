@@ -50,6 +50,18 @@ public class GraficoUtilsTests {
     
     
     @Test
+    public void getLocalGitFolderName_ShouldReturnCorrectName() {
+        String repoURL = "https://githosting.org/path/archi-demo-grafico.git";
+        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
+        
+        repoURL = "ssh://githosting.org/path/archi-demo-grafico";
+        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
+        
+        repoURL = "ssh://githosting.org/This_One";
+        assertEquals("this_one", GraficoUtils.getLocalGitFolderName(repoURL));        
+    }
+
+    @Test
     public void isGitRepository_FileShouldNotBe() throws Exception {
         File tmpFile = File.createTempFile("architest", null);
         assertFalse(GraficoUtils.isGitRepository(tmpFile));
@@ -74,15 +86,28 @@ public class GraficoUtilsTests {
     }
     
     @Test
-    public void getLocalGitFolderName_ShouldReturnCorrectName() {
-        String repoURL = "https://githosting.org/path/archi-demo-grafico.git";
-        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
-        
-        repoURL = "ssh://githosting.org/path/archi-demo-grafico";
-        assertEquals("archi-demo-grafico", GraficoUtils.getLocalGitFolderName(repoURL));
-        
-        repoURL = "ssh://githosting.org/This_One";
-        assertEquals("this_one", GraficoUtils.getLocalGitFolderName(repoURL));        
+    public void isModelInGitRepository_IsCorrect() {
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        File file = new File("parent/parent/.git/temp.archimate");
+        model.setFile(file);
+        assertTrue(GraficoUtils.isModelInGitRepository(model));
+    }
+
+    @Test
+    public void getLocalGitFolderForModel_IsCorrect() {
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        File expected = new File("parent/parent/");
+        File file = new File(expected, ".git/temp.archimate");
+        model.setFile(file);
+        assertEquals(expected, GraficoUtils.getLocalGitFolderForModel(model));
+    }
+    
+    @Test
+    public void getLocalGitFolderForModel_IsWrong() {
+        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
+        File file = new File("parent/parent/.git/dobbin.archimate");
+        model.setFile(file);
+        assertNull(GraficoUtils.getLocalGitFolderForModel(model));
     }
 
     @Test

@@ -238,9 +238,7 @@ implements IContextProvider, ISelectionListener {
         // Model selected
         else if(selected instanceof IArchimateModelObject) {
             IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
-            if(GraficoUtils.isModelInGitRepository(model)) {
-                fSelectedRepoFile = model.getFile().getParentFile().getParentFile();
-            }
+            fSelectedRepoFile = GraficoUtils.getLocalGitFolderForModel(model);
         }
         
         if(fSelectedRepoFile != null) {

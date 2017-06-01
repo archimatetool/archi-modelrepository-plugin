@@ -226,13 +226,31 @@ public class GraficoUtils {
      * @return
      */
     public static boolean isModelInGitRepository(IArchimateModel model) {
+        return getLocalGitFolderForModel(model) != null;
+    }
+    
+    /**
+     * Get the enclosing local repo folder for a model
+     * It is assumed that the model is located at localRepoFolder/.git/temp.archimate
+     * @param model
+     * @return
+     */
+    public static File getLocalGitFolderForModel(IArchimateModel model) {
         if(model == null) {
-            return false;
+            return null;
         }
         
         File file = model.getFile();
+        if(file == null || !file.getName().equals("temp.archimate")) { //$NON-NLS-1$
+            return null;
+        }
         
-        return file != null && isGitRepository(file.getParentFile().getParentFile()) && file.getName().equals("temp.archimate"); //$NON-NLS-1$
+        File parent = file.getParentFile();
+        if(parent == null || !parent.getName().equals(".git")) { //$NON-NLS-1$
+            return null;
+        }
+        
+        return parent.getParentFile();
     }
     
     /**
