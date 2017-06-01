@@ -221,6 +221,21 @@ public class GraficoUtils {
     }
     
     /**
+     * Check if a model is in a git repo folder
+     * @param model
+     * @return
+     */
+    public static boolean isModelInGitRepository(IArchimateModel model) {
+        if(model == null) {
+            return false;
+        }
+        
+        File file = model.getFile();
+        
+        return file != null && isGitRepository(file.getParentFile().getParentFile()) && file.getName().equals("temp.archimate"); //$NON-NLS-1$
+    }
+    
+    /**
      * Locate a model in the models tree based on its file location
      * @param localRepoFolder
      * @return

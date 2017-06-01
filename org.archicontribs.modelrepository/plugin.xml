@@ -43,6 +43,11 @@
             id="org.archicontribs.modelrepository.command.abortChanges"
             name="Abort Unpublished Changes">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowInHistoryViewHandler"
+            id="org.archicontribs.modelrepository.command.showInHistoryView"
+            name="Show in History">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -138,6 +143,16 @@
                   style="push">
             </command>
             <separator
+                  name="org.archicontribs.modelrepository.popup.separator3"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showInHistoryView"
+                  icon="img/history_view.png"
+                  label="Show in History"
+                  style="push">
+            </command>
+            <separator
                   name="org.archicontribs.modelrepository.popup.end"
                   visible="true">
             </separator>
@@ -184,13 +199,23 @@
                   style="push">
             </command>
             <separator
-                  name="org.archicontribs.modelrepository.separator2"
+                  name="org.archicontribs.modelrepository.menu.separator2"
                   visible="true">
             </separator>
             <command
                   commandId="org.archicontribs.modelrepository.command.abortChanges"
                   icon="img/abort.png"
                   label="Abort Unpublished Changes"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.menu.separator3"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showInHistoryView"
+                  icon="img/history_view.png"
+                  label="Show in History"
                   style="push">
             </command>
          </menu>

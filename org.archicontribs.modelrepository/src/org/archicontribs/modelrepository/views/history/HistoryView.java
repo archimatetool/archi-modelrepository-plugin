@@ -9,6 +9,7 @@ import java.io.File;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -40,6 +41,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
+import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
 
 
 /**
@@ -124,6 +127,12 @@ implements IContextProvider, ISelectionListener {
 
         // Register Help Context
         PlatformUI.getWorkbench().getHelpSystem().setHelp(getViewer().getControl(), HELP_ID);
+        
+        // Initialise with whatever is selected in the workbench
+        IWorkbenchPart part = getSite().getWorkbenchWindow().getPartService().getActivePart();
+        if(part != null) {
+            selectionChanged(part, getSite().getWorkbenchWindow().getSelectionService().getSelection());
+        }
     }
     
     /**
@@ -222,11 +231,21 @@ implements IContextProvider, ISelectionListener {
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
+        // File selected
         if(part instanceof ModelRepositoryView && selected instanceof File) {
             fSelectedRepoFile = (File)selected;
-            
+        }
+        // Model selected
+        else if(selected instanceof IArchimateModelObject) {
+            IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
+            if(GraficoUtils.isModelInGitRepository(model)) {
+                fSelectedRepoFile = model.getFile().getParentFile().getParentFile();
+            }
+        }
+        
+        if(fSelectedRepoFile != null) {
             fRepoLabel.setText(Messages.HistoryView_0 + " " + fSelectedRepoFile.getName()); //$NON-NLS-1$
-            getViewer().setInput(selected);
+            getViewer().setInput(fSelectedRepoFile);
             
             // Do the table kludge
             ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();

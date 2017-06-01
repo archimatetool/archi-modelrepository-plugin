@@ -11,29 +11,24 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
-import com.archimatetool.model.IArchimateModel;
 
 
 /**
- * Create a Repo from existing model handler
+ * Show In History View Handler
  * 
  * @author Phillip Beauvoir
  */
-public class CreateRepoFromModelHandler extends AbstractModelSelectionHandler {
-    
+public class ShowInHistoryViewHandler extends AbstractModelSelectionHandler {
+
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        IArchimateModel model = getActiveArchimateModel();
-        
-        if(model != null) {
-            CreateRepoFromModelAction action = new CreateRepoFromModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
-            action.run();
-        }
-        
+        ShowInHistoryAction action = new ShowInHistoryAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
+        action.run();
         return null;
     }
-    
+
     @Override
     public void updateState() {
-        setBaseEnabled(getActiveArchimateModel() != null && !GraficoUtils.isModelInGitRepository(getActiveArchimateModel()));
+        setBaseEnabled(GraficoUtils.isModelInGitRepository(getActiveArchimateModel()));
     }
+
 }

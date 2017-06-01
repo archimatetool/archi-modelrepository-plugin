@@ -5,10 +5,12 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.model.IArchimateModel;
 
 
@@ -17,7 +19,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class AbortChangesHandler extends AbstractModelRepoHandler {
+public class AbortChangesHandler extends AbstractModelSelectionHandler {
     
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchimateModel model = getActiveArchimateModel();
@@ -32,7 +34,7 @@ public class AbortChangesHandler extends AbstractModelRepoHandler {
     
     @Override
     public void updateState() {
-        setBaseEnabled(getActiveArchimateModel() != null && isModelInRepository());
+        setBaseEnabled(GraficoUtils.isModelInGitRepository(getActiveArchimateModel()));
     }
     
 }

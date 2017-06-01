@@ -105,6 +105,10 @@ public class Messages extends NLS {
     public static String RefreshModelAction_5;
 
     public static String RefreshModelAction_6;
+
+    public static String ShowInHistoryAction_0;
+
+    public static String ShowInHistoryAction_1;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -17,7 +17,8 @@ import org.archicontribs.modelrepository.actions.OpenModelAction;
 import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
-import org.archicontribs.modelrepository.views.history.HistoryView;
+import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -44,7 +45,7 @@ import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
-import com.archimatetool.editor.ui.services.ViewManager;
+import com.archimatetool.editor.model.IEditorModelManager;
 
 
 /**
@@ -75,6 +76,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     
     private IGraficoModelAction fActionCommit;
     private IGraficoModelAction fActionPush;
+    
+    private IGraficoModelAction fActionShowInHistory;
     
     private IGraficoModelAction fActionProperties;
     
@@ -107,10 +110,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          */
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
-                //File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
-                //IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
-                ViewManager.showViewPart(HistoryView.ID, false);
-                getViewer().setSelection(getViewer().getSelection());
+                File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
+                IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
             }
         });
 
@@ -141,6 +142,9 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         fActionPush = new PushModelAction(getViewSite().getWorkbenchWindow());
         fActionPush.setEnabled(false);
+        
+        fActionShowInHistory = new ShowInHistoryAction(getViewSite().getWorkbenchWindow());
+        fActionShowInHistory.setEnabled(false);
         
         fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
         fActionProperties.setEnabled(false);
@@ -218,6 +222,10 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         manager.add(fActionDelete);
         manager.add(fActionAbortChanges);
+        
+        manager.add(new Separator());
+        
+        manager.add(fActionShowInHistory);
     }
     
     /**
@@ -234,6 +242,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         fActionCommit.setLocalRepositoryFolder(file);
         fActionPush.setLocalRepositoryFolder(file);
+        
+        fActionShowInHistory.setLocalRepositoryFolder(file);
         
         fActionProperties.setLocalRepositoryFolder(file);
     }
@@ -255,6 +265,10 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
 
             manager.add(fActionDelete);
             manager.add(fActionAbortChanges);
+            
+            manager.add(new Separator());
+            
+            manager.add(fActionShowInHistory);
             
             manager.add(new Separator());
             
