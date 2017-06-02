@@ -22,12 +22,22 @@ import com.archimatetool.model.IArchimateModel;
  * @author Phillip Beauvoir
  */
 public class DeleteModelAction extends AbstractModelAction {
+    
+    private IArchimateModel fModel;
 	
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
         setText(Messages.DeleteModelAction_0);
         setToolTipText(Messages.DeleteModelAction_1);
+    }
+
+    public DeleteModelAction(IWorkbenchWindow window, IArchimateModel model) {
+        this(window);
+        fModel = model;
+        if(fModel != null) {
+            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(fModel));
+        }
     }
 
     @Override
@@ -39,8 +49,17 @@ public class DeleteModelAction extends AbstractModelAction {
         }
         
         try {
+            IArchimateModel model;
+            
+            // Which model
+            if(fModel != null) {
+                model = fModel;
+            }
+            else {
+                model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+            }
+            
             // Close the model in the tree
-            IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
             if(model != null) {
                 boolean didClose = IEditorModelManager.INSTANCE.closeModel(model);
                 if(!didClose) {

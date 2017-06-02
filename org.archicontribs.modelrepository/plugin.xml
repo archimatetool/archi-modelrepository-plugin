@@ -53,6 +53,11 @@
             id="org.archicontribs.modelrepository.command.showInRepositoryView"
             name="Show in Model Repository">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.DeleteModelHandler"
+            id="org.archicontribs.modelrepository.command.deleteModel"
+            name="Delete Local Copy">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -93,7 +98,7 @@
       </menuContribution>
       <menuContribution
             allPopups="true"
-            locationURI="popup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popup.separator">
+            locationURI="popup:com.archimatetool.editor.treeModelView?before=start_properties">
          <menu
                id="org.archicontribs.modelrepository.menu"
                label="Repository">
@@ -101,12 +106,6 @@
                   name="org.archicontribs.modelrepository.popup.start"
                   visible="true">
             </separator>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.cloneModel"
-                  icon="img/add_obj.png"
-                  label="Add Remote Model"
-                  style="push">
-            </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
@@ -140,6 +139,12 @@
                   name="org.archicontribs.modelrepository.popup.separator2"
                   visible="true">
             </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
+                  label="Delete Local Copy"
+                  style="push">
+            </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.abortChanges"
                   icon="img/abort.png"
@@ -212,6 +217,12 @@
                   name="org.archicontribs.modelrepository.menu.separator2"
                   visible="true">
             </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
+                  label="Delete Local Copy"
+                  style="push">
+            </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.abortChanges"
                   icon="img/abort.png"

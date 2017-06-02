@@ -252,9 +252,10 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     protected void fillContextMenu(IMenuManager manager) {
         boolean isEmpty = getViewer().getSelection().isEmpty();
 
-        manager.add(fActionClone);
-
-        if(!isEmpty) {
+        if(isEmpty) {
+            manager.add(fActionClone);
+        }
+        else {
             manager.add(new Separator());
             
             manager.add(fActionRefresh);
