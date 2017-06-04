@@ -300,7 +300,7 @@
       <page
             class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
             id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
-            name="%info">
+            name="%model_repository">
       </page>
    </extension>
    <extension
@@ -324,7 +324,7 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="%info">
+               label="%repository">
          </propertyTab>
       </propertyTabs>
    </extension>
