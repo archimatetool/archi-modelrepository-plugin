@@ -32,7 +32,7 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
 	
     public ExtractModelFromCommitAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CREATE_REPOSITORY));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_UNSTAGE));
         setText(Messages.ExtractModelFromCommitAction_0);
         setToolTipText(Messages.ExtractModelFromCommitAction_0);
     }
