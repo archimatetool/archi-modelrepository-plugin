@@ -75,7 +75,10 @@ public class AbortChangesAction extends AbstractModelAction {
                 model = GraficoUtils.locateModel(getLocalRepositoryFolder());
             }
             
-            IEditorModelManager.INSTANCE.closeModel(model);
+            if(model != null) {
+                IEditorModelManager.INSTANCE.closeModel(model);
+            }
+            
             loadModelFromGraficoFiles(getLocalRepositoryFolder());
         }
         catch(IOException ex) {
