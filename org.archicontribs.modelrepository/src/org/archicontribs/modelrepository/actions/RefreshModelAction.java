@@ -154,7 +154,7 @@ public class RefreshModelAction extends AbstractModelAction {
                                     MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getLocalRepositoryFolder(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
-                                        handler.mergeAndCommit();
+                                        handler.mergeAndCommit(Messages.RefreshModelAction_7);
                                     }
                                     else {
                                         // User cancelled - we assume user has committed all changes so we can reset

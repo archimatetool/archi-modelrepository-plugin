@@ -92,6 +92,8 @@ public class Messages extends NLS {
 
     public static String PushModelAction_7;
 
+    public static String PushModelAction_8;
+
     public static String RefreshModelAction_0;
 
     public static String RefreshModelAction_1;
@@ -105,6 +107,18 @@ public class Messages extends NLS {
     public static String RefreshModelAction_5;
 
     public static String RefreshModelAction_6;
+
+    public static String RefreshModelAction_7;
+
+    public static String RevertCommitAction_0;
+
+    public static String RevertCommitAction_1;
+
+    public static String RevertCommitAction_2;
+
+    public static String RevertCommitAction_3;
+
+    public static String RevertCommitAction_4;
 
     public static String ShowInHistoryAction_0;
 

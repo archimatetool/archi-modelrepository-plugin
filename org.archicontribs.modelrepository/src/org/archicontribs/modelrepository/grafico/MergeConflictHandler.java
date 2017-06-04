@@ -86,7 +86,7 @@ public class MergeConflictHandler {
         return message;
     }
     
-    public void mergeAndCommit() throws IOException, GitAPIException {
+    public void mergeAndCommit(String commitMessage) throws IOException, GitAPIException {
         try(Git git = Git.open(fLocalGitFolder)) {
             if(fOurs != null && !fOurs.isEmpty()) {
                 checkout(git, Stage.OURS, fOurs);
@@ -106,6 +106,7 @@ public class MergeConflictHandler {
             String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
             String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
             commitCommand.setAuthor(userName, userEmail);
+            commitCommand.setMessage(commitMessage);
             commitCommand.call();
         }
     }
