@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +21,6 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
@@ -95,14 +93,10 @@ public class HistoryTableViewer extends TableViewer {
             
             // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
             try(Git git = Git.open(folder)) {
-                // get a list of all known heads, tags, remotes, ...
-                Collection<Ref> allRefs = git.getRepository().getAllRefs().values();
-                
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                    for(Ref ref : allRefs ) {
-                        revWalk.markStart(revWalk.parseCommit(ref.getObjectId()));
-                    }
+                    // We are interested in the HEAD
+                    revWalk.markStart(revWalk.parseCommit(git.getRepository().resolve("HEAD"))); //$NON-NLS-1$
                     
                     for(RevCommit commit : revWalk ) {
                         commits.add(commit);

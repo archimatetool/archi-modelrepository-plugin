@@ -120,6 +120,10 @@ public class Messages extends NLS {
 
     public static String RevertCommitAction_4;
 
+    public static String RevertCommitsAction_0;
+
+    public static String RevertCommitsAction_1;
+
     public static String ShowInHistoryAction_0;
 
     public static String ShowInHistoryAction_1;

@@ -10,6 +10,7 @@ import java.io.File;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitAction;
+import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
@@ -66,7 +67,8 @@ implements IContextProvider, ISelectionListener {
      * Actions
      */
     private ExtractModelFromCommitAction fActionExtractCommit;
-    private RevertCommitAction fActionRevertCommit;
+    private RevertCommitAction fActionRevertSingleCommit;
+    private RevertCommitsAction fActionRevertUptoCommit;
     
     
     /*
@@ -144,8 +146,11 @@ implements IContextProvider, ISelectionListener {
         fActionExtractCommit = new ExtractModelFromCommitAction(getViewSite().getWorkbenchWindow());
         fActionExtractCommit.setEnabled(false);
         
-        fActionRevertCommit = new RevertCommitAction(getViewSite().getWorkbenchWindow());
-        fActionRevertCommit.setEnabled(false);
+        fActionRevertSingleCommit = new RevertCommitAction(getViewSite().getWorkbenchWindow());
+        fActionRevertSingleCommit.setEnabled(false);
+        
+        fActionRevertUptoCommit = new RevertCommitsAction(getViewSite().getWorkbenchWindow());
+        fActionRevertUptoCommit.setEnabled(false);
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -198,7 +203,8 @@ implements IContextProvider, ISelectionListener {
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         
         manager.add(fActionExtractCommit);
-        manager.add(fActionRevertCommit);
+        manager.add(fActionRevertSingleCommit);
+        manager.add(fActionRevertUptoCommit);
         
         manager.add(new Separator());
     }
@@ -211,14 +217,16 @@ implements IContextProvider, ISelectionListener {
         RevCommit commit = (RevCommit)((IStructuredSelection)selection).getFirstElement();
         
         fActionExtractCommit.setCommit(commit);
-        fActionRevertCommit.setCommit(commit);
+        fActionRevertSingleCommit.setCommit(commit);
+        fActionRevertUptoCommit.setCommit(commit);
     }
     
     protected void fillContextMenu(IMenuManager manager) {
         // boolean isEmpty = getViewer().getSelection().isEmpty();
 
         manager.add(fActionExtractCommit);
-        manager.add(fActionRevertCommit);
+        manager.add(fActionRevertSingleCommit);
+        manager.add(fActionRevertUptoCommit);
     }
 
     /**
@@ -257,7 +265,8 @@ implements IContextProvider, ISelectionListener {
             ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
             
             fActionExtractCommit.setLocalRepositoryFolder(fSelectedRepoFile);
-            fActionRevertCommit.setLocalRepositoryFolder(fSelectedRepoFile);
+            fActionRevertSingleCommit.setLocalRepositoryFolder(fSelectedRepoFile);
+            fActionRevertUptoCommit.setLocalRepositoryFolder(fSelectedRepoFile);
         }
     }
     

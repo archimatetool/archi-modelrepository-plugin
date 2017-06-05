@@ -26,7 +26,7 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class RevertCommitAction extends AbstractModelAction {
     
-    private RevCommit fCommit;
+    protected RevCommit fCommit;
 	
     public RevertCommitAction(IWorkbenchWindow window) {
         super(window);
@@ -87,9 +87,7 @@ public class RevertCommitAction extends AbstractModelAction {
         
         // Revert
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            RevertCommand revertCommand = git.revert();
-            revertCommand.include(fCommit);
-            revertCommand.call();
+            RevertCommand revertCommand = doRevertCommand(git);
             
             MergeResult mergeResult = revertCommand.getFailingResult();
             if(mergeResult != null) {
@@ -112,6 +110,16 @@ public class RevertCommitAction extends AbstractModelAction {
             displayErrorDialog(Messages.RevertCommitAction_1, ex);
         }
 
+    }
+    
+    /**
+     * @throws IOException
+     */
+    protected RevertCommand doRevertCommand(Git git) throws GitAPIException, IOException {
+        RevertCommand revertCommand = git.revert();
+        revertCommand.include(fCommit);
+        revertCommand.call();
+        return revertCommand;
     }
     
     @Override
