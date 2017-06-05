@@ -34,6 +34,7 @@ public interface IModelRepositoryImages {
     String ICON_PUSH = IMGPATH + "push.png"; //$NON-NLS-1$
     String ICON_REFRESH = IMGPATH + "pull.png"; //$NON-NLS-1$
     String ICON_REVERT = IMGPATH + "revert.gif"; //$NON-NLS-1$
+    String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
     String ICON_UNSTAGE = IMGPATH + "unstage.gif"; //$NON-NLS-1$
     
     String BANNER_COMMIT = IMGPATH + "commit_wizban.png"; //$NON-NLS-1$

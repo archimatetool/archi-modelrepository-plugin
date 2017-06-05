@@ -11,6 +11,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitsAction;
+import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
@@ -69,6 +70,7 @@ implements IContextProvider, ISelectionListener {
     private ExtractModelFromCommitAction fActionExtractCommit;
     private RevertCommitAction fActionRevertSingleCommit;
     private RevertCommitsAction fActionRevertUptoCommit;
+    private UndoLastCommitAction fActionUndoLastCommit;
     
     
     /*
@@ -152,6 +154,9 @@ implements IContextProvider, ISelectionListener {
         fActionRevertUptoCommit = new RevertCommitsAction(getViewSite().getWorkbenchWindow());
         fActionRevertUptoCommit.setEnabled(false);
         
+        fActionUndoLastCommit = new UndoLastCommitAction(getViewSite().getWorkbenchWindow());
+        fActionUndoLastCommit.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -205,6 +210,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(fActionUndoLastCommit);
         
         manager.add(new Separator());
     }
@@ -227,6 +233,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(fActionUndoLastCommit);
     }
 
     /**
@@ -267,6 +274,7 @@ implements IContextProvider, ISelectionListener {
             fActionExtractCommit.setLocalRepositoryFolder(fSelectedRepoFile);
             fActionRevertSingleCommit.setLocalRepositoryFolder(fSelectedRepoFile);
             fActionRevertUptoCommit.setLocalRepositoryFolder(fSelectedRepoFile);
+            fActionUndoLastCommit.setLocalRepositoryFolder(fSelectedRepoFile);
         }
     }
     

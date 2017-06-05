@@ -127,6 +127,14 @@ public class Messages extends NLS {
     public static String ShowInHistoryAction_0;
 
     public static String ShowInHistoryAction_1;
+
+    public static String UndoLastCommitAction_0;
+
+    public static String UndoLastCommitAction_1;
+
+    public static String UndoLastCommitAction_2;
+
+    public static String UndoLastCommitAction_3;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
