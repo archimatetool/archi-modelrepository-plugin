@@ -6,12 +6,12 @@
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
-            name="Show Model Repository View">
+            name="Model Repository">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showHistoryView"
-            name="Show Repository History View">
+            name="Model History">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
