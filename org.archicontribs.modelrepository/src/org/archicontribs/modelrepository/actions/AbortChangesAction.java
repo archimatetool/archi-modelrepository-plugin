@@ -62,6 +62,7 @@ public class AbortChangesAction extends AbstractModelAction {
             
             // Clean extra files
             CleanCommand cleanCommand = git.clean();
+            cleanCommand.setCleanDirectories(true);
             cleanCommand.call();
         }
         catch(IOException | GitAPIException ex) {
