@@ -55,7 +55,8 @@ public class UndoLastCommitAction extends AbstractModelAction {
         }
         
         // Do the Grafico Export first
-        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        // TODO: Commented this out because we can end up in a circle of undoing last commit and then needing a commit
+        // exportModelToGraficoFiles(model, getLocalRepositoryFolder());
         
         // If there are changes to commit then they'll have to be abandoned
         try {

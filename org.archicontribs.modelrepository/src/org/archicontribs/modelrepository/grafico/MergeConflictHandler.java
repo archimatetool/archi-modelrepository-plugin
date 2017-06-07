@@ -26,7 +26,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Shell;
 
 /**
- * Handle Merge Conflicts on a PullResult
+ * Handle Merge Conflicts on a MergeResult
  * 
  * @author Phillip Beauvoir
  */
