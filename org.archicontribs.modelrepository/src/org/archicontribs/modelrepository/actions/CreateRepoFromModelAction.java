@@ -87,6 +87,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 
             return;
         }
+        
+        setLocalRepositoryFolder(localRepoFolder);
 
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
@@ -102,36 +104,36 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Create a new repo
-                    try(Git git = GraficoUtils.createNewLocalGitRepository(localRepoFolder, repoURL)) {
+                    try(Git git = GraficoUtils.createNewLocalGitRepository(getLocalRepositoryFolder(), repoURL)) {
                     }
                     
                     // TODO: If the model has not been saved yet this is fine but if the model already exists
                     // We should tell the user this is the case
                     
                     // Set new file location
-                    fModel.setFile(GraficoUtils.getModelFileName(localRepoFolder));
+                    fModel.setFile(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
                     
                     // And Save it
                     IEditorModelManager.INSTANCE.saveModel(fModel);
                     
                     // Export to Grafico
-                    exportModelToGraficoFiles(fModel, localRepoFolder);
+                    exportModelToGraficoFiles();
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_4);
 
                     // Commit changes
                     String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
                     String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                    GraficoUtils.commitChanges(localRepoFolder, new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
+                    GraficoUtils.commitChanges(getLocalRepositoryFolder(), new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
                     // Push
-                    GraficoUtils.pushToRemote(localRepoFolder, userName, userPassword, null);
+                    GraficoUtils.pushToRemote(getLocalRepositoryFolder(), userName, userPassword, null);
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(localRepoFolder, ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getLocalRepositoryFolder(), ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
                         sc.store(userName, userPassword);
                     }
                 }

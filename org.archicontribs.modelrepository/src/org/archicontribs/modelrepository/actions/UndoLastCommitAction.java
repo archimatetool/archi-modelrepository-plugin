@@ -36,19 +36,10 @@ public class UndoLastCommitAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // This will either return the already open model or will actually open it
-        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
-        
-        if(model == null) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.UndoLastCommitAction_0,
-                    Messages.UndoLastCommitAction_1);
-            return;
-        }
-
-        // Offer to save it if dirty
-        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+        // Offer to save the model if open and dirty
+        // We need to do this to keep grafico and temp files in sync
+        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
             }

@@ -24,6 +24,10 @@ public class Messages extends NLS {
 
     public static String AbstractModelAction_6;
 
+    public static String AbstractModelAction_7;
+
+    public static String AbstractModelAction_8;
+
     public static String CloneModelAction_0;
 
     public static String CloneModelAction_1;
@@ -37,8 +41,6 @@ public class Messages extends NLS {
     public static String CloneModelAction_5;
 
     public static String CommitModelAction_0;
-
-    public static String CommitModelAction_1;
 
     public static String CommitModelAction_2;
 
@@ -82,8 +84,6 @@ public class Messages extends NLS {
 
     public static String PushModelAction_2;
 
-    public static String PushModelAction_3;
-
     public static String PushModelAction_4;
 
     public static String PushModelAction_5;
@@ -98,8 +98,6 @@ public class Messages extends NLS {
 
     public static String RefreshModelAction_1;
 
-    public static String RefreshModelAction_2;
-
     public static String RefreshModelAction_3;
 
     public static String RefreshModelAction_4;
@@ -111,8 +109,6 @@ public class Messages extends NLS {
     public static String RevertCommitAction_0;
 
     public static String RevertCommitAction_1;
-
-    public static String RevertCommitAction_2;
 
     public static String RevertCommitAction_3;
 
@@ -127,8 +123,6 @@ public class Messages extends NLS {
     public static String ShowInHistoryAction_1;
 
     public static String UndoLastCommitAction_0;
-
-    public static String UndoLastCommitAction_1;
 
     public static String UndoLastCommitAction_2;
 

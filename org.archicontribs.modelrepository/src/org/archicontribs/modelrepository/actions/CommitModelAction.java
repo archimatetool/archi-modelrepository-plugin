@@ -30,8 +30,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class CommitModelAction extends AbstractModelAction {
     
-    private IArchimateModel fModel;
-	
     public CommitModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_COMMIT));
@@ -41,39 +39,24 @@ public class CommitModelAction extends AbstractModelAction {
 
     public CommitModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
-        fModel = model;
-        if(fModel != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(fModel));
+        if(model != null) {
+            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
         }
     }
 
     @Override
     public void run() {
-        IArchimateModel model = fModel;
-        
-        // This will either return the already open model or will actually open it
-        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
-        if(model == null) {
-            model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
-        }
-        
-        if(model == null) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.CommitModelAction_0,
-                    Messages.CommitModelAction_1);
-            return;
-        }
-        
-        // Offer to save it if dirty
+        // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
             }
         }
-        
+
         // Do the Grafico Export first
-        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        exportModelToGraficoFiles();
         
         // Then Commit
         try {

@@ -78,6 +78,8 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
+        setLocalRepositoryFolder(localRepoFolder);
+        
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
 
@@ -92,18 +94,18 @@ public class CloneModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Clone
-                    GraficoUtils.cloneModel(localRepoFolder, repoURL, userName, userPassword, this);
+                    GraficoUtils.cloneModel(getLocalRepositoryFolder(), repoURL, userName, userPassword, this);
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
                     // Load it from the Grafico files if we can
-                    IArchimateModel graficoModel = loadModelFromGraficoFiles(localRepoFolder);
+                    IArchimateModel graficoModel = loadModelFromGraficoFiles();
                     
                     // We couldn't load it from Grafico so create a new blank model
                     if(graficoModel == null) {
                         // New one. This will open in the tree
                         IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
-                        model.setFile(GraficoUtils.getModelFileName(localRepoFolder));
+                        model.setFile(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
                         
                         // And Save it
                         IEditorModelManager.INSTANCE.saveModel(model);
@@ -111,7 +113,7 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(localRepoFolder, ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getLocalRepositoryFolder(), ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
                         sc.store(userName, userPassword);
                     }
                 }

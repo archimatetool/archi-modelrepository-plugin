@@ -26,8 +26,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class AbortChangesAction extends AbstractModelAction {
     
-    private IArchimateModel fModel;
-	
     public AbortChangesAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_ABORT));
@@ -37,9 +35,8 @@ public class AbortChangesAction extends AbstractModelAction {
 
     public AbortChangesAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
-        fModel = model;
-        if(fModel != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(fModel));
+        if(model != null) {
+            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
         }
     }
 
@@ -69,7 +66,7 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
-            loadModelFromGraficoFiles(getLocalRepositoryFolder());
+            loadModelFromGraficoFiles();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);

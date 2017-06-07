@@ -102,16 +102,15 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     
     /**
      * Load the model from the Grafico XML files
-     * @param localRepoFolder
      * @return the model or null if there are no Grafico files
      * @throws IOException
      */
-    protected IArchimateModel loadModelFromGraficoFiles(File localRepoFolder) throws IOException {
+    protected IArchimateModel loadModelFromGraficoFiles() throws IOException {
         GraficoModelImporter importer = new GraficoModelImporter();
-        IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(localRepoFolder);
+        IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(getLocalRepositoryFolder());
         
         if(graficoModel != null) {
-            File tmpFile = GraficoUtils.getModelFileName(localRepoFolder);
+            File tmpFile = GraficoUtils.getModelFileName(getLocalRepositoryFolder());
             graficoModel.setFile(tmpFile);
             
             // Errors
@@ -124,7 +123,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             }
             
             // Close the real model if it is already open
-            IArchimateModel model = GraficoUtils.locateModel(localRepoFolder);
+            IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
             if(model != null) {
                 IEditorModelManager.INSTANCE.closeModel(model);
             }
@@ -141,13 +140,21 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     
     /**
      * Export the model to Grafico files
-     * @param model
-     * @param localRepoFolder
      */
-    protected void exportModelToGraficoFiles(IArchimateModel model, File localRepoFolder) {
+    protected void exportModelToGraficoFiles() {
+        // Open the model
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        
+        if(model == null) {
+            MessageDialog.openError(fWindow.getShell(),
+                    Messages.AbstractModelAction_7,
+                    Messages.AbstractModelAction_8);
+            return;
+        }
+        
         try {
             GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, localRepoFolder);
+            exporter.exportModelToLocalGitRepository(model, getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbstractModelAction_5, ex);

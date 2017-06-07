@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RevertCommand;
@@ -42,26 +41,17 @@ public class RevertCommitAction extends AbstractModelAction {
     
     @Override
     public void run() {
-        // This will either return the already open model or will actually open it
-        // TODO We need to load a model without opening it in the models tree. But this will need a new API in IEditorModelManager
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
-        
-        if(model == null) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.RevertCommitAction_1,
-                    Messages.RevertCommitAction_2);
-            return;
-        }
-
-        // Offer to save it if dirty
-        if(IEditorModelManager.INSTANCE.isModelDirty(model)) {
+        // Offer to save the model if open and dirty
+        // We need to do this to keep grafico and temp files in sync
+        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
             }
         }
         
         // Do the Grafico Export first
-        exportModelToGraficoFiles(model, getLocalRepositoryFolder());
+        exportModelToGraficoFiles();
         
         // Then offer to Commit
         try {
@@ -94,7 +84,7 @@ public class RevertCommitAction extends AbstractModelAction {
                 }
             }
             else {
-                loadModelFromGraficoFiles(getLocalRepositoryFolder());
+                loadModelFromGraficoFiles();
             }
         }
         catch(IOException | GitAPIException ex) {
