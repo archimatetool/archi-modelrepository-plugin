@@ -76,15 +76,6 @@ public class RevertCommitAction extends AbstractModelAction {
             return;
         }
         
-        // Close the model
-        // TODO this needs changing in the Archi API
-        try {
-            IEditorModelManager.INSTANCE.closeModel(model);
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_5, ex);
-        }
-        
         // Revert
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             RevertCommand revertCommand = doRevertCommand(git);

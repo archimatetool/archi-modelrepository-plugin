@@ -17,7 +17,6 @@ import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -70,16 +69,6 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
-            IArchimateModel model = fModel;
-            
-            if(model == null) {
-                model = GraficoUtils.locateModel(getLocalRepositoryFolder());
-            }
-            
-            if(model != null) {
-                IEditorModelManager.INSTANCE.closeModel(model);
-            }
-            
             loadModelFromGraficoFiles(getLocalRepositoryFolder());
         }
         catch(IOException ex) {

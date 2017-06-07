@@ -118,15 +118,6 @@ public class RefreshModelAction extends AbstractModelAction {
         final String userName = credentials[0];
         final String userPassword = credentials[1];
         
-        // Close the model
-        // TODO this needs changing in the Archi API
-        try {
-            IEditorModelManager.INSTANCE.closeModel(model);
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_5, ex);
-        }
-        
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
 

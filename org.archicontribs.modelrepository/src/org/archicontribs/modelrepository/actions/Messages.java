@@ -104,8 +104,6 @@ public class Messages extends NLS {
 
     public static String RefreshModelAction_4;
 
-    public static String RefreshModelAction_5;
-
     public static String RefreshModelAction_6;
 
     public static String RefreshModelAction_7;

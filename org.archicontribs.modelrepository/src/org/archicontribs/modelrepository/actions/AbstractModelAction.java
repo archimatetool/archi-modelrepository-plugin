@@ -123,7 +123,13 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 
             }
             
-            // Open it, this will do the necessary checks and add a command stack and an archive manager
+            // Close the real model if it is already open
+            IArchimateModel model = GraficoUtils.locateModel(localRepoFolder);
+            if(model != null) {
+                IEditorModelManager.INSTANCE.closeModel(model);
+            }
+            
+            // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
             IEditorModelManager.INSTANCE.openModel(graficoModel);
             
             // And Save it to the temp file
