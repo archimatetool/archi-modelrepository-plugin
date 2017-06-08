@@ -176,15 +176,15 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
                     String s = ""; //$NON-NLS-1$
                     
                     if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
-                        s += "(local/remote) "; //$NON-NLS-1$
+                        s += "[local/remote] "; //$NON-NLS-1$
                     }
                     else {
                         if(commit.equals(localMasterCommit)) {
-                            s += "(local) "; //$NON-NLS-1$
+                            s += "[local] "; //$NON-NLS-1$
                         }
                         
                         if(commit.equals(originMasterCommit)) {
-                            s += "(remote) "; //$NON-NLS-1$
+                            s += "[remote] "; //$NON-NLS-1$
                         }
                     }
                     
