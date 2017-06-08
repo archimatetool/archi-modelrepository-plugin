@@ -26,13 +26,16 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
@@ -61,6 +64,7 @@ implements IContextProvider, ISelectionListener {
      */
     private HistoryTableViewer fTableViewer;
     private CLabel fRepoLabel;
+    private RevisionCommentViewer fCommentViewer;
     
     /*
      * Actions
@@ -88,10 +92,14 @@ implements IContextProvider, ISelectionListener {
         fRepoLabel = new CLabel(parent, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        Composite tableComp = new Composite(parent, SWT.NONE);
+        SashForm sash = new SashForm(parent, SWT.VERTICAL);
+        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+        sash.setLayoutData(gd);
+        
+        Composite tableComp = new Composite(sash, SWT.NONE);
         
         // This ensures a minumum and equal size and no horizontal size creep
-        GridData gd = new GridData(GridData.FILL_BOTH);
+        gd = new GridData(GridData.FILL_BOTH);
         gd.widthHint = 100;
         gd.heightHint = 50;
         tableComp.setLayoutData(gd);
@@ -100,6 +108,11 @@ implements IContextProvider, ISelectionListener {
         
         // Create the Viewer first
         fTableViewer = new HistoryTableViewer(tableComp);
+        
+        // Comments Viewer
+        fCommentViewer = new RevisionCommentViewer(sash);
+        
+        sash.setWeights(new int[] { 80, 20 });
         
         makeActions();
         hookContextMenu();
@@ -223,6 +236,8 @@ implements IContextProvider, ISelectionListener {
         fActionExtractCommit.setCommit(commit);
         fActionRevertSingleCommit.setCommit(commit);
         fActionRevertUptoCommit.setCommit(commit);
+        
+        fCommentViewer.setCommit(commit);
     }
     
     protected void fillContextMenu(IMenuManager manager) {
@@ -282,6 +297,19 @@ implements IContextProvider, ISelectionListener {
             fActionRevertSingleCommit.setRepository(fSelectedRepository);
             fActionRevertUptoCommit.setRepository(fSelectedRepository);
             fActionUndoLastCommit.setRepository(fSelectedRepository);
+            
+            // Select first row
+            Display.getDefault().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    if(!getViewer().getTable().isDisposed()) {
+                        Object element = getViewer().getElementAt(0);
+                        if(element != null) {
+                            getViewer().setSelection(new StructuredSelection(element));
+                        }
+                    }
+                }
+            });
         }
     }
     
