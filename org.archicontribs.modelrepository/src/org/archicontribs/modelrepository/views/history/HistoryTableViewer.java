@@ -36,6 +36,9 @@ import org.eclipse.swt.widgets.Composite;
  * History Table Viewer
  */
 public class HistoryTableViewer extends TableViewer implements IRepositoryListener {
+    
+    private RevCommit localMasterCommit, originMasterCommit;
+    
     /**
      * Constructor
      */
@@ -114,10 +117,21 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
             
             // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
             try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
+                // get a list of all known heads, tags, remotes, ...
+                //Collection<Ref> allRefs = git.getRepository().getAllRefs().values();
+                
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                    // We are interested in the HEAD
-                    revWalk.markStart(revWalk.parseCommit(git.getRepository().resolve("HEAD"))); //$NON-NLS-1$
+//                    for(Ref ref : allRefs ) {
+//                        revWalk.markStart(revWalk.parseCommit(ref.getObjectId()));
+//                    }
+                    
+                    // We are interested in the local master branch and origin master branch
+                    localMasterCommit = revWalk.parseCommit(git.getRepository().resolve("refs/heads/master")); //$NON-NLS-1$
+                    revWalk.markStart(localMasterCommit); 
+                    
+                    originMasterCommit = revWalk.parseCommit(git.getRepository().resolve("origin/master")); //$NON-NLS-1$
+                    revWalk.markStart(originMasterCommit);
                     
                     for(RevCommit commit : revWalk ) {
                         commits.add(commit);
@@ -159,7 +173,22 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
                     return commit.getName().substring(0, 8);
                     
                 case 1:
-                    return commit.getShortMessage();
+                    String s = ""; //$NON-NLS-1$
+                    
+                    if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
+                        s += "(local/remote) "; //$NON-NLS-1$
+                    }
+                    else {
+                        if(commit.equals(localMasterCommit)) {
+                            s += "(local) "; //$NON-NLS-1$
+                        }
+                        
+                        if(commit.equals(originMasterCommit)) {
+                            s += "(remote) "; //$NON-NLS-1$
+                        }
+                    }
+                    
+                    return s += commit.getShortMessage();
                     
                 case 2:
                     return commit.getAuthorIdent().getName();
