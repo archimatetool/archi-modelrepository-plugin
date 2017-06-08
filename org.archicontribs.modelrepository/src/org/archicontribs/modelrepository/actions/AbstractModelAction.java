@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -32,36 +33,30 @@ import com.archimatetool.model.IArchimateModel;
  */
 public abstract class AbstractModelAction extends Action implements IGraficoModelAction {
 	
-	private File fGitRepoFolder;
+	private ArchiRepository fRepository;
 	
 	protected IWorkbenchWindow fWindow;
 	
 	protected AbstractModelAction(IWorkbenchWindow window) {
 	    fWindow = window;
 	}
+	
+	@Override
+	public void setRepository(ArchiRepository repository) {
+	    fRepository = repository;
+	    setEnabled(shouldBeEnabled());
+	}
+	
+	@Override
+	public ArchiRepository getRepository() {
+	    return fRepository;
+	}
 	 
-	@Override
-    public void setLocalRepositoryFolder(File folder) {
-        fGitRepoFolder = folder;
-        setEnabled(shouldBeEnabled());
-	}
-	
-	@Override
-    public File getLocalRepositoryFolder() {
-	    return fGitRepoFolder;
-	}
-	
-	@Override
-    public File getLocalGitFolder() {
-	    return new File(fGitRepoFolder, ".git"); //$NON-NLS-1$
-	}
-	
 	/**
 	 * @return true if this action should be enabled
-	 * The defult is to return true if the underlying folder is a git folder
 	 */
 	protected boolean shouldBeEnabled() {
-	    return GraficoUtils.isGitRepository(fGitRepoFolder);
+	    return getRepository() != null;
 	}
 	
     /**
@@ -107,10 +102,10 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      */
     protected IArchimateModel loadModelFromGraficoFiles() throws IOException {
         GraficoModelImporter importer = new GraficoModelImporter();
-        IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(getLocalRepositoryFolder());
+        IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(getRepository().getLocalRepositoryFolder());
         
         if(graficoModel != null) {
-            File tmpFile = GraficoUtils.getModelFileName(getLocalRepositoryFolder());
+            File tmpFile = fRepository.getTempModelFile();
             graficoModel.setFile(tmpFile);
             
             // Errors
@@ -123,7 +118,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             }
             
             // Close the real model if it is already open
-            IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+            IArchimateModel model = fRepository.locateModel();
             if(model != null) {
                 IEditorModelManager.INSTANCE.closeModel(model);
             }
@@ -143,7 +138,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      */
     protected void exportModelToGraficoFiles() {
         // Open the model
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(fRepository.getTempModelFile());
         
         if(model == null) {
             MessageDialog.openError(fWindow.getShell(),
@@ -154,7 +149,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         
         try {
             GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, getLocalRepositoryFolder());
+            exporter.exportModelToLocalGitRepository(model, getRepository().getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbstractModelAction_5, ex);
@@ -180,7 +175,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                GraficoUtils.commitChanges(getLocalRepositoryFolder(), personIdent, commitMessage);
+                GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), personIdent, commitMessage);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);

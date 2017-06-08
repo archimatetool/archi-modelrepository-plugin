@@ -12,6 +12,12 @@ package org.archicontribs.modelrepository.grafico;
  * @author Phillip Beauvoir
  */
 public interface IGraficoConstants {
+    
+    /**
+     * Filename for local .archimate file
+     */
+    String LOCAL_ARCHI_FILENAME = "temp.archimate"; //$NON-NLS-1$
+    
     /**
      * Filename to use for serialization of folder elements
      */

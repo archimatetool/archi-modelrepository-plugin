@@ -6,15 +6,16 @@
 package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
-import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -50,34 +51,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
         
         fRootFolder = rootFolder;
         
-        setup();
+        setupRefreshTimer();
         
-        setContentProvider(new FileTreeContentProvider());
-        setLabelProvider(new FileTreeLabelProvider());
+        setContentProvider(new ModelRepoTreeContentProvider());
+        setLabelProvider(new ModelRepoTreeLabelProvider());
         
         fRootFolder.mkdirs();
         setInput(fRootFolder);
     }
 
-    /**
-     * Set things up.
-     */
-    protected void setup() {
-        setupRefreshTimer();
-        
-        // Sort folders first, files second, alphabetical
-        setComparator(new ViewerComparator() {
-            @Override
-            public int category(Object element) {
-                if(element instanceof File) {
-                    File f = (File)element;
-                    return f.isDirectory() ? 0 : 1;
-                }
-            	return 0;
-            }
-        });
-    }
-    
     /**
      * Set up the Refresh timer
      */
@@ -110,9 +92,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
 	// ===============================================================================================
     
     /**
-     * The Tree Model for the Tree.
+     * The model for the Tree.
      */
-    class FileTreeContentProvider implements ITreeContentProvider {
+    class ModelRepoTreeContentProvider implements ITreeContentProvider {
         
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
         }
@@ -128,22 +110,27 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
             if(child instanceof File) {
                 return ((File)child).getParentFile();
             }
+            if(child instanceof ArchiRepository) {
+                return ((ArchiRepository)child).getLocalRepositoryFolder().getParentFile();
+            }
             return null;
         }
         
         public Object [] getChildren(Object parent) {
         	// Only show top level folders that are git repos
+            List<ArchiRepository> repos = new ArrayList<ArchiRepository>();
+            
             if(parent instanceof File) {
                 if(((File)parent).exists()) {
-                    return ((File)parent).listFiles(new FileFilter() {
-                        public boolean accept(File child) {
-                            return GraficoUtils.isGitRepository(child);
+                    for(File file : ((File)parent).listFiles()) {
+                        if(GraficoUtils.isGitRepository(file)) {
+                            repos.add(new ArchiRepository(file));
                         }
-                    });
+                    }
                 }
             }
             
-            return new Object[0];
+            return repos.toArray();
         }
         
         public boolean hasChildren(Object parent) {
@@ -155,29 +142,32 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
 	// ===================================== Label Model ==============================================
 	// ===============================================================================================
 
-    class FileTreeLabelProvider extends LabelProvider {
+    class ModelRepoTreeLabelProvider extends LabelProvider {
         
         @Override
         public String getText(Object obj) {
-        	if(obj instanceof File) {
-        	    File f = (File)obj;
-        	    return f.getName();
+        	if(obj instanceof ArchiRepository) {
+        	    ArchiRepository repo = (ArchiRepository)obj;
+        	    return repo.getName();
         	}
-        	else {
-        	    return ""; //$NON-NLS-1$
+        	else if(obj instanceof File) {
+        	    return ((File)obj).getName();
         	}
+        	
+        	return ""; //$NON-NLS-1$
         }
         
         @Override
         public Image getImage(Object obj) {
             Image image = null;
             
-            if(obj instanceof File) {
-                File f = (File)obj;
-                if(GraficoUtils.isGitRepository(f)) {
-                	image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
-                }
-                else if(f.isDirectory()) {
+            if(obj instanceof ArchiRepository) {
+                image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+            }
+            else if(obj instanceof File) {
+                File file = (File)obj;
+                
+                if(file.isDirectory()) {
                     image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
                 }
                 else {

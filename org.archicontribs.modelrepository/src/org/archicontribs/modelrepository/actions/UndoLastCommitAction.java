@@ -8,7 +8,6 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
@@ -38,7 +37,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
     public void run() {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
@@ -51,7 +50,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         
         // If there are changes to commit then they'll have to be abandoned
         try {
-            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+            if(getRepository().hasChangesToCommit()) {
                 MessageDialog.openError(fWindow.getShell(),
                     Messages.UndoLastCommitAction_0,
                     Messages.UndoLastCommitAction_2);
@@ -64,7 +63,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         }
 
         // Is the last commit unpushed?
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             Ref online = git.getRepository().findRef("origin/master"); //$NON-NLS-1$
             Ref local = git.getRepository().findRef("HEAD"); //$NON-NLS-1$
             
@@ -85,7 +84,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ResetCommand resetCommand = git.reset();
             resetCommand.setRef("HEAD^"); //$NON-NLS-1$
             resetCommand.setMode(ResetType.SOFT);
@@ -98,6 +97,6 @@ public class UndoLastCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        return getLocalRepositoryFolder() != null;
+        return getRepository() != null;
     }
 }

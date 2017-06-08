@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -23,8 +24,6 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class DeleteModelAction extends AbstractModelAction {
     
-    private IArchimateModel fModel;
-	
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
@@ -34,9 +33,8 @@ public class DeleteModelAction extends AbstractModelAction {
 
     public DeleteModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
-        fModel = model;
-        if(fModel != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(fModel));
+        if(model != null) {
+            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
 
@@ -49,17 +47,8 @@ public class DeleteModelAction extends AbstractModelAction {
         }
         
         try {
-            IArchimateModel model;
-            
-            // Which model
-            if(fModel != null) {
-                model = fModel;
-            }
-            else {
-                model = GraficoUtils.locateModel(getLocalRepositoryFolder());
-            }
-            
-            // Close the model in the tree
+            // See if the model is open and close it if it is
+            IArchimateModel model = getRepository().locateModel();
             if(model != null) {
                 boolean didClose = IEditorModelManager.INSTANCE.closeModel(model);
                 if(!didClose) {
@@ -67,8 +56,8 @@ public class DeleteModelAction extends AbstractModelAction {
                 }
             }
             
-            // Delete
-            FileUtils.deleteFolder(getLocalRepositoryFolder());
+            // Delete folder
+            FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.DeleteModelAction_0, ex);

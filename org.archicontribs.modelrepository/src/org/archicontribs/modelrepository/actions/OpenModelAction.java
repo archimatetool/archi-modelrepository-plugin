@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -28,6 +27,6 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+        IEditorModelManager.INSTANCE.openModel(getRepository().getTempModelFile());
     }
 }

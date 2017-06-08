@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
@@ -52,7 +53,7 @@ public class RefreshModelAction extends AbstractModelAction {
     public RefreshModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
         if(model != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
+            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
     
@@ -60,7 +61,7 @@ public class RefreshModelAction extends AbstractModelAction {
     public void run() {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
@@ -72,7 +73,7 @@ public class RefreshModelAction extends AbstractModelAction {
         
         // Then offer to Commit
         try {
-            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+            if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
                 }
@@ -86,7 +87,7 @@ public class RefreshModelAction extends AbstractModelAction {
         // Get Credentials
         String credentials[] = null;
         try {
-            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getLocalGitFolder(), 
+            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getRepository().getLocalGitFolder(), 
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
@@ -111,10 +112,10 @@ public class RefreshModelAction extends AbstractModelAction {
                     monitor.beginTask(Messages.RefreshModelAction_6, IProgressMonitor.UNKNOWN);
                     
                     // Proxy
-                    ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(getLocalRepositoryFolder()));
+                    ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
                     
                     // First we need to Pull and check for conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getLocalRepositoryFolder(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, this);
                     
                     monitor.done();
                     
@@ -124,7 +125,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             // Conflict merger
                             if(!pullResult.isSuccessful()) {
                                 try {
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getLocalRepositoryFolder(), fWindow.getShell());
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
                                         handler.mergeAndCommit(Messages.RefreshModelAction_7);

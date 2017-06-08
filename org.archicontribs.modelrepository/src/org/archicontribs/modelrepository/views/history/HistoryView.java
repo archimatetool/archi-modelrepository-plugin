@@ -5,15 +5,13 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
-import java.io.File;
-
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -74,9 +72,9 @@ implements IContextProvider, ISelectionListener {
     
     
     /*
-     * Selected repo file
+     * Selected repository
      */
-    private File fSelectedRepoFile;
+    private ArchiRepository fSelectedRepository;
 
     
     @Override
@@ -254,27 +252,27 @@ implements IContextProvider, ISelectionListener {
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
-        // File selected
-        if(part instanceof ModelRepositoryView && selected instanceof File) {
-            fSelectedRepoFile = (File)selected;
+        // Repository selected
+        if(selected instanceof ArchiRepository) {
+            fSelectedRepository = (ArchiRepository)selected;
         }
         // Model selected
         else if(selected instanceof IArchimateModelObject) {
             IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
-            fSelectedRepoFile = GraficoUtils.getLocalGitFolderForModel(model);
+            fSelectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
         }
         
-        if(fSelectedRepoFile != null) {
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + fSelectedRepoFile.getName()); //$NON-NLS-1$
-            getViewer().setInput(fSelectedRepoFile);
+        if(fSelectedRepository != null) {
+            fRepoLabel.setText(Messages.HistoryView_0 + " " + fSelectedRepository.getName()); //$NON-NLS-1$
+            getViewer().setInput(fSelectedRepository);
             
             // Do the table kludge
             ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
             
-            fActionExtractCommit.setLocalRepositoryFolder(fSelectedRepoFile);
-            fActionRevertSingleCommit.setLocalRepositoryFolder(fSelectedRepoFile);
-            fActionRevertUptoCommit.setLocalRepositoryFolder(fSelectedRepoFile);
-            fActionUndoLastCommit.setLocalRepositoryFolder(fSelectedRepoFile);
+            fActionExtractCommit.setRepository(fSelectedRepository);
+            fActionRevertSingleCommit.setRepository(fSelectedRepository);
+            fActionRevertUptoCommit.setRepository(fSelectedRepository);
+            fActionUndoLastCommit.setRepository(fSelectedRepository);
         }
     }
     

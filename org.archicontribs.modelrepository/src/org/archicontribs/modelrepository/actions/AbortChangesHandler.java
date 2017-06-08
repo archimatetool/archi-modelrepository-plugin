@@ -34,7 +34,7 @@ public class AbortChangesHandler extends AbstractModelSelectionHandler {
     
     @Override
     public void updateState() {
-        setBaseEnabled(GraficoUtils.isModelInGitRepository(getActiveArchimateModel()));
+        setBaseEnabled(GraficoUtils.isModelInLocalRepository(getActiveArchimateModel()));
     }
     
 }

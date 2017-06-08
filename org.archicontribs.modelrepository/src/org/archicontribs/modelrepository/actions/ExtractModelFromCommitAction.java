@@ -49,7 +49,7 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
         deleteFolder(tempOutputFolder);
         
         // Wlak the tree and get the contents of the commit
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
                 treeWalk.addTree(fCommit.getTree());
                 treeWalk.setRecursive(true);
@@ -112,6 +112,6 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
 
     @Override
     protected boolean shouldBeEnabled() {
-        return fCommit != null && getLocalRepositoryFolder() != null;
+        return fCommit != null && getRepository() != null;
     }
 }

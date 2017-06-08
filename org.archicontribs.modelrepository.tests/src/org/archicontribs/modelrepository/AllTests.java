@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository;
 
 
+import org.archicontribs.modelrepository.grafico.ArchiRepositoryTests;
 import org.archicontribs.modelrepository.grafico.GraficoUtilsTests;
 
 import junit.framework.TestSuite;
@@ -16,6 +17,7 @@ public class AllTests {
     public static junit.framework.Test suite() {
 		TestSuite suite = new TestSuite("org.archicontribs.modelrepository");
 
+		suite.addTest(ArchiRepositoryTests.suite());
 		suite.addTest(GraficoUtilsTests.suite());
 		
         return suite;

@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.CleanCommand;
@@ -36,7 +37,7 @@ public class AbortChangesAction extends AbstractModelAction {
     public AbortChangesAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
         if(model != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
+            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
 
@@ -49,7 +50,7 @@ public class AbortChangesAction extends AbstractModelAction {
             return;
         }
         
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Reset to master
             ResetCommand resetCommand = git.reset();
             resetCommand.setRef("refs/heads/master"); //$NON-NLS-1$

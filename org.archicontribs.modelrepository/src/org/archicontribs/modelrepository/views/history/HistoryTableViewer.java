@@ -5,13 +5,13 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -83,16 +83,16 @@ public class HistoryTableViewer extends TableViewer {
         List<RevCommit> commits = new ArrayList<RevCommit>();
         
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-            if(!(newInput instanceof File)) {
+            if(!(newInput instanceof ArchiRepository)) {
                 return;
             }
             
-            File folder = (File)newInput;
+            ArchiRepository repo = (ArchiRepository)newInput;
             
             commits = new ArrayList<RevCommit>();
             
             // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
-            try(Git git = Git.open(folder)) {
+            try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(git.getRepository())) {
                     // We are interested in the HEAD

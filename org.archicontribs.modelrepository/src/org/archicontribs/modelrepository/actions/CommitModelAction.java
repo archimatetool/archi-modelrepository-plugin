@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -40,7 +41,7 @@ public class CommitModelAction extends AbstractModelAction {
     public CommitModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
         if(model != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
+            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
 
@@ -48,7 +49,7 @@ public class CommitModelAction extends AbstractModelAction {
     public void run() {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
@@ -60,7 +61,7 @@ public class CommitModelAction extends AbstractModelAction {
         
         // Then Commit
         try {
-            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+            if(getRepository().hasChangesToCommit()) {
                 offerToCommitChanges();
             }
             else {

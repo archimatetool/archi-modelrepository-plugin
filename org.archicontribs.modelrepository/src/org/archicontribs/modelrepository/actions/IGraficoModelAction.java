@@ -5,8 +5,7 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.File;
-
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.eclipse.jface.action.IAction;
 
 /**
@@ -17,20 +16,15 @@ import org.eclipse.jface.action.IAction;
 public interface IGraficoModelAction extends IAction {
 
     /**
-     * Set the local repository folder
-     * @param folder
+     * Set the repository
+     * @param repository
      */
-    void setLocalRepositoryFolder(File folder);
-
+    void setRepository(ArchiRepository repository);
+    
     /**
-     * @return The local repository folder
+     * @return The repository
      */
-    File getLocalRepositoryFolder();
-
-    /**
-     * @return The local git folder
-     */
-    File getLocalGitFolder();
+    ArchiRepository getRepository();
 
     /**
      * Dispose of action

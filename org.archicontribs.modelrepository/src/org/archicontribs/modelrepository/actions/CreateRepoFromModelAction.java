@@ -16,6 +16,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -88,7 +89,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        setLocalRepositoryFolder(localRepoFolder);
+        setRepository(new ArchiRepository(localRepoFolder));
 
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
@@ -104,14 +105,14 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Create a new repo
-                    try(Git git = GraficoUtils.createNewLocalGitRepository(getLocalRepositoryFolder(), repoURL)) {
+                    try(Git git = GraficoUtils.createNewLocalGitRepository(getRepository().getLocalRepositoryFolder(), repoURL)) {
                     }
                     
                     // TODO: If the model has not been saved yet this is fine but if the model already exists
                     // We should tell the user this is the case
                     
                     // Set new file location
-                    fModel.setFile(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+                    fModel.setFile(getRepository().getTempModelFile());
                     
                     // And Save it
                     IEditorModelManager.INSTANCE.saveModel(fModel);
@@ -124,16 +125,16 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     // Commit changes
                     String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
                     String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                    GraficoUtils.commitChanges(getLocalRepositoryFolder(), new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
+                    GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
                     // Push
-                    GraficoUtils.pushToRemote(getLocalRepositoryFolder(), userName, userPassword, null);
+                    GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, null);
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getLocalRepositoryFolder(), ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE);
                         sc.store(userName, userPassword);
                     }
                 }

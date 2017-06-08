@@ -8,7 +8,6 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -43,7 +42,7 @@ public class RevertCommitAction extends AbstractModelAction {
     public void run() {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
@@ -55,7 +54,7 @@ public class RevertCommitAction extends AbstractModelAction {
         
         // Then offer to Commit
         try {
-            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+            if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
                 }
@@ -67,12 +66,12 @@ public class RevertCommitAction extends AbstractModelAction {
         }
         
         // Revert
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             RevertCommand revertCommand = doRevertCommand(git);
             
             MergeResult mergeResult = revertCommand.getFailingResult();
             if(mergeResult != null) {
-                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, getLocalRepositoryFolder(), fWindow.getShell());
+                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, getRepository().getLocalRepositoryFolder(), fWindow.getShell());
                 boolean result = handler.checkForMergeConflicts();
                 if(result) {
                     handler.mergeAndCommit(Messages.RevertCommitAction_4);
@@ -105,6 +104,6 @@ public class RevertCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        return fCommit != null && getLocalRepositoryFolder() != null;
+        return fCommit != null && getRepository() != null;
     }
 }

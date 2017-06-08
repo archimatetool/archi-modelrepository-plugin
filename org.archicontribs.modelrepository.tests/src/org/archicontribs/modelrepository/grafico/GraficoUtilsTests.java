@@ -24,7 +24,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
@@ -88,18 +87,18 @@ public class GraficoUtilsTests {
     @Test
     public void isModelInGitRepository_IsCorrect() {
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        File file = new File("parent/parent/.git/temp.archimate");
+        File file = new File("parent/parent/.git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME);
         model.setFile(file);
-        assertTrue(GraficoUtils.isModelInGitRepository(model));
+        assertTrue(GraficoUtils.isModelInLocalRepository(model));
     }
 
     @Test
     public void getLocalGitFolderForModel_IsCorrect() {
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         File expected = new File("parent/parent/");
-        File file = new File(expected, ".git/temp.archimate");
+        File file = new File(expected, ".git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME);
         model.setFile(file);
-        assertEquals(expected, GraficoUtils.getLocalGitFolderForModel(model));
+        assertEquals(expected, GraficoUtils.getLocalRepositoryFolderForModel(model));
     }
     
     @Test
@@ -107,28 +106,9 @@ public class GraficoUtilsTests {
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         File file = new File("parent/parent/.git/dobbin.archimate");
         model.setFile(file);
-        assertNull(GraficoUtils.getLocalGitFolderForModel(model));
+        assertNull(GraficoUtils.getLocalRepositoryFolderForModel(model));
     }
 
-    @Test
-    public void locateModel_LocateNewModel() {
-        File localGitFolder = new File("/temp/folder");
-        IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
-        model.setFile(GraficoUtils.getModelFileName(localGitFolder));
-        
-        // Not open
-        assertNull(GraficoUtils.locateModel(localGitFolder));
-        
-        IEditorModelManager.INSTANCE.openModel(model);
-        assertEquals(model, GraficoUtils.locateModel(localGitFolder));
-    }
-
-    @Test
-    public void getModelFileName_IsCorrect() {
-        File localGitFolder = new File("/temp/folder");
-        assertEquals(new File(localGitFolder, ".git/temp.archimate"), GraficoUtils.getModelFileName(localGitFolder));
-    }
-    
     @Test
     public void createNewLocalGitRepository_CreatesNewRepo() throws Exception {
         File localGitFolder = new File(getTempTestsFolder(), "testRepo");
@@ -151,17 +131,6 @@ public class GraficoUtilsTests {
         GraficoUtils.createNewLocalGitRepository(tmpFile.getParentFile(), "");
     }
     
-    @Test
-    public void getRepositoryURL_ShouldReturnURL() throws Exception {
-        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
-        String URL = "https://www.somewherethereish.net/myRepo.git";
-        
-        try(Git git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL)) {
-            assertNotNull(git);
-            assertEquals(URL, GraficoUtils.getRepositoryURL(localGitFolder));
-        }
-    }
-
     @Test
     public void getFileContents_IsCorrect() throws Exception {
         File localGitFolder = new File(getTempTestsFolder(), "testRepo");
@@ -195,7 +164,7 @@ public class GraficoUtilsTests {
     
     // Support
     
-    private File getTempTestsFolder() {
+    public static File getTempTestsFolder() {
         File file = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tests.tmp");
         file.deleteOnExit();
         file.mkdirs();

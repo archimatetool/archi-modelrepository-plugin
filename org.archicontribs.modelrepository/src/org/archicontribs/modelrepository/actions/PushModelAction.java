@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
@@ -52,7 +53,7 @@ public class PushModelAction extends AbstractModelAction {
     public PushModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
         if(model != null) {
-            setLocalRepositoryFolder(GraficoUtils.getLocalGitFolderForModel(model));
+            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
 
@@ -60,7 +61,7 @@ public class PushModelAction extends AbstractModelAction {
     public void run() {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = GraficoUtils.locateModel(getLocalRepositoryFolder());
+        IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
                 return;
@@ -72,7 +73,7 @@ public class PushModelAction extends AbstractModelAction {
         
         // Then offer to Commit
         try {
-            if(GraficoUtils.hasChangesToCommit(getLocalRepositoryFolder())) {
+            if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
                 }
@@ -86,7 +87,7 @@ public class PushModelAction extends AbstractModelAction {
         // Get credentials for the Push action
         String credentials[] = null;
         try {
-            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getLocalGitFolder(),
+            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getRepository().getLocalGitFolder(),
                     IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
         }
         catch(IOException ex) {
@@ -109,10 +110,10 @@ public class PushModelAction extends AbstractModelAction {
                     this.monitor = monitor;
                     
                     // Proxy
-                    ProxyAuthenticater.update(GraficoUtils.getRepositoryURL(getLocalRepositoryFolder()));
+                    ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
                     
                     // First we need to Pull and resolve any conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getLocalRepositoryFolder(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, this);
                     
                     if(!pullResult.isSuccessful()) {
                         monitor.done();
@@ -121,7 +122,7 @@ public class PushModelAction extends AbstractModelAction {
                             @Override
                             public void run() {
                                 try {
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getLocalRepositoryFolder(),
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(),
                                             fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
@@ -145,7 +146,7 @@ public class PushModelAction extends AbstractModelAction {
                         monitor.beginTask(Messages.PushModelAction_7, IProgressMonitor.UNKNOWN);
                         
                         // Push
-                        GraficoUtils.pushToRemote(getLocalRepositoryFolder(), userName, userPassword, this);
+                        GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, this);
                     }
                 }
                 catch(IOException | GitAPIException ex) {

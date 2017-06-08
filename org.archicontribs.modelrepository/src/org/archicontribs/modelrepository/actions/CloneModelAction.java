@@ -15,6 +15,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -78,7 +79,7 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        setLocalRepositoryFolder(localRepoFolder);
+        setRepository(new ArchiRepository(localRepoFolder));
         
         class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
             private IProgressMonitor monitor;
@@ -94,7 +95,7 @@ public class CloneModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Clone
-                    GraficoUtils.cloneModel(getLocalRepositoryFolder(), repoURL, userName, userPassword, this);
+                    GraficoUtils.cloneModel(getRepository().getLocalRepositoryFolder(), repoURL, userName, userPassword, this);
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
@@ -105,7 +106,7 @@ public class CloneModelAction extends AbstractModelAction {
                     if(graficoModel == null) {
                         // New one. This will open in the tree
                         IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
-                        model.setFile(GraficoUtils.getModelFileName(getLocalRepositoryFolder()));
+                        model.setFile(getRepository().getTempModelFile());
                         
                         // And Save it
                         IEditorModelManager.INSTANCE.saveModel(model);
@@ -113,7 +114,7 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getLocalRepositoryFolder(), ".git"), IGraficoConstants.REPO_CREDENTIALS_FILE); //$NON-NLS-1$
+                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE);
                         sc.store(userName, userPassword);
                     }
                 }

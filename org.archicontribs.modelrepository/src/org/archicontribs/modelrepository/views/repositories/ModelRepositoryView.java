@@ -5,8 +5,6 @@
  */
 package org.archicontribs.modelrepository.views.repositories;
 
-import java.io.File;
-
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AbortChangesAction;
 import org.archicontribs.modelrepository.actions.CloneModelAction;
@@ -18,7 +16,7 @@ import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -111,8 +109,11 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          */
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
-                File localFolder = (File)((IStructuredSelection)event.getSelection()).getFirstElement();
-                IEditorModelManager.INSTANCE.openModel(GraficoUtils.getModelFileName(localFolder));
+                Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
+                if(obj instanceof ArchiRepository) {
+                    ArchiRepository repo = (ArchiRepository)obj;
+                    IEditorModelManager.INSTANCE.openModel(repo.getTempModelFile());
+                }
             }
         });
 
@@ -234,19 +235,23 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
      * @param selection
      */
     public void updateActions(ISelection selection) {
-        File file = (File)((IStructuredSelection)selection).getFirstElement();
+        Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        fActionRefresh.setLocalRepositoryFolder(file);
-        fActionOpen.setLocalRepositoryFolder(file);
-        fActionDelete.setLocalRepositoryFolder(file);
-        fActionAbortChanges.setLocalRepositoryFolder(file);
-        
-        fActionCommit.setLocalRepositoryFolder(file);
-        fActionPush.setLocalRepositoryFolder(file);
-        
-        fActionShowInHistory.setLocalRepositoryFolder(file);
-        
-        fActionProperties.setLocalRepositoryFolder(file);
+        if(obj instanceof ArchiRepository) {
+            ArchiRepository repo = (ArchiRepository)((IStructuredSelection)selection).getFirstElement();
+            
+            fActionRefresh.setRepository(repo);
+            fActionOpen.setRepository(repo);
+            fActionDelete.setRepository(repo);
+            fActionAbortChanges.setRepository(repo);
+            
+            fActionCommit.setRepository(repo);
+            fActionPush.setRepository(repo);
+            
+            fActionShowInHistory.setRepository(repo);
+            
+            fActionProperties.setRepository(repo);
+        }
     }
     
     protected void fillContextMenu(IMenuManager manager) {

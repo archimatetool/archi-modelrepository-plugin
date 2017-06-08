@@ -40,7 +40,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -110,20 +109,6 @@ public class GraficoUtils {
             commitCommand.setAuthor(personIdent);
             commitCommand.setMessage(commitMessage);
             return commitCommand.call();
-        }
-    }
-    
-    /**
-     * Return true if there are local changes to commit in the working tree
-     * @param localRepoFolder
-     * @return
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    public static boolean hasChangesToCommit(File localRepoFolder) throws IOException, GitAPIException {
-        try(Git git = Git.open(localRepoFolder)) {
-            Status status = git.status().call();
-            return !status.isClean();
         }
     }
     
@@ -212,36 +197,31 @@ public class GraficoUtils {
             return false;
         }
         
-        // Name of the Git folder
-        String GIT_FOLDER = ".git"; //$NON-NLS-1$
-        
-        File gitFolder = new File(folder, GIT_FOLDER);
-        
+        File gitFolder = new File(folder, ".git"); //$NON-NLS-1$
         return gitFolder.exists() && gitFolder.isDirectory();
     }
     
     /**
-     * Check if a model is in a git repo folder
      * @param model
-     * @return
+     * @return true if a model is in a local repo folder
      */
-    public static boolean isModelInGitRepository(IArchimateModel model) {
-        return getLocalGitFolderForModel(model) != null;
+    public static boolean isModelInLocalRepository(IArchimateModel model) {
+        return getLocalRepositoryFolderForModel(model) != null;
     }
     
     /**
      * Get the enclosing local repo folder for a model
      * It is assumed that the model is located at localRepoFolder/.git/temp.archimate
      * @param model
-     * @return
+     * @return The folder
      */
-    public static File getLocalGitFolderForModel(IArchimateModel model) {
+    public static File getLocalRepositoryFolderForModel(IArchimateModel model) {
         if(model == null) {
             return null;
         }
         
         File file = model.getFile();
-        if(file == null || !file.getName().equals("temp.archimate")) { //$NON-NLS-1$
+        if(file == null || !file.getName().equals(IGraficoConstants.LOCAL_ARCHI_FILENAME)) {
             return null;
         }
         
@@ -251,32 +231,6 @@ public class GraficoUtils {
         }
         
         return parent.getParentFile();
-    }
-    
-    /**
-     * Locate a model in the models tree based on its file location
-     * @param localRepoFolder
-     * @return
-     */
-    public static IArchimateModel locateModel(File localRepoFolder) {
-        File tmpFileName = getModelFileName(localRepoFolder);
-        
-        for(IArchimateModel model : IEditorModelManager.INSTANCE.getModels()) {
-            if(tmpFileName.equals(model.getFile())) {
-                return model;
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Create a file name to attach to a model. Used to locate a model in the model tree
-     * @param localGitFolder
-     * @return
-     */
-    public static File getModelFileName(File localRepoFolder) {
-        return new File(localRepoFolder, "/.git/temp.archimate"); //$NON-NLS-1$
     }
     
     /**
@@ -310,19 +264,6 @@ public class GraficoUtils {
         return git;
     }
 
-    /**
-     * Return the URL of the Git repo, taken from local config file.
-     * We assume that there is only one remote per repo, and its name is "origin"
-     * @param localRepoFolder
-     * @return The URL or null if not found
-     * @throws IOException
-     */
-    public static String getRepositoryURL(File localRepoFolder) throws IOException {
-        try(Git git = Git.open(localRepoFolder)) {
-            return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        }
-    }
-    
     /**
      * Retune the contents of a file in the repo given its ref
      * Ref could be "HEAD" or "origin/master" for example
@@ -385,24 +326,5 @@ public class GraficoUtils {
         }
         
         return str;
-    }
-    
-    /**
-     * Return true if the local temp.archimate file has been modified since last Grafico export
-     * @param localRepoFolder
-     * @return
-     */
-    public static boolean hasLocalChanges(File localRepoFolder) {
-        File localFile = getModelFileName(localRepoFolder);
-        File gitModelFolder = new File(localRepoFolder, IGraficoConstants.MODEL_FOLDER);
-        
-        if(!localFile.exists() || !gitModelFolder.exists()) {
-            return false;
-        }
-        
-        long localFileLastModified = localFile.lastModified();
-        long gitFolderLastModified = gitModelFolder.lastModified();
-        
-        return localFileLastModified > gitFolderLastModified;
     }
 }

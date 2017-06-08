@@ -5,10 +5,9 @@
  */
 package org.archicontribs.modelrepository.propertysections;
 
-import java.io.File;
 import java.io.IOException;
 
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
@@ -28,7 +27,7 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
     
     public static class Filter implements IFilter {
         public boolean select(Object object) {
-            return (object instanceof File) && GraficoUtils.isGitRepository((File)object);
+            return object instanceof ArchiRepository;
         }
     }
     
@@ -62,13 +61,13 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
 
     @Override
     protected void setElement(Object element) {
-        if(element instanceof File) {
-            File f = (File)element;
+        if(element instanceof ArchiRepository) {
+            ArchiRepository repo = (ArchiRepository)element;
             
-            fTextFile.setText(f.getAbsolutePath());
+            fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
             
             try {
-                fTextURL.setText(GraficoUtils.getRepositoryURL(f));
+                fTextURL.setText(repo.getOnlineRepositoryURL());
             }
             catch(IOException ex) {
                 ex.printStackTrace();

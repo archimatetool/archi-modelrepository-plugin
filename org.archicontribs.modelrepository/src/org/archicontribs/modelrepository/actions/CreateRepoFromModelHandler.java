@@ -34,6 +34,6 @@ public class CreateRepoFromModelHandler extends AbstractModelSelectionHandler {
     
     @Override
     public void updateState() {
-        setBaseEnabled(getActiveArchimateModel() != null && !GraficoUtils.isModelInGitRepository(getActiveArchimateModel()));
+        setBaseEnabled(getActiveArchimateModel() != null && !GraficoUtils.isModelInLocalRepository(getActiveArchimateModel()));
     }
 }
