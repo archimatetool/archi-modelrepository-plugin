@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -62,7 +63,9 @@ public class CommitModelAction extends AbstractModelAction {
         // Then Commit
         try {
             if(getRepository().hasChangesToCommit()) {
-                offerToCommitChanges();
+                if(offerToCommitChanges()) {
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                }
             }
             else {
                 MessageDialog.openInformation(fWindow.getShell(),

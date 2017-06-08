@@ -250,16 +250,25 @@ implements IContextProvider, ISelectionListener {
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+        if(part == this) {
+            return;
+        }
+        
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
         // Repository selected
         if(selected instanceof ArchiRepository) {
             fSelectedRepository = (ArchiRepository)selected;
         }
-        // Model selected
+        // Model selected, but is it in a git repo?
         else if(selected instanceof IArchimateModelObject) {
             IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
-            fSelectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
+            if(GraficoUtils.isModelInLocalRepository(model)) {
+                fSelectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
+            }
+            else {
+                fSelectedRepository = null;
+            }
         }
         
         if(fSelectedRepository != null) {

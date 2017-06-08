@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
@@ -84,6 +85,15 @@ public class UndoLastCommitAction extends AbstractModelAction {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         
+        // Confirm
+        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
+                Messages.UndoLastCommitAction_0,
+                Messages.UndoLastCommitAction_1);
+
+        if(!response) {
+            return;
+        }
+        
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ResetCommand resetCommand = git.reset();
             resetCommand.setRef("HEAD^"); //$NON-NLS-1$
@@ -93,6 +103,8 @@ public class UndoLastCommitAction extends AbstractModelAction {
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
+        
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
     
     @Override

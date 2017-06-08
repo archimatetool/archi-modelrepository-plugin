@@ -124,6 +124,8 @@ public class Messages extends NLS {
 
     public static String UndoLastCommitAction_0;
 
+    public static String UndoLastCommitAction_1;
+
     public static String UndoLastCommitAction_2;
 
     public static String UndoLastCommitAction_3;

@@ -14,6 +14,7 @@ import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -186,6 +187,13 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
         
         return false;
+    }
+    
+    /**
+     * Notify that the repo changed
+     */
+    protected void notifyChangeListeners(String eventName) {
+        RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(eventName, getRepository());
     }
     
     @Override

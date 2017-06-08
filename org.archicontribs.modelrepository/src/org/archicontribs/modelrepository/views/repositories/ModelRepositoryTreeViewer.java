@@ -12,11 +12,15 @@ import java.util.List;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -27,7 +31,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Repository Tree Viewer
  */
-public class ModelRepositoryTreeViewer extends TreeViewer {
+public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener {
     /**
      * The Root Folder we are exploring
      */
@@ -58,6 +62,21 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
         
         fRootFolder.mkdirs();
         setInput(fRootFolder);
+        
+        RepositoryListenerManager.INSTANCE.addListener(this);
+        
+        // Dispose of this
+        getTree().addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                if(fTimer != null) {
+                    Display.getDefault().timerExec(-1, fTimer);
+                    fTimer = null;
+                }
+                
+                RepositoryListenerManager.INSTANCE.removeListener(ModelRepositoryTreeViewer.this);
+            }
+        });
     }
 
     /**
@@ -75,17 +94,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer {
         
         Display.getDefault().timerExec(TIMERDELAY, fTimer);
     }
-    
-    /**
-     * Dispose of stuff
-     */
-    public void dispose() {
-        if(fTimer != null) {
-            Display.getDefault().timerExec(-1, fTimer);
-            fTimer = null;
+
+    @Override
+    public void repositoryChanged(String eventName, ArchiRepository repository) {
+        if(IRepositoryListener.REPOSITORY_DELETED.equals(eventName)) {
+            refresh();
         }
     }
-
     
     // ===============================================================================================
 	// ===================================== Tree Model ==============================================

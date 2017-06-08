@@ -10,6 +10,8 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -58,6 +60,9 @@ public class DeleteModelAction extends AbstractModelAction {
             
             // Delete folder
             FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
+            
+            // Notify
+            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, getRepository());
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.DeleteModelAction_0, ex);

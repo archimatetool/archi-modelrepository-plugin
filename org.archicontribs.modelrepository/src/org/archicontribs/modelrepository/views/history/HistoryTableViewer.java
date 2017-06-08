@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -24,6 +26,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
@@ -31,7 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 /**
  * History Table Viewer
  */
-public class HistoryTableViewer extends TableViewer {
+public class HistoryTableViewer extends TableViewer implements IRepositoryListener {
     /**
      * Constructor
      */
@@ -42,6 +46,17 @@ public class HistoryTableViewer extends TableViewer {
         
         setContentProvider(new HistoryContentProvider());
         setLabelProvider(new HistoryLabelProvider());
+        
+        // Add listener
+        RepositoryListenerManager.INSTANCE.addListener(this);
+        
+        // Dispose of listener
+        getTable().addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                RepositoryListenerManager.INSTANCE.removeListener(HistoryTableViewer.this);
+            }
+        });
     }
 
     /**
@@ -71,6 +86,12 @@ public class HistoryTableViewer extends TableViewer {
     
     }
     
+    @Override
+    public void repositoryChanged(String eventName, ArchiRepository repository) {
+        if(IRepositoryListener.HISTORY_CHANGED.equals(eventName) && repository.equals(getInput())) {
+            setInput(getInput());
+        }
+    }
     
     // ===============================================================================================
 	// ===================================== Table Model ==============================================

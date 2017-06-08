@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -69,21 +70,24 @@ public class RevertCommitAction extends AbstractModelAction {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             RevertCommand revertCommand = doRevertCommand(git);
             
-            MergeResult mergeResult = revertCommand.getFailingResult();
-            if(mergeResult != null) {
-                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, getRepository().getLocalRepositoryFolder(), fWindow.getShell());
+            MergeResult failingResult = revertCommand.getFailingResult();
+            if(failingResult != null) {
+                MergeConflictHandler handler = new MergeConflictHandler(failingResult, getRepository().getLocalRepositoryFolder(), fWindow.getShell());
                 boolean result = handler.checkForMergeConflicts();
                 if(result) {
                     handler.mergeAndCommit(Messages.RevertCommitAction_4);
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
                 else {
                     // User cancelled - we assume user has committed all changes so we can reset
                     handler.resetToLocalState();
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                     return;
                 }
             }
             else {
                 loadModelFromGraficoFiles();
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             }
         }
         catch(IOException | GitAPIException ex) {

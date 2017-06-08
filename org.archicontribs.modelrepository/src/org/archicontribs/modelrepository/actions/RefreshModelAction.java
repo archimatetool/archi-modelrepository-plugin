@@ -14,6 +14,7 @@ import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -129,16 +130,21 @@ public class RefreshModelAction extends AbstractModelAction {
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
                                         handler.mergeAndCommit(Messages.RefreshModelAction_7);
+                                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                                     }
                                     else {
                                         // User cancelled - we assume user has committed all changes so we can reset
                                         handler.resetToLocalState();
+                                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                                         return;
                                     }
                                 }
                                 catch(IOException | GitAPIException ex) {
                                     displayErrorDialog(Messages.RefreshModelAction_0, ex);
                                 }
+                            }
+                            else {
+                                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                             }
                             
                             // Reload the model from the Grafico XML files
