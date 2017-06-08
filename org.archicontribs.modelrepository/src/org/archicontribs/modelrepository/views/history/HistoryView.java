@@ -271,32 +271,37 @@ implements IContextProvider, ISelectionListener {
         
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
+        ArchiRepository selectedRepository = null;
+        
         // Repository selected
         if(selected instanceof ArchiRepository) {
-            fSelectedRepository = (ArchiRepository)selected;
+            selectedRepository = (ArchiRepository)selected;
         }
         // Model selected, but is it in a git repo?
         else if(selected instanceof IArchimateModelObject) {
             IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
             if(GraficoUtils.isModelInLocalRepository(model)) {
-                fSelectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
+                selectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
             }
             else {
-                fSelectedRepository = null;
+                selectedRepository = null;
             }
         }
         
-        if(fSelectedRepository != null) {
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + fSelectedRepository.getName()); //$NON-NLS-1$
-            getViewer().setInput(fSelectedRepository);
+        // Update if selectedRepository is different 
+        if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
+            // Set label text
+            fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
+            getViewer().setInput(selectedRepository);
             
             // Do the table kludge
             ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
-            
-            fActionExtractCommit.setRepository(fSelectedRepository);
-            fActionRevertSingleCommit.setRepository(fSelectedRepository);
-            fActionRevertUptoCommit.setRepository(fSelectedRepository);
-            fActionUndoLastCommit.setRepository(fSelectedRepository);
+
+            // Update actions
+            fActionExtractCommit.setRepository(selectedRepository);
+            fActionRevertSingleCommit.setRepository(selectedRepository);
+            fActionRevertUptoCommit.setRepository(selectedRepository);
+            fActionUndoLastCommit.setRepository(selectedRepository);
             
             // Select first row
             Display.getDefault().asyncExec(new Runnable() {
@@ -311,6 +316,9 @@ implements IContextProvider, ISelectionListener {
                 }
             });
         }
+        
+        // Store last selected
+        fSelectedRepository = selectedRepository;
     }
     
     @Override
