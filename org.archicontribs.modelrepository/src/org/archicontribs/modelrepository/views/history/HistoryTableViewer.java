@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -90,7 +90,7 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
     }
     
     @Override
-    public void repositoryChanged(String eventName, ArchiRepository repository) {
+    public void repositoryChanged(String eventName, IArchiRepository repository) {
         if(IRepositoryListener.HISTORY_CHANGED.equals(eventName) && repository.equals(getInput())) {
             setInput(getInput());
         }
@@ -107,11 +107,11 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
         List<RevCommit> commits = new ArrayList<RevCommit>();
         
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-            if(!(newInput instanceof ArchiRepository)) {
+            if(!(newInput instanceof IArchiRepository)) {
                 return;
             }
             
-            ArchiRepository repo = (ArchiRepository)newInput;
+            IArchiRepository repo = (IArchiRepository)newInput;
             
             commits = new ArrayList<RevCommit>();
             

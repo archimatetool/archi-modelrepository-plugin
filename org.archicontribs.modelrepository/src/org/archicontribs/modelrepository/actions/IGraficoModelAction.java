@@ -5,7 +5,7 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.action.IAction;
 
 /**
@@ -19,12 +19,12 @@ public interface IGraficoModelAction extends IAction {
      * Set the repository
      * @param repository
      */
-    void setRepository(ArchiRepository repository);
+    void setRepository(IArchiRepository repository);
     
     /**
      * @return The repository
      */
-    ArchiRepository getRepository();
+    IArchiRepository getRepository();
 
     /**
      * Dispose of action

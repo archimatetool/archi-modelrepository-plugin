@@ -10,10 +10,10 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
@@ -34,7 +34,7 @@ import com.archimatetool.model.IArchimateModel;
  */
 public abstract class AbstractModelAction extends Action implements IGraficoModelAction {
 	
-	private ArchiRepository fRepository;
+	private IArchiRepository fRepository;
 	
 	protected IWorkbenchWindow fWindow;
 	
@@ -43,13 +43,13 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	}
 	
 	@Override
-	public void setRepository(ArchiRepository repository) {
+	public void setRepository(IArchiRepository repository) {
 	    fRepository = repository;
 	    setEnabled(shouldBeEnabled());
 	}
 	
 	@Override
-	public ArchiRepository getRepository() {
+	public IArchiRepository getRepository() {
 	    return fRepository;
 	}
 	 

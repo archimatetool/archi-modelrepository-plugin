@@ -10,7 +10,15 @@ Require-Bundle: org.eclipse.help.ui,
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
-Export-Package: org.archicontribs.modelrepository
+Export-Package: org.archicontribs.modelrepository,
+ org.archicontribs.modelrepository.actions,
+ org.archicontribs.modelrepository.authentication,
+ org.archicontribs.modelrepository.dialogs,
+ org.archicontribs.modelrepository.grafico,
+ org.archicontribs.modelrepository.preferences,
+ org.archicontribs.modelrepository.propertysections,
+ org.archicontribs.modelrepository.views.history,
+ org.archicontribs.modelrepository.views.repositories
 Bundle-ClassPath: org.archicontribs.modelrepository.jar,
  lib/org.eclipse.jgit-4.7.0.201704051617-r.jar,
  lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,

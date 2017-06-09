@@ -12,6 +12,7 @@ import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -78,7 +79,7 @@ implements IContextProvider, ISelectionListener {
     /*
      * Selected repository
      */
-    private ArchiRepository fSelectedRepository;
+    private IArchiRepository fSelectedRepository;
 
     
     @Override
@@ -271,11 +272,11 @@ implements IContextProvider, ISelectionListener {
         
         Object selected = ((IStructuredSelection)selection).getFirstElement();
         
-        ArchiRepository selectedRepository = null;
+        IArchiRepository selectedRepository = null;
         
         // Repository selected
-        if(selected instanceof ArchiRepository) {
-            selectedRepository = (ArchiRepository)selected;
+        if(selected instanceof IArchiRepository) {
+            selectedRepository = (IArchiRepository)selected;
         }
         // Model selected, but is it in a git repo?
         else if(selected instanceof IArchimateModelObject) {

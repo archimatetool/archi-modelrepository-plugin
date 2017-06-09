@@ -16,7 +16,7 @@ import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -110,8 +110,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
                 Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
-                if(obj instanceof ArchiRepository) {
-                    ArchiRepository repo = (ArchiRepository)obj;
+                if(obj instanceof IArchiRepository) {
+                    IArchiRepository repo = (IArchiRepository)obj;
                     IEditorModelManager.INSTANCE.openModel(repo.getTempModelFile());
                 }
             }
@@ -237,8 +237,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     public void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
-        if(obj instanceof ArchiRepository) {
-            ArchiRepository repo = (ArchiRepository)((IStructuredSelection)selection).getFirstElement();
+        if(obj instanceof IArchiRepository) {
+            IArchiRepository repo = (IArchiRepository)((IStructuredSelection)selection).getFirstElement();
             
             fActionRefresh.setRepository(repo);
             fActionOpen.setRepository(repo);

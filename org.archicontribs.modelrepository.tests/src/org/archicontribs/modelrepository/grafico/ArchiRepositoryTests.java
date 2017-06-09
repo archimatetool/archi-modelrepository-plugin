@@ -44,28 +44,28 @@ public class ArchiRepositoryTests {
     @Test
     public void getName_IsCorrect() {
         File localRepoFolder = new File("/temp/folder");
-        ArchiRepository repo = new ArchiRepository(localRepoFolder);
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
         assertEquals("folder", repo.getName());
     }
 
     @Test
     public void getLocalGitFolder_IsCorrect() {
         File localRepoFolder = new File("/temp/folder");
-        ArchiRepository repo = new ArchiRepository(localRepoFolder);
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
         assertEquals(new File(localRepoFolder, ".git"), repo.getLocalGitFolder());
     }
 
     @Test
     public void getTempModelFile_IsCorrect() {
         File localRepoFolder = new File("/temp/folder");
-        ArchiRepository repo = new ArchiRepository(localRepoFolder);
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
         assertEquals(new File(localRepoFolder, ".git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME), repo.getTempModelFile());
     }
     
     @Test
     public void getRepositoryURL_ShouldReturnURL() throws Exception {
         File localRepoFolder = new File(GraficoUtilsTests.getTempTestsFolder(), "testRepo");
-        ArchiRepository repo = new ArchiRepository(localRepoFolder);
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
         String URL = "https://www.somewherethereish.net/myRepo.git";
         
         try(Git git = GraficoUtils.createNewLocalGitRepository(localRepoFolder, URL)) {
@@ -77,7 +77,7 @@ public class ArchiRepositoryTests {
     @Test
     public void locateModel_LocateNewModel() {
         File localRepoFolder = new File("/temp/folder");
-        ArchiRepository repo = new ArchiRepository(localRepoFolder);
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
         
         IArchimateModel model = IArchimateFactory.eINSTANCE.createArchimateModel();
         model.setFile(repo.getTempModelFile());

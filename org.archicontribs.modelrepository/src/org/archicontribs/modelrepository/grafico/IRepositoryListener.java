@@ -16,6 +16,6 @@ public interface IRepositoryListener {
     String REPOSITORY_DELETED = "repository_deleted"; //$NON-NLS-1$
     String HISTORY_CHANGED = "history_changed"; //$NON-NLS-1$
 
-    void repositoryChanged(String eventName, ArchiRepository repository);
+    void repositoryChanged(String eventName, IArchiRepository repository);
     
 }

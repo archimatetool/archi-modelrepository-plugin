@@ -7,7 +7,7 @@ package org.archicontribs.modelrepository.propertysections;
 
 import java.io.IOException;
 
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
@@ -27,7 +27,7 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
     
     public static class Filter implements IFilter {
         public boolean select(Object object) {
-            return object instanceof ArchiRepository;
+            return object instanceof IArchiRepository;
         }
     }
     
@@ -61,8 +61,8 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
 
     @Override
     protected void setElement(Object element) {
-        if(element instanceof ArchiRepository) {
-            ArchiRepository repo = (ArchiRepository)element;
+        if(element instanceof IArchiRepository) {
+            IArchiRepository repo = (IArchiRepository)element;
             
             fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
             

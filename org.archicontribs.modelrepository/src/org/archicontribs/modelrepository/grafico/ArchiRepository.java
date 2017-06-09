@@ -20,7 +20,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class ArchiRepository {
+public class ArchiRepository implements IArchiRepository {
     
     /**
      * The folder location of the local repository
@@ -31,50 +31,34 @@ public class ArchiRepository {
         fLocalRepoFolder = localRepoFolder;
     }
 
-    /**
-     * @return The local repository folder
-     */
+    @Override
     public File getLocalRepositoryFolder() {
         return fLocalRepoFolder;
     }
     
-    /**
-     * @return The local repository's ".git" folder
-     */
+    @Override
     public File getLocalGitFolder() {
         return new File(getLocalRepositoryFolder(), ".git"); //$NON-NLS-1$
     }
 
-    /**
-     * @return The repository name - the file name
-     */
+    @Override
     public String getName() {
         return fLocalRepoFolder.getName();
     }
 
-    /**
-     * @return The .archimate file in the local repo
-     */
+    @Override
     public File getTempModelFile() {
         return new File(getLocalRepositoryFolder(), "/.git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME); //$NON-NLS-1$
     }
     
-    /**
-     * Return the online URL of the Git repo, taken from the local config file.
-     * We assume that there is only one remote per repo, and its name is "origin"
-     * @return The online URL or null if not found
-     * @throws IOException
-     */
+    @Override
     public String getOnlineRepositoryURL() throws IOException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         }
     }
     
-    /**
-     * Locate a model in the model manager based on its file location
-     * @return The model or null if not found
-     */
+    @Override
     public IArchimateModel locateModel() {
         File tempFile = getTempModelFile();
         
@@ -87,9 +71,7 @@ public class ArchiRepository {
         return null;
     }
 
-    /**
-     * @return true if the local .archimate file has been modified since the last Grafico export
-     */
+    @Override
     public boolean hasLocalChanges() {
         File tempFile = getTempModelFile();
         
@@ -105,12 +87,7 @@ public class ArchiRepository {
         return localFileLastModified > gitFolderLastModified;
     }
 
-    /**
-     * Return true if there are local changes to commit in the working tree
-     * @return
-     * @throws IOException
-     * @throws GitAPIException
-     */
+    @Override
     public boolean hasChangesToCommit() throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             Status status = git.status().call();
@@ -121,7 +98,7 @@ public class ArchiRepository {
     @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {
-            return fLocalRepoFolder != null && fLocalRepoFolder.equals(((ArchiRepository)obj).getLocalRepositoryFolder());
+            return fLocalRepoFolder != null && fLocalRepoFolder.equals(((IArchiRepository)obj).getLocalRepositoryFolder());
         }
         return false;
     }

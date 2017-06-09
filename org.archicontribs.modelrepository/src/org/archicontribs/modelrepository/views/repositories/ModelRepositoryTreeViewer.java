@@ -12,6 +12,7 @@ import java.util.List;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -96,7 +97,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     }
 
     @Override
-    public void repositoryChanged(String eventName, ArchiRepository repository) {
+    public void repositoryChanged(String eventName, IArchiRepository repository) {
         if(IRepositoryListener.REPOSITORY_DELETED.equals(eventName)) {
             refresh();
         }
@@ -125,8 +126,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             if(child instanceof File) {
                 return ((File)child).getParentFile();
             }
-            if(child instanceof ArchiRepository) {
-                return ((ArchiRepository)child).getLocalRepositoryFolder().getParentFile();
+            if(child instanceof IArchiRepository) {
+                return ((IArchiRepository)child).getLocalRepositoryFolder().getParentFile();
             }
             return null;
         }
@@ -161,8 +162,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         @Override
         public String getText(Object obj) {
-        	if(obj instanceof ArchiRepository) {
-        	    ArchiRepository repo = (ArchiRepository)obj;
+        	if(obj instanceof IArchiRepository) {
+        	    IArchiRepository repo = (IArchiRepository)obj;
         	    return repo.getName();
         	}
         	else if(obj instanceof File) {
@@ -176,7 +177,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         public Image getImage(Object obj) {
             Image image = null;
             
-            if(obj instanceof ArchiRepository) {
+            if(obj instanceof IArchiRepository) {
                 image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
             }
             else if(obj instanceof File) {

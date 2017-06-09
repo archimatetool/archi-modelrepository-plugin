@@ -32,7 +32,7 @@ public class RepositoryListenerManager {
         listeners.remove(listener);
     }
 
-    public void fireRepositoryChangedEvent(String eventName, final ArchiRepository repository) {
+    public void fireRepositoryChangedEvent(String eventName, final IArchiRepository repository) {
         if(repository == null) {
             return;
         }
