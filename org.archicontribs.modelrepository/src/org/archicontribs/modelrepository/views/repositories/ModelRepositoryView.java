@@ -213,21 +213,21 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         manager.add(fActionClone);
         
-        manager.add(new Separator());
-        
-        manager.add(fActionRefresh);
-        manager.add(fActionOpen);
-        manager.add(fActionCommit);
-        manager.add(fActionPush);
-
-        manager.add(new Separator());
+//        manager.add(new Separator());
+//        
+//        manager.add(fActionRefresh);
+//        manager.add(fActionOpen);
+//        manager.add(fActionCommit);
+//        manager.add(fActionPush);
+//
+//        manager.add(new Separator());
         
         manager.add(fActionDelete);
-        manager.add(fActionAbortChanges);
-        
-        manager.add(new Separator());
-        
-        manager.add(fActionShowInHistory);
+//        manager.add(fActionAbortChanges);
+//        
+//        manager.add(new Separator());
+//        
+//        manager.add(fActionShowInHistory);
     }
     
     /**
@@ -261,23 +261,23 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
             manager.add(fActionClone);
         }
         else {
-            manager.add(new Separator());
-            
-            manager.add(fActionRefresh);
-            manager.add(fActionOpen);
-            manager.add(fActionCommit);
-            manager.add(fActionPush);
-
-            manager.add(new Separator());
+//            manager.add(new Separator());
+//            
+//            manager.add(fActionRefresh);
+//            manager.add(fActionOpen);
+//            manager.add(fActionCommit);
+//            manager.add(fActionPush);
+//
+//            manager.add(new Separator());
 
             manager.add(fActionDelete);
-            manager.add(fActionAbortChanges);
+//            manager.add(fActionAbortChanges);
             
             manager.add(new Separator());
             
             manager.add(fActionShowInHistory);
             
-            manager.add(new Separator());
+//            manager.add(new Separator());
             
             manager.add(fActionProperties);
         }

@@ -6,22 +6,22 @@
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
-            name="Model Repository">
+            name="Toggle Collaboration Workspace">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showHistoryView"
-            name="Model History">
+            name="Toggle Change History">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
             id="org.archicontribs.modelrepository.command.createRepoFromModel"
-            name="Create Repository from Selected Model">
+            name="Add Local Model to Workspace and Publish">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CloneModelHandler"
             id="org.archicontribs.modelrepository.command.cloneModel"
-            name="Clone Model">
+            name="Import Remote Model to Workspace">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.RefreshModelHandler"
@@ -41,22 +41,22 @@
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.AbortChangesHandler"
             id="org.archicontribs.modelrepository.command.abortChanges"
-            name="Abort Unpublished Changes">
+            name="Abort Uncommitted Changes">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInHistoryView"
-            name="Show in History">
+            name="Show Change History">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInRepositoryView"
-            name="Show in Model Repository">
+            name="Show in Collaboration Workspace">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.DeleteModelHandler"
             id="org.archicontribs.modelrepository.command.deleteModel"
-            name="Delete Local Copy">
+            name="Delete Model from Workspace">
       </command>
    </extension>
    <extension
@@ -64,44 +64,17 @@
       <menuContribution
             allPopups="false"
             locationURI="menu:window?after=com.archimatetool.hammer.menuitem.showValidatorView">
-         <command
-               commandId="org.archicontribs.modelrepository.command.showRepositoryView"
-               icon="img/plugin.png"
-               id="org.archicontribs.modelrepository.menuitem.showRepositoryView"
-               label="%model_repository"
-               style="push">
-         </command>
-         <command
-               commandId="org.archicontribs.modelrepository.command.showHistoryView"
-               icon="img/history_view.png"
-               id="org.archicontribs.modelrepository.menuitem.showHistoryView"
-               label="%history_repository"
-               style="push">
-         </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
             locationURI="toolbar:toolbar_views?after=com.archimatetool.hammer.toolbaritem.showValidatorView">
-         <command
-               commandId="org.archicontribs.modelrepository.command.showRepositoryView"
-               icon="img/plugin.png"
-               id="org.archicontribs.modelrepository.toolbaritem.showRepositoryView"
-               label="%model_repository"
-               style="push">
-         </command>
-         <command
-               commandId="org.archicontribs.modelrepository.command.showHistoryView"
-               icon="img/history_view.png"
-               id="org.arpopup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmenu.validatesitory"
-               style="push">
-         </command>
       </menuContribution>
       <menuContribution
             allPopups="true"
             locationURI="popup:com.archimatetool.editor.treeModelView?before=start_properties">
          <menu
                id="org.archicontribs.modelrepository.menu"
-               label="Repository">
+               label="Collaboration">
             <separator
                   name="org.archicontribs.modelrepository.popup.start"
                   visible="true">
@@ -109,8 +82,11 @@
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
-                  id="org.archicontribs.modelrepository.popupmenu.createRepoFromModel"
-                  label="Create Repository from Selected Model"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
                   style="push">
             </command>
             <separator
@@ -120,19 +96,21 @@
             <command
                   commandId="org.archicontribs.modelrepository.command.refreshModel"
                   icon="img/pull.png"
-                  label="Refresh Local Copy"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.abortChanges"
+                  icon="img/abort.png"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.commitModel"
                   icon="img/commit.png"
-                  label="Commit Changes"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.pushModel"
                   icon="img/push.png"
-                  label="Publish Changes"
                   style="push">
             </command>
             <separator
@@ -140,31 +118,13 @@
                   visible="true">
             </separator>
             <command
-                  commandId="org.archicontribs.modelrepository.command.deleteModel"
-                  icon="img/delete.png"
-                  label="Delete Local Copy"
-                  style="push">
-            </command>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.abortChanges"
-                  icon="img/abort.png"
-                  label="Abort Unpublished Changes"
-                  style="push">
-            </command>
-            <separator
-                  name="org.archicontribs.modelrepository.popup.separator3"
-                  visible="true">
-            </separator>
-            <command
                   commandId="org.archicontribs.modelrepository.command.showInHistoryView"
                   icon="img/history_view.png"
-                  label="Show in History"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
                   icon="img/plugin.png"
-                  label="Show in Model Repository"
                   style="push">
             </command>
             <separator
@@ -178,17 +138,20 @@
             locationURI="menu:org.eclipse.ui.main.menu?after=tools">
          <menu
                id="repository"
-               label="Repository">
-            <command
-                  commandId="org.archicontribs.modelrepository.command.cloneModel"
-                  icon="img/add_obj.png"
-                  label="Add Remote Model"
-                  style="push">
-            </command>
+               label="Collaboration">
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"
-                  label="Create Repository from Selected Model"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.cloneModel"
+                  icon="img/add_obj.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.deleteModel"
+                  icon="img/delete.png"
                   style="push">
             </command>
             <separator
@@ -198,19 +161,21 @@
             <command
                   commandId="org.archicontribs.modelrepository.command.refreshModel"
                   icon="img/pull.png"
-                  label="Refresh Local Copy"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.abortChanges"
+                  icon="img/abort.png"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.commitModel"
                   icon="img/commit.png"
-                  label="Commit Changes"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.pushModel"
                   icon="img/push.png"
-                  label="Publish Changes"
                   style="push">
             </command>
             <separator
@@ -218,31 +183,14 @@
                   visible="true">
             </separator>
             <command
-                  commandId="org.archicontribs.modelrepository.command.deleteModel"
-                  icon="img/delete.png"
-                  label="Delete Local Copy"
-                  style="push">
-            </command>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.abortChanges"
-                  icon="img/abort.png"
-                  label="Abort Unpublished Changes"
-                  style="push">
-            </command>
-            <separator
-                  name="org.archicontribs.modelrepository.menu.separator3"
-                  visible="true">
-            </separator>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.showInHistoryView"
+                  commandId="org.archicontribs.modelrepository.command.showHistoryView"
                   icon="img/history_view.png"
-                  label="Show in History"
                   style="push">
             </command>
             <command
-                  commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
+                  commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                   icon="img/plugin.png"
-                  label="Show in Model Repository"
+                  id="org.archicontribs.modelrepository.toolbaritem.showRepositoryView"
                   style="push">
             </command>
          </menu>
@@ -252,6 +200,51 @@
             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=toolbar_views">
          <toolbar
                id="org.archicontribs.modelrepository.toolbar">
+            <command
+                  commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+                  icon="img/createRepository.png"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.separator1"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.refreshModel"
+                  icon="img/pull.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.abortChanges"
+                  icon="img/abort.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.commitModel"
+                  icon="img/commit.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.pushModel"
+                  icon="img/push.png"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.separator2"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showRepositoryView"
+                  icon="img/plugin.png"
+                  id="org.archicontribs.modelrepository.menuitem.showRepositoryView"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showHistoryView"
+                  icon="img/history_view.png"
+                  id="org.arpopup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmenu.validatesitory"
+                  style="push">
+            </command>
          </toolbar>
       </menuContribution>
    </extension>
@@ -300,7 +293,7 @@
       <page
             class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
             id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
-            name="%model_repository">
+            name="%repository">
       </page>
    </extension>
    <extension
