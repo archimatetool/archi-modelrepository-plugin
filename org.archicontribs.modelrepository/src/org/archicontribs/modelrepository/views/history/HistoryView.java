@@ -45,7 +45,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
+// import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
+import org.eclipse.jface.layout.TableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 
@@ -105,7 +106,8 @@ implements IContextProvider, ISelectionListener {
         gd.heightHint = 50;
         tableComp.setLayoutData(gd);
 
-        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        // tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        tableComp.setLayout(new TableColumnLayout());
         
         // Create the Viewer first
         fTableViewer = new HistoryTableViewer(tableComp);
@@ -296,7 +298,7 @@ implements IContextProvider, ISelectionListener {
             getViewer().setInput(selectedRepository);
             
             // Do the table kludge
-            ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
+            // ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
 
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
