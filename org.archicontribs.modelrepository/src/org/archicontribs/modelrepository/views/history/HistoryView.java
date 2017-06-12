@@ -286,9 +286,6 @@ implements IContextProvider, ISelectionListener {
             if(GraficoUtils.isModelInLocalRepository(model)) {
                 selectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
             }
-            else {
-                selectedRepository = null;
-            }
         }
         
         // Update if selectedRepository is different 

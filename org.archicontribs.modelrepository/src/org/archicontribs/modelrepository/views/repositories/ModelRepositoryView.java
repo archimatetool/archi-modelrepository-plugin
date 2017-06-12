@@ -266,13 +266,14 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
 //            manager.add(fActionRefresh);
             manager.add(fActionOpen);
             manager.add(fActionShowInHistory);
-            manager.add(fActionProperties);
+            manager.add(new Separator());
+            manager.add(fActionDelete);
 //            manager.add(fActionCommit);
 //            manager.add(fActionPush);
 //
             manager.add(new Separator());
 
-            manager.add(fActionDelete);
+            manager.add(fActionProperties);
 //            manager.add(fActionAbortChanges);
             
 //            manager.add(new Separator());
