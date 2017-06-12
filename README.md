@@ -1,4 +1,4 @@
-![archi-model-repository](https://cloud.githubusercontent.com/assets/5757396/26359844/d0e6c4d4-3fd6-11e7-988e-e840ccee7c0f.jpg)
+﻿![archi-model-repository](https://user-images.githubusercontent.com/600504/27026905-4e29ff4e-4f57-11e7-84aa-b840aaa2a4b3.png)
 
 # Archi Model Repository Plug-in
 
