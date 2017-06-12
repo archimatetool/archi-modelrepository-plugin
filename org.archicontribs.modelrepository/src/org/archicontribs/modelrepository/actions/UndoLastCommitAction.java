@@ -24,6 +24,11 @@ import com.archimatetool.model.IArchimateModel;
 
 /**
  * Undo the last commit
+ * 1. If the last commit has been pushed then you're outta luck, boy.
+ * 2. Have you saved your goddam stuff!!!???
+ * 3. Export to Grafico
+ * 4. Wait! There's stuff that needs committing. Are you sure? If you proceed, you'll lose your stuff, dude.
+ * 5. Oh, OK then....blat!
  */
 public class UndoLastCommitAction extends AbstractModelAction {
     
@@ -36,33 +41,6 @@ public class UndoLastCommitAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // Offer to save the model if open and dirty
-        // We need to do this to keep grafico and temp files in sync
-        IArchimateModel model = getRepository().locateModel();
-        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            if(!offerToSaveModel(model)) {
-                return;
-            }
-        }
-        
-        // Do the Grafico Export first
-        // TODO: Commented this out because we can end up in a circle of undoing last commit and then needing a commit
-        // exportModelToGraficoFiles(model, getLocalRepositoryFolder());
-        
-        // If there are changes to commit then they'll have to be abandoned
-        try {
-            if(getRepository().hasChangesToCommit()) {
-                MessageDialog.openError(fWindow.getShell(),
-                    Messages.UndoLastCommitAction_0,
-                    Messages.UndoLastCommitAction_2);
-                return;
-            }
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.RevertCommitAction_3, ex);
-            return;
-        }
-
         // Is the last commit unpushed?
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             Ref online = git.getRepository().findRef("origin/master"); //$NON-NLS-1$
@@ -85,22 +63,59 @@ public class UndoLastCommitAction extends AbstractModelAction {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         
-        // Confirm
-        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                Messages.UndoLastCommitAction_0,
-                Messages.UndoLastCommitAction_1);
+        // Offer to save the model if open and dirty
+        // We need to do this to keep grafico and temp files in sync
+        IArchimateModel model = getRepository().locateModel();
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            if(!offerToSaveModel(model)) {
+                return;
+            }
+        }
+        
+        // Do the Grafico Export first
+        exportModelToGraficoFiles();
+        
+        try {
+            // If there are changes to commit then they'll have to be committed first or abandoned
+            if(getRepository().hasChangesToCommit()) {
+                if(!MessageDialog.openConfirm(fWindow.getShell(),
+                        Messages.UndoLastCommitAction_0,
+                        Messages.UndoLastCommitAction_2)) {
+                    return;
+                }
+            }
+            // Else, confirm
+            else {
+                boolean response = MessageDialog.openConfirm(fWindow.getShell(),
+                        Messages.UndoLastCommitAction_0,
+                        Messages.UndoLastCommitAction_1);
 
-        if(!response) {
+                if(!response) {
+                    return;
+                }
+            }
+        }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog(Messages.RevertCommitAction_3, ex);
             return;
         }
         
+        // Do it!
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ResetCommand resetCommand = git.reset();
             resetCommand.setRef("HEAD^"); //$NON-NLS-1$
-            resetCommand.setMode(ResetType.SOFT);
+            resetCommand.setMode(ResetType.HARD); // And do it hard, boy!
             resetCommand.call();
         }
         catch(IOException | GitAPIException ex) {
+            displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
+        }
+        
+        // Reload the model from the Grafico XML files
+        try {
+            loadModelFromGraficoFiles();
+        }
+        catch(IOException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         
