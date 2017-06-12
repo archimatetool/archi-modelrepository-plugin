@@ -62,14 +62,6 @@
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
-            allPopups="false"
-            locationURI="menu:window?after=com.archimatetool.hammer.menuitem.showValidatorView">
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="toolbar:toolbar_views?after=com.archimatetool.hammer.toolbaritem.showValidatorView">
-      </menuContribution>
-      <menuContribution
             allPopups="true"
             locationURI="popup:com.archimatetool.editor.treeModelView?before=start_properties">
          <menu
@@ -183,14 +175,14 @@
                   visible="true">
             </separator>
             <command
-                  commandId="org.archicontribs.modelrepository.command.showHistoryView"
-                  icon="img/history_view.png"
-                  style="push">
-            </command>
-            <command
                   commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                   icon="img/plugin.png"
                   id="org.archicontribs.modelrepository.toolbaritem.showRepositoryView"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showHistoryView"
+                  icon="img/history_view.png"
                   style="push">
             </command>
          </menu>
@@ -236,13 +228,11 @@
             <command
                   commandId="org.archicontribs.modelrepository.command.showRepositoryView"
                   icon="img/plugin.png"
-                  id="org.archicontribs.modelrepository.menuitem.showRepositoryView"
                   style="push">
             </command>
             <command
                   commandId="org.archicontribs.modelrepository.command.showHistoryView"
                   icon="img/history_view.png"
-                  id="org.arpopup:com.archimatetool.editor.treeModelView?after=com.archimatetool.hammer.popupmenu.validatesitory"
                   style="push">
             </command>
          </toolbar>
