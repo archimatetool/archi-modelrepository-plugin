@@ -253,8 +253,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         try {
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE);
-            fProxyUserNameTextField.setText(StringUtils.safeString(sc.getUserName()));
-            fProxyUserPasswordTextField.setText(StringUtils.safeString(sc.getUserPassword()));
+            fProxyUserNameTextField.setText(StringUtils.safeString(sc.getUsername()));
+            fProxyUserPasswordTextField.setText(StringUtils.safeString(sc.getPassword()));
         }
         catch(IOException ex) {
             ex.printStackTrace();

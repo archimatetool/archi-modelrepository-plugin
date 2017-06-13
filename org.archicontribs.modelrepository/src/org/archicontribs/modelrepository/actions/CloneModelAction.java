@@ -22,10 +22,8 @@ import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -81,14 +79,16 @@ public class CloneModelAction extends AbstractModelAction {
         
         setRepository(new ArchiRepository(localRepoFolder));
         
-        class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
-            private IProgressMonitor monitor;
-
+        /**
+         * Wrapper class to handle progress monitor
+         */
+        class CloneProgressHandler extends ProgressHandler {
+            
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                super.run(monitor);
+                
                 try {
-                    this.monitor = monitor;
-                    
                     monitor.beginTask(Messages.CloneModelAction_4, IProgressMonitor.UNKNOWN);
                     
                     // Proxy check
@@ -125,16 +125,6 @@ public class CloneModelAction extends AbstractModelAction {
                     monitor.done();
                 }
             }
-
-            @Override
-            public void beginTask(String title, int totalWork) {
-                monitor.subTask(title);
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return monitor.isCanceled();
-            }
         }
         
         Display.getCurrent().asyncExec(new Runnable() {
@@ -142,7 +132,7 @@ public class CloneModelAction extends AbstractModelAction {
             public void run() {
                 try {
                     ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, new Progress());
+                    pmDialog.run(false, true, new CloneProgressHandler());
                 }
                 catch(InvocationTargetException | InterruptedException ex) {
                     ex.printStackTrace();

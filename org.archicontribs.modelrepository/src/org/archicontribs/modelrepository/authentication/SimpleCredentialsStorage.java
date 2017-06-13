@@ -15,12 +15,6 @@ import java.io.Writer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.widgets.Shell;
-
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -30,41 +24,6 @@ import sun.misc.BASE64Encoder;
  * @author Phillip Beauvoir
  */
 public class SimpleCredentialsStorage {
-    
-    public static String[] getUserNameAndPasswordFromCredentialsFileOrDialog(File folder, String storageFileName, Shell shell) throws IOException {
-        String userName = null;
-        String userPassword = null;
-        
-        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(folder, storageFileName);
-        
-        if(sc.hasCredentialsFile()) {
-            userName = sc.getUserName();
-            userPassword = sc.getUserPassword();
-        }
-        // Ask user
-        else {
-            UserNamePasswordDialog dialog = new UserNamePasswordDialog(shell);
-            if(dialog.open() != Window.OK) {
-                return null;
-            }
-            
-            userName = dialog.getUsername();
-            userPassword = dialog.getPassword();
-            
-            // Store credentials if option is set
-            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                try {
-                    sc.store(userName, userPassword);
-                }
-                catch(NoSuchAlgorithmException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        return new String[] { userName, userPassword };
-    }
-
     
     private File fFolder;
     private String fStorageFileName;
@@ -81,27 +40,27 @@ public class SimpleCredentialsStorage {
         out.close();
     }
     
-    public String getUserName() throws IOException {
+    public String getUsername() throws IOException {
         if(!hasCredentialsFile()) {
             return null;
         }
         
-        BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()));
-        String str = in.readLine();
-        in.close();
-        return decrypt(str);
+        try(BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()))) {
+            String str = in.readLine();
+            return decrypt(str);
+        }
     }
     
-    public String getUserPassword() throws IOException {
+    public String getPassword() throws IOException {
         if(!hasCredentialsFile()) {
             return null;
         }
         
-        BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()));
-        in.readLine();
-        String str = in.readLine();
-        in.close();
-        return decrypt(str);
+        try(BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()))) {
+            in.readLine();
+            String str = in.readLine();
+            return decrypt(str);
+        }
     }
     
     public boolean hasCredentialsFile() {

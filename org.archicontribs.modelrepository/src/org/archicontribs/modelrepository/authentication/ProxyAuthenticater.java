@@ -59,11 +59,11 @@ public class ProxyAuthenticater {
         if(useAuthentication) {
             System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
             
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE);
             
-            final String userName = sc.getUserName();
-            final String password = sc.getUserPassword();
+            final String userName = sc.getUsername();
+            final String password = sc.getPassword();
             
             if(!StringUtils.isSet(userName) || !StringUtils.isSet(password)) {
                 return;

@@ -7,9 +7,13 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
+import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -22,6 +26,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -187,6 +192,48 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
         
         return false;
+    }
+    
+    /**
+     * Get user name and password from credentials file if prefs set or from dialog
+     * @param storageFileName
+     * @param shell
+     * @return
+     */
+    protected UsernamePassword getUserNameAndPasswordFromCredentialsFileOrDialog(String storageFileName, Shell shell) {
+        boolean doStoreInCredentialsFile = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS);
+        
+        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(getRepository().getLocalGitFolder(), storageFileName);
+
+        // Is it stored?
+        if(doStoreInCredentialsFile && sc.hasCredentialsFile()) {
+            try {
+                return new UsernamePassword(sc.getUsername(), sc.getPassword());
+            }
+            catch(IOException ex) {
+                displayErrorDialog(Messages.AbstractModelAction_9, ex);
+            }
+        }
+        
+        // Else ask the user
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(shell);
+        if(dialog.open() != Window.OK) {
+            return null;
+        }
+
+        UsernamePassword up = new UsernamePassword(dialog.getUsername(), dialog.getPassword());
+
+        // Store credentials if option is set
+        if(doStoreInCredentialsFile) {
+            try {
+                sc.store(up.getUsername(), up.getPassword());
+            }
+            catch(NoSuchAlgorithmException | IOException ex) {
+                displayErrorDialog(Messages.AbstractModelAction_10, ex);
+            }
+        }
+
+        return up;
     }
     
     /**

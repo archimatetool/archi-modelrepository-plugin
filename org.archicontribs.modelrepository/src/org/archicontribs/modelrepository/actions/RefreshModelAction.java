@@ -10,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -18,10 +18,8 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.EmptyProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -85,38 +83,29 @@ public class RefreshModelAction extends AbstractModelAction {
             return;
         }
         
-        // Get Credentials
-        String credentials[] = null;
-        try {
-            credentials = SimpleCredentialsStorage.getUserNameAndPasswordFromCredentialsFileOrDialog(getRepository().getLocalGitFolder(), 
-                    IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_4, ex);
-            return;
-        }
-        if(credentials == null) {
+        // Get User Credentials first
+        final UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
+        if(up == null) {
             return;
         }
         
-        final String userName = credentials[0];
-        final String userPassword = credentials[1];
-        
-        class Progress extends EmptyProgressMonitor implements IRunnableWithProgress {
-            private IProgressMonitor monitor;
+        /**
+         * Wrapper class to handle progress monitor
+         */
+        class RefreshProgressHandler extends ProgressHandler {
 
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                super.run(monitor);
+                
                 try {
-                    this.monitor = monitor;
-                    
                     monitor.beginTask(Messages.RefreshModelAction_6, IProgressMonitor.UNKNOWN);
                     
                     // Proxy
                     ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
                     
                     // First we need to Pull and check for conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, this);
+                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
                     
                     monitor.done();
                     
@@ -164,30 +153,19 @@ public class RefreshModelAction extends AbstractModelAction {
                     monitor.done();
                 }
             }
-
-            @Override
-            public void beginTask(String title, int totalWork) {
-                monitor.subTask(title);
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return monitor.isCanceled();
-            }
         }
-        
+
         Display.getCurrent().asyncExec(new Runnable() {
             @Override
             public void run() {
                 try {
                     ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, new Progress());
+                    pmDialog.run(false, true, new RefreshProgressHandler());
                 }
                 catch(InvocationTargetException | InterruptedException ex) {
                     ex.printStackTrace();
                 }
             }
         });
-        
     }
 }
