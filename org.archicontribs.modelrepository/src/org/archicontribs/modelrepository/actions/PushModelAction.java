@@ -14,6 +14,7 @@ import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -137,6 +138,8 @@ public class PushModelAction extends AbstractModelAction {
                         // Push
                         GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
                     }
+                    
+                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
                 catch(IOException | GitAPIException ex) {
                     displayErrorDialog(Messages.PushModelAction_0, ex);
