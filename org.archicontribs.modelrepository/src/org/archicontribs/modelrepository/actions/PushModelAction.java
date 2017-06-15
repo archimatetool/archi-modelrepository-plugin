@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -107,6 +108,7 @@ public class PushModelAction extends AbstractModelAction {
                     if(!pullResult.isSuccessful()) {
                         monitor.done();
                         
+                        // Start a new thread because of dialog blocking
                         Display.getCurrent().asyncExec(new Runnable() {
                             @Override
                             public void run() {
@@ -114,8 +116,10 @@ public class PushModelAction extends AbstractModelAction {
                                     MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(),
                                             fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
+                                    
                                     if(result) {
                                         handler.mergeAndCommit(Messages.PushModelAction_8);
+                                        
                                         // We should return now and ask the user to try again, in case there have been more changes since this
                                         MessageDialog.openInformation(fWindow.getShell(),
                                                 Messages.PushModelAction_0,
@@ -124,6 +128,11 @@ public class PushModelAction extends AbstractModelAction {
                                     else {
                                         // User cancelled - do nothing (I think!)
                                     }
+
+                                    // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
+                                    loadModelFromGraficoFiles();
+
+                                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                                 }
                                 catch(IOException | GitAPIException ex) {
                                     displayErrorDialog(Messages.PushModelAction_0, ex);
@@ -134,11 +143,16 @@ public class PushModelAction extends AbstractModelAction {
                     else {
                         monitor.beginTask(Messages.PushModelAction_7, IProgressMonitor.UNKNOWN);
                         
+                        // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
+                        if(pullResult.getMergeResult().getMergeStatus() != MergeStatus.ALREADY_UP_TO_DATE) {
+                            loadModelFromGraficoFiles();
+                        }
+                        
                         // Push
                         GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+
+                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                     }
-                    
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
                 catch(IOException | GitAPIException ex) {
                     displayErrorDialog(Messages.PushModelAction_0, ex);
