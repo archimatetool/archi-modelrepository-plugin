@@ -120,6 +120,8 @@ public class PushModelAction extends AbstractModelAction {
                                         MessageDialog.openInformation(fWindow.getShell(),
                                                 Messages.PushModelAction_0,
                                                 Messages.PushModelAction_6);
+                                        // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
+                                        loadModelFromGraficoFiles();
                                     }
                                     else {
                                         // User cancelled - do nothing (I think!)
@@ -137,6 +139,9 @@ public class PushModelAction extends AbstractModelAction {
                         // Push
                         GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
                     }
+                    
+                    // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
+                    loadModelFromGraficoFiles();
                     
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
