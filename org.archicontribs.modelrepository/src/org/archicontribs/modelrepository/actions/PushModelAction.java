@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -143,7 +144,9 @@ public class PushModelAction extends AbstractModelAction {
                         monitor.beginTask(Messages.PushModelAction_7, IProgressMonitor.UNKNOWN);
                         
                         // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
-                        loadModelFromGraficoFiles();
+                        if(pullResult.getMergeResult().getMergeStatus() != MergeStatus.ALREADY_UP_TO_DATE) {
+                            loadModelFromGraficoFiles();
+                        }
                         
                         // Push
                         GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
