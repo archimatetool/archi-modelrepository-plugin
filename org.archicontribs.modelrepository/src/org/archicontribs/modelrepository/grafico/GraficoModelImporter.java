@@ -14,15 +14,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
@@ -56,9 +52,9 @@ public class GraficoModelImporter implements IGraficoConstants {
     private Map<String, IIdentifier> fIDLookup;
     
     /**
-     * Any Errors to display
+     * Resolution Handler
      */
-    private MultiStatus fResolveErrors;
+    private GraficoResolutionHandler fResolutionHandler;
     
     /**
      * Resource Set
@@ -101,7 +97,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(model);
     	
     	// Resolve proxies
-    	fResolveErrors = null;
+    	fResolutionHandler = null;
     	resolveProxies(model);
 
     	// Load images
@@ -111,10 +107,10 @@ public class GraficoModelImporter implements IGraficoConstants {
     }
     
     /**
-     * @return The Error Resolve status if any, can be null.
+     * @return The Resolution Handler if any, can be null.
      */
-    public MultiStatus getResolveStatus() {
-        return fResolveErrors;
+    public GraficoResolutionHandler getResolutionHandler() {
+        return fResolutionHandler;
     }
     
     /**
@@ -140,64 +136,61 @@ public class GraficoModelImporter implements IGraficoConstants {
     }    
    
     /**
-     * Look for all eObject, and resolve proxies on known classes
-     * 
-     * @param object
+     * Iterate through all model objects, and resolve proxies on known classes
      */
-    private void resolveProxies(EObject object) {
-        for(Iterator<EObject> iter = object.eAllContents(); iter.hasNext();) {
+    private void resolveProxies(IArchimateModel model) {
+        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
 
             if(eObject instanceof IArchimateRelationship) {
                 // Resolve proxies for Relations
                 IArchimateRelationship relation = (IArchimateRelationship)eObject;
-                relation.setSource((IArchimateConcept)resolve(relation.getSource(), relation));
-                relation.setTarget((IArchimateConcept)resolve(relation.getTarget(), relation));
+                relation.setSource((IArchimateConcept)resolve(model, relation.getSource(), relation));
+                relation.setTarget((IArchimateConcept)resolve(model, relation.getTarget(), relation));
             }
             else if(eObject instanceof IDiagramModelArchimateObject) {
                 // Resolve proxies for Elements
                 IDiagramModelArchimateObject element = (IDiagramModelArchimateObject)eObject;
-                element.setArchimateElement((IArchimateElement)resolve(element.getArchimateElement(), element));
+                element.setArchimateElement((IArchimateElement)resolve(model, element.getArchimateElement(), element));
                 // Update cross-references
                 element.getArchimateElement().getReferencingDiagramObjects().add(element);
             }
             else if(eObject instanceof IDiagramModelArchimateConnection) {
                 // Resolve proxies for Connections
                 IDiagramModelArchimateConnection archiConnection = (IDiagramModelArchimateConnection)eObject;
-                archiConnection.setArchimateRelationship((IArchimateRelationship)resolve(archiConnection.getArchimateRelationship(), archiConnection));
+                archiConnection.setArchimateRelationship((IArchimateRelationship)resolve(model, archiConnection.getArchimateRelationship(), archiConnection));
                 // Update cross-reference
                 archiConnection.getArchimateRelationship().getReferencingDiagramConnections().add(archiConnection);
             }
             else if(eObject instanceof IDiagramModelReference) {
                 // Resolve proxies for Model References
                 IDiagramModelReference element = (IDiagramModelReference)eObject;
-                element.setReferencedModel((IDiagramModel)resolve(element.getReferencedModel(), element));
+                element.setReferencedModel((IDiagramModel)resolve(model, element.getReferencedModel(), element));
             }
         }
     }
 
     /**
      * Check if 'object' is a proxy. if yes, replace it with real object from mapping table.
-     *  
-     * @param object
-     * @return
      */
-    private EObject resolve(IIdentifier object, IIdentifier parent) {
+    private EObject resolve(IArchimateModel model, IIdentifier object, IIdentifier parent) {
         if(object != null && object.eIsProxy()) {
-            IIdentifier newObject = fIDLookup.get(((InternalEObject)object).eProxyURI().fragment());
-            // Log errors if proxy has not been resolved
+            String objectURIFragment = EcoreUtil.getURI(object).fragment();
+            
+            // Get proxy object
+            IIdentifier newObject = fIDLookup.get(objectURIFragment);
+            
+            // If proxy has not been resolved
             if(newObject == null) {
-                String message = String.format(Messages.GraficoModelImporter_0,
-                        ((InternalEObject)object).eProxyURI().fragment(), parent.getClass().getSimpleName(), parent.getId());
-                System.err.println(message);
-                
-                // Create resolveError the first time
-                if(fResolveErrors == null) {
-                    fResolveErrors = new MultiStatus(ModelRepositoryPlugin.PLUGIN_ID, IStatus.ERROR, "Missing concept(s)", null); //$NON-NLS-1$
+                // Create resolution handler the first time
+                if(fResolutionHandler == null) {
+                    fResolutionHandler = new GraficoResolutionHandler(model);
                 }
-                // Add an error to the list
-                fResolveErrors.add(new Status(IStatus.ERROR, ModelRepositoryPlugin.PLUGIN_ID, message)); // $NON-NLS-1$
+                
+                // Add a resolve problem to the handler
+                fResolutionHandler.addResolveProblem(object, parent);
             }
+            
             return newObject == null ? object : newObject;
         }
         else {

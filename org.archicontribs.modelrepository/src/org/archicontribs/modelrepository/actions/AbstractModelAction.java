@@ -21,7 +21,6 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -111,22 +110,24 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(getRepository().getLocalRepositoryFolder());
         
         if(graficoModel != null) {
-            File tmpFile = fRepository.getTempModelFile();
-            graficoModel.setFile(tmpFile);
-            
-            // Errors
-            if(importer.getResolveStatus() != null) {
-                ErrorDialog.openError(fWindow.getShell(),
-                        Messages.AbstractModelAction_3,
-                        Messages.AbstractModelAction_4,
-                        importer.getResolveStatus());
-
-            }
-            
             // Close the real model if it is already open
             IArchimateModel model = fRepository.locateModel();
             if(model != null) {
                 IEditorModelManager.INSTANCE.closeModel(model);
+            }
+            
+            // Set file name
+            File tmpFile = fRepository.getTempModelFile();
+            graficoModel.setFile(tmpFile);
+            
+            // Resolution Errors occured
+            if(importer.getResolutionHandler() != null) {
+                // Delete problem objects
+                importer.getResolutionHandler().deleteProblemObjects();
+                
+                // And re-export to grafico
+                GraficoModelExporter exporter = new GraficoModelExporter();
+                exporter.exportModelToLocalGitRepository(graficoModel, getRepository().getLocalRepositoryFolder());
             }
             
             // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager

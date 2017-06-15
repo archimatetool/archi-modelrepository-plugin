@@ -86,7 +86,7 @@ public class MergeConflictHandler {
         return message;
     }
     
-    public void mergeAndCommit(String commitMessage) throws IOException, GitAPIException {
+    public void merge() throws IOException, GitAPIException {
         try(Git git = Git.open(fLocalGitFolder)) {
             if(fOurs != null && !fOurs.isEmpty()) {
                 checkout(git, Stage.OURS, fOurs);
@@ -94,7 +94,13 @@ public class MergeConflictHandler {
             if(fTheirs != null  && !fTheirs.isEmpty()) {
                 checkout(git, Stage.THEIRS, fTheirs);
             }
-            
+        }
+    }
+    
+    public void mergeAndCommit(String commitMessage) throws IOException, GitAPIException {
+        merge();
+        
+        try(Git git = Git.open(fLocalGitFolder)) {
             // Add to index all files
             AddCommand addCommand = git.add();
             addCommand.addFilepattern("."); //$NON-NLS-1$
