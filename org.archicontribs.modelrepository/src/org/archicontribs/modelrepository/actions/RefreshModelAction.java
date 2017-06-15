@@ -13,7 +13,6 @@ import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -84,7 +83,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         
         // Get User Credentials first
-        final UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(IGraficoConstants.REPO_CREDENTIALS_FILE, fWindow.getShell());
+        final UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
         if(up == null) {
             return;
         }

@@ -5,6 +5,7 @@
  */
 package org.archicontribs.modelrepository.authentication;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.InetAddress;
@@ -59,8 +60,8 @@ public class ProxyAuthenticater {
         if(useAuthentication) {
             System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
             
-            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE);
+            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
             
             final String userName = sc.getUsername();
             final String password = sc.getPassword();

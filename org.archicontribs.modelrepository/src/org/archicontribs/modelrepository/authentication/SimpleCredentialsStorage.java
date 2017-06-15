@@ -25,12 +25,10 @@ import sun.misc.BASE64Encoder;
  */
 public class SimpleCredentialsStorage {
     
-    private File fFolder;
-    private String fStorageFileName;
+    private File fStorageFile;
     
-    public SimpleCredentialsStorage(File folder, String storageFileName) {
-        fFolder = folder;
-        fStorageFileName = storageFileName;
+    public SimpleCredentialsStorage(File storageFile) {
+        fStorageFile = storageFile;
     }
 
     public void store(String userName, String password) throws IOException, NoSuchAlgorithmException {
@@ -67,6 +65,10 @@ public class SimpleCredentialsStorage {
         return getCredentialsFile().exists();
     }
     
+    public boolean deleteCredentialsFile() {
+        return getCredentialsFile().delete();
+    }
+    
     private String encrypt(String str) throws NoSuchAlgorithmException {
         BASE64Encoder encoder = new BASE64Encoder();
         return encoder.encode(generateSalt()) + encoder.encode(str.getBytes());
@@ -83,7 +85,7 @@ public class SimpleCredentialsStorage {
     }
     
     private File getCredentialsFile() {
-        return new File(fFolder, fStorageFileName);
+        return fStorageFile;
     }
     
     private byte[] generateSalt() throws NoSuchAlgorithmException {

@@ -5,11 +5,14 @@
  */
 package org.archicontribs.modelrepository.dialogs;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -30,6 +33,8 @@ public class CloneInputDialog extends TitleAreaDialog {
     private Text txtUsername;
     private Text txtPassword;
 
+    private Button storeCredentialsButton;
+    
     private String URL;
     private String username;
     private String password;
@@ -60,6 +65,8 @@ public class CloneInputDialog extends TitleAreaDialog {
         txtUsername = createTextField(container, Messages.CloneInputDialog_3, SWT.NONE);
         txtPassword = createTextField(container, Messages.CloneInputDialog_4, SWT.PASSWORD);
         
+        createPreferenceButton(container);
+        
         return area;
     }
     
@@ -73,6 +80,15 @@ public class CloneInputDialog extends TitleAreaDialog {
         return txt;
     }
 
+    private void createPreferenceButton(Composite container) {
+        storeCredentialsButton = new Button(container, SWT.CHECK);
+        storeCredentialsButton.setText(Messages.UserNamePasswordDialog_4);
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 2;
+        storeCredentialsButton.setLayoutData(gd);
+        storeCredentialsButton.setSelection(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS));
+    }
+
     @Override
     protected boolean isResizable() {
         return true;
@@ -84,6 +100,8 @@ public class CloneInputDialog extends TitleAreaDialog {
         username = txtUsername.getText().trim();
         password = txtPassword.getText().trim();
         URL = txtURL.getText().trim();
+        
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS, storeCredentialsButton.getSelection());
     }
 
     @Override

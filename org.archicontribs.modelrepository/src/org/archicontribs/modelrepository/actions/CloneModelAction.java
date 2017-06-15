@@ -114,8 +114,8 @@ public class CloneModelAction extends AbstractModelAction {
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE);
-                        sc.store(userName, userPassword);
+                        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                        scs.store(userName, userPassword);
                     }
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException ex) {

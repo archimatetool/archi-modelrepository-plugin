@@ -251,8 +251,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fRequiresProxyAuthenticationButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_REQUIRES_AUTHENTICATION));
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE);
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
             fProxyUserNameTextField.setText(StringUtils.safeString(sc.getUsername()));
             fProxyUserPasswordTextField.setText(StringUtils.safeString(sc.getPassword()));
         }
@@ -276,8 +276,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE);
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
             sc.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
         }
         catch(NoSuchAlgorithmException | IOException ex) {
