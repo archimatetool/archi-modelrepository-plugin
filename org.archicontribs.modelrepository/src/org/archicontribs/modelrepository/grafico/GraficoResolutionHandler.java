@@ -63,6 +63,10 @@ public class GraficoResolutionHandler {
         }
     }
     
+    public boolean hasProblems() {
+        return !fProblems.isEmpty();
+    }
+    
     /**
      * @return A list of error messages
      */

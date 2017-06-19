@@ -60,22 +60,38 @@ public class GraficoModelImporter implements IGraficoConstants {
      * Resource Set
      */
     private ResourceSet fResourceSet;
+    
+    /**
+     * Model
+     */
+    private IArchimateModel fModel;
+    
+    /**
+     * Local repo folder
+     */
+    private File fLocalRepoFolder;
+    
+    /**
+     * @param folder The folder containing the grafico XML files
+     */
+    public GraficoModelImporter(File folder) {
+        if(folder == null) {
+            throw new IllegalArgumentException("Folder cannot be null"); //$NON-NLS-1$
+        }
+        
+        fLocalRepoFolder = folder;
+    }
 	
     /**
-     * @param gitRepoFolder
-     * @return The model
+     * Import the grafico XML files as a IArchimateModel
      * @throws IOException
      */
-    public IArchimateModel importLocalGitRepositoryAsModel(File gitRepoFolder) throws IOException {
-    	if(gitRepoFolder == null) {
-            throw new IOException("Folder was null"); //$NON-NLS-1$
-        }
-    	
+    public IArchimateModel importAsModel() throws IOException {
     	// Create folders for model and images
-    	File modelFolder = new File(gitRepoFolder, MODEL_FOLDER);
+    	File modelFolder = new File(fLocalRepoFolder, MODEL_FOLDER);
         modelFolder.mkdirs();
 
-        File imagesFolder = new File(gitRepoFolder, IMAGES_FOLDER);
+        File imagesFolder = new File(fLocalRepoFolder, IMAGES_FOLDER);
     	imagesFolder.mkdirs();
     	
     	// If the top folder.xml does not exist then there is nothing to import, so return null
@@ -91,25 +107,28 @@ public class GraficoModelImporter implements IGraficoConstants {
     	fIDLookup = new HashMap<String, IIdentifier>();
     	
         // Load the Model from files (it will contain unresolved proxies)
-    	IArchimateModel model = loadModel(modelFolder);
+    	fModel = loadModel(modelFolder);
     	
     	// Remove model from its resource (needed to save it back to a .archimate file)
-    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(model);
+    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
     	
     	// Resolve proxies
     	fResolutionHandler = null;
-    	resolveProxies(model);
+    	resolveProxies();
 
     	// Load images
-    	loadImages(model, imagesFolder);
+    	loadImages(imagesFolder);
 
-    	return model;
+    	return fModel;
     }
     
     /**
      * @return The Resolution Handler if any, can be null.
      */
     public GraficoResolutionHandler getResolutionHandler() {
+        if(fResolutionHandler == null) {
+            fResolutionHandler = new GraficoResolutionHandler(fModel);
+        }
         return fResolutionHandler;
     }
     
@@ -120,8 +139,8 @@ public class GraficoModelImporter implements IGraficoConstants {
      * @param folder
      * @throws IOException
      */
-    private void loadImages(IArchimateModel model, File folder) throws IOException {
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(model);
+    private void loadImages(File folder) throws IOException {
+        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         byte[] bytes;
 
         // Add all images files
@@ -138,34 +157,34 @@ public class GraficoModelImporter implements IGraficoConstants {
     /**
      * Iterate through all model objects, and resolve proxies on known classes
      */
-    private void resolveProxies(IArchimateModel model) {
-        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
+    private void resolveProxies() {
+        for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
 
             if(eObject instanceof IArchimateRelationship) {
                 // Resolve proxies for Relations
                 IArchimateRelationship relation = (IArchimateRelationship)eObject;
-                relation.setSource((IArchimateConcept)resolve(model, relation.getSource(), relation));
-                relation.setTarget((IArchimateConcept)resolve(model, relation.getTarget(), relation));
+                relation.setSource((IArchimateConcept)resolve(relation.getSource(), relation));
+                relation.setTarget((IArchimateConcept)resolve(relation.getTarget(), relation));
             }
             else if(eObject instanceof IDiagramModelArchimateObject) {
                 // Resolve proxies for Elements
                 IDiagramModelArchimateObject element = (IDiagramModelArchimateObject)eObject;
-                element.setArchimateElement((IArchimateElement)resolve(model, element.getArchimateElement(), element));
+                element.setArchimateElement((IArchimateElement)resolve(element.getArchimateElement(), element));
                 // Update cross-references
                 element.getArchimateElement().getReferencingDiagramObjects().add(element);
             }
             else if(eObject instanceof IDiagramModelArchimateConnection) {
                 // Resolve proxies for Connections
                 IDiagramModelArchimateConnection archiConnection = (IDiagramModelArchimateConnection)eObject;
-                archiConnection.setArchimateRelationship((IArchimateRelationship)resolve(model, archiConnection.getArchimateRelationship(), archiConnection));
+                archiConnection.setArchimateRelationship((IArchimateRelationship)resolve(archiConnection.getArchimateRelationship(), archiConnection));
                 // Update cross-reference
                 archiConnection.getArchimateRelationship().getReferencingDiagramConnections().add(archiConnection);
             }
             else if(eObject instanceof IDiagramModelReference) {
                 // Resolve proxies for Model References
                 IDiagramModelReference element = (IDiagramModelReference)eObject;
-                element.setReferencedModel((IDiagramModel)resolve(model, element.getReferencedModel(), element));
+                element.setReferencedModel((IDiagramModel)resolve(element.getReferencedModel(), element));
             }
         }
     }
@@ -173,7 +192,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     /**
      * Check if 'object' is a proxy. if yes, replace it with real object from mapping table.
      */
-    private EObject resolve(IArchimateModel model, IIdentifier object, IIdentifier parent) {
+    private EObject resolve(IIdentifier object, IIdentifier parent) {
         if(object != null && object.eIsProxy()) {
             String objectURIFragment = EcoreUtil.getURI(object).fragment();
             
@@ -182,13 +201,8 @@ public class GraficoModelImporter implements IGraficoConstants {
             
             // If proxy has not been resolved
             if(newObject == null) {
-                // Create resolution handler the first time
-                if(fResolutionHandler == null) {
-                    fResolutionHandler = new GraficoResolutionHandler(model);
-                }
-                
                 // Add a resolve problem to the handler
-                fResolutionHandler.addResolveProblem(object, parent);
+                getResolutionHandler().addResolveProblem(object, parent);
             }
             
             return newObject == null ? object : newObject;

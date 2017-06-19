@@ -45,26 +45,54 @@ import com.archimatetool.model.IIdentifier;
  */
 public class GraficoModelExporter implements IGraficoConstants {
 	
-	// This ResourceSet will be recreated for each model export
-	ResourceSet fResourceSet;
+	/**
+	 * ResourceSet
+	 */
+	private ResourceSet fResourceSet;
 	
-    public void exportModelToLocalGitRepository(IArchimateModel model, File gitRepoFolder) throws IOException {
-        if(gitRepoFolder == null) {
-            throw new IOException("Folder was null"); //$NON-NLS-1$
+    /**
+     * Model
+     */
+    private IArchimateModel fModel;
+    
+    /**
+     * Local repo folder
+     */
+    private File fLocalRepoFolder;
+	
+	/**
+	 * @param model The model to export
+	 * @param folder The root folder in which to write the grafico XML files
+	 */
+	public GraficoModelExporter(IArchimateModel model, File folder) {
+	    if(model == null) {
+            throw new IllegalArgumentException("Model cannot be null"); //$NON-NLS-1$
         }
-
+	    if(folder == null) {
+            throw new IllegalArgumentException("Folder cannot be null"); //$NON-NLS-1$
+        }
+	    
+	    fModel = model;
+	    fLocalRepoFolder = folder;
+	}
+	
+    /**
+     * Export the IArchimateModel as Grafico files
+     * @throws IOException
+     */
+    public void exportModel() throws IOException {
         // Define target folders for model and images
         // Delete them and re-create them (remark: FileUtils.deleteFolder() does sanity checks)
-        File modelFolder = new File(gitRepoFolder, MODEL_FOLDER);
+        File modelFolder = new File(fLocalRepoFolder, MODEL_FOLDER);
         FileUtils.deleteFolder(modelFolder);
         modelFolder.mkdirs();
 
-        File imagesFolder = new File(gitRepoFolder, IMAGES_FOLDER);
+        File imagesFolder = new File(fLocalRepoFolder, IMAGES_FOLDER);
         FileUtils.deleteFolder(imagesFolder);
         imagesFolder.mkdirs();
 
         // Save model images (if any): this has to be done on original model (not a copy)
-        saveImages(model, gitRepoFolder);
+        saveImages();
         
         // Create ResourceSet
         fResourceSet = new ResourceSetImpl();
@@ -73,7 +101,7 @@ public class GraficoModelExporter implements IGraficoConstants {
         fResourceSet.setURIConverter(new ExtensibleURIConverterImpl());
 
         // Now work on a copy
-        IArchimateModel copy = EcoreUtil.copy(model);
+        IArchimateModel copy = EcoreUtil.copy(fModel);
         
         // Create directory structure and prepare all Resources
         createAndSaveResourceForFolder(copy, modelFolder);
@@ -167,20 +195,20 @@ public class GraficoModelExporter implements IGraficoConstants {
      * @param folder
      * @throws IOException
      */
-    private void saveImages(IArchimateModel model, File folder) throws IOException {
+    private void saveImages() throws IOException {
         List<String> added = new ArrayList<String>();
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(model);
+        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         
         byte[] bytes;
 
-        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
+        for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
             if(eObject instanceof IDiagramModelImageProvider) {
                 IDiagramModelImageProvider imageProvider = (IDiagramModelImageProvider)eObject;
                 String imagePath = imageProvider.getImagePath();
                 if(imagePath != null && !added.contains(imagePath)) {
                     bytes = archiveManager.getBytesFromEntry(imagePath);
-                    Files.write(Paths.get(folder.getAbsolutePath() + File.separator + imagePath), bytes, StandardOpenOption.CREATE);
+                    Files.write(Paths.get(fLocalRepoFolder.getAbsolutePath() + File.separator + imagePath), bytes, StandardOpenOption.CREATE);
                     added.add(imagePath);
                 }
             }
