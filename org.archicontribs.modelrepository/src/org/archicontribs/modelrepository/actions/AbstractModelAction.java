@@ -15,7 +15,6 @@ import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
-import org.archicontribs.modelrepository.grafico.GraficoResolutionHandler;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -121,11 +120,10 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             File tmpFile = fRepository.getTempModelFile();
             graficoModel.setFile(tmpFile);
             
-            // Resolution Problems occured
-            GraficoResolutionHandler resolutionHandler = importer.getResolutionHandler();
-            if(resolutionHandler.hasProblems()) {
+            // Import problems occured
+            if(importer.hasProblems()) {
                 // Delete problem objects
-                resolutionHandler.deleteProblemObjects();
+                importer.deleteProblemObjects();
                 
                 // And re-export to grafico xml files
                 GraficoModelExporter exporter = new GraficoModelExporter(graficoModel, getRepository().getLocalRepositoryFolder());

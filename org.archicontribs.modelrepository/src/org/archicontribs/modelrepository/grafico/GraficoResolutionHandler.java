@@ -17,11 +17,11 @@ import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
- * Contains information to Resolve Issues
+ * Internal Helper class to Resolve Issues on Grafico Import
  * 
  * @author Phillip Beauvoir
  */
-public class GraficoResolutionHandler {
+class GraficoResolutionHandler {
 
     private static class ProblemPair {
         IIdentifier object;
@@ -37,7 +37,7 @@ public class GraficoResolutionHandler {
     
     private List<ProblemPair> fProblems;
     
-    public GraficoResolutionHandler(IArchimateModel model) {
+    GraficoResolutionHandler(IArchimateModel model) {
         fModel = model;
         fProblems = new ArrayList<ProblemPair>();
     }
@@ -47,11 +47,11 @@ public class GraficoResolutionHandler {
      * @param object
      * @param parent
      */
-    public void addResolveProblem(IIdentifier object, IIdentifier parent) {
+    void addResolveProblem(IIdentifier object, IIdentifier parent) {
         fProblems.add(new ProblemPair(object, parent));
     }
     
-    public void deleteProblemObjects() {
+    void deleteProblemObjects() {
         for(ProblemPair problemPair : fProblems) {
             //String objectID = EcoreUtil.getURI(problemPair.object).fragment();
             String parentID = problemPair.parent.getId();
@@ -63,14 +63,14 @@ public class GraficoResolutionHandler {
         }
     }
     
-    public boolean hasProblems() {
+    boolean hasProblems() {
         return !fProblems.isEmpty();
     }
     
     /**
      * @return A list of error messages
      */
-    public List<String> getErrorMessages() {
+    List<String> getErrorMessages() {
         List<String> messages = new ArrayList<String>();
         
         for(ProblemPair problemPair : fProblems) {

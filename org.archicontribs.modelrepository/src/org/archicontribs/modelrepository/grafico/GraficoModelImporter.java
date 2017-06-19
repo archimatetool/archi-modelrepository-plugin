@@ -123,9 +123,20 @@ public class GraficoModelImporter implements IGraficoConstants {
     }
     
     /**
+     * @return True if there are problems on import
+     */
+    public boolean hasProblems() {
+        return getResolutionHandler().hasProblems();
+    }
+
+    public void deleteProblemObjects() {
+        getResolutionHandler().deleteProblemObjects();
+    }
+    
+    /**
      * @return The Resolution Handler if any, can be null.
      */
-    public GraficoResolutionHandler getResolutionHandler() {
+    private GraficoResolutionHandler getResolutionHandler() {
         if(fResolutionHandler == null) {
             fResolutionHandler = new GraficoResolutionHandler(fModel);
         }
