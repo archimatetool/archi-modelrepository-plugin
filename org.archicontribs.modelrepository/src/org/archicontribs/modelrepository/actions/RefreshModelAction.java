@@ -9,16 +9,19 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -111,17 +114,17 @@ public class RefreshModelAction extends AbstractModelAction {
                     Display.getCurrent().asyncExec(new Runnable() {
                         @Override
                         public void run() {
-                            // Conflict merger
+                            // Merge failure
                             if(!pullResult.isSuccessful()) {
                                 try {
+                                    // Try to handle the merge conflict
                                     MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
-                                        handler.mergeAndCommit(Messages.RefreshModelAction_7);
-                                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                                        handler.merge();
                                     }
+                                    // User cancelled - we assume they committed all changes so we can reset
                                     else {
-                                        // User cancelled - we assume user has committed all changes so we can reset
                                         handler.resetToLocalState();
                                         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                                         return;
@@ -131,9 +134,6 @@ public class RefreshModelAction extends AbstractModelAction {
                                     displayErrorDialog(Messages.RefreshModelAction_0, ex);
                                 }
                             }
-                            else {
-                                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                            }
                             
                             // Reload the model from the Grafico XML files
                             try {
@@ -142,6 +142,21 @@ public class RefreshModelAction extends AbstractModelAction {
                             catch(IOException ex) {
                                 displayErrorDialog(Messages.RefreshModelAction_0, ex);
                             }
+                            
+                            // Do a commit if needed
+                            try {
+                                if(getRepository().hasChangesToCommit()) {
+                                    String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
+                                    String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
+                                    GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), new PersonIdent(userName, userEmail), Messages.RefreshModelAction_2);
+                                }
+                            }
+                            catch(IOException | GitAPIException ex) {
+                                displayErrorDialog(Messages.RefreshModelAction_3, ex);
+                                return;
+                            }
+                            
+                            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                         }
                     });
                 }

@@ -73,8 +73,8 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
         
         // Open the model with no file name
         try {
-            GraficoModelImporter importer = new GraficoModelImporter();
-            IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(tempOutputFolder);
+            GraficoModelImporter importer = new GraficoModelImporter(tempOutputFolder);
+            IArchimateModel graficoModel = importer.importAsModel();
             
             if(graficoModel != null) {
                 // Open it, this will do the necessary checks and add a command stack and an archive manager

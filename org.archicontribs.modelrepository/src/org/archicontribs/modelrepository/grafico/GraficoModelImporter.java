@@ -14,15 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
@@ -56,30 +53,46 @@ public class GraficoModelImporter implements IGraficoConstants {
     private Map<String, IIdentifier> fIDLookup;
     
     /**
-     * Any Errors to display
+     * Resolution Handler
      */
-    private MultiStatus fResolveErrors;
+    private GraficoResolutionHandler fResolutionHandler;
     
     /**
      * Resource Set
      */
     private ResourceSet fResourceSet;
+    
+    /**
+     * Model
+     */
+    private IArchimateModel fModel;
+    
+    /**
+     * Local repo folder
+     */
+    private File fLocalRepoFolder;
+    
+    /**
+     * @param folder The folder containing the grafico XML files
+     */
+    public GraficoModelImporter(File folder) {
+        if(folder == null) {
+            throw new IllegalArgumentException("Folder cannot be null"); //$NON-NLS-1$
+        }
+        
+        fLocalRepoFolder = folder;
+    }
 	
     /**
-     * @param gitRepoFolder
-     * @return The model
+     * Import the grafico XML files as a IArchimateModel
      * @throws IOException
      */
-    public IArchimateModel importLocalGitRepositoryAsModel(File gitRepoFolder) throws IOException {
-    	if(gitRepoFolder == null) {
-            throw new IOException("Folder was null"); //$NON-NLS-1$
-        }
-    	
+    public IArchimateModel importAsModel() throws IOException {
     	// Create folders for model and images
-    	File modelFolder = new File(gitRepoFolder, MODEL_FOLDER);
+    	File modelFolder = new File(fLocalRepoFolder, MODEL_FOLDER);
         modelFolder.mkdirs();
 
-        File imagesFolder = new File(gitRepoFolder, IMAGES_FOLDER);
+        File imagesFolder = new File(fLocalRepoFolder, IMAGES_FOLDER);
     	imagesFolder.mkdirs();
     	
     	// If the top folder.xml does not exist then there is nothing to import, so return null
@@ -95,26 +108,50 @@ public class GraficoModelImporter implements IGraficoConstants {
     	fIDLookup = new HashMap<String, IIdentifier>();
     	
         // Load the Model from files (it will contain unresolved proxies)
-    	IArchimateModel model = loadModel(modelFolder);
+    	fModel = loadModel(modelFolder);
     	
     	// Remove model from its resource (needed to save it back to a .archimate file)
-    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(model);
+    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
     	
     	// Resolve proxies
-    	fResolveErrors = null;
-    	resolveProxies(model);
+    	fResolutionHandler = null;
+    	resolveProxies();
 
     	// Load images
-    	loadImages(model, imagesFolder);
+    	loadImages(imagesFolder);
 
-    	return model;
+    	return fModel;
     }
     
     /**
-     * @return The Error Resolve status if any, can be null.
+     * @return True if there are problems on import
+     */
+    public boolean hasProblems() {
+        return getResolutionHandler().hasProblems();
+    }
+
+    /**
+     * Delete problem objects, if any
+     */
+    public void deleteProblemObjects() {
+        getResolutionHandler().deleteProblemObjects();
+    }
+    
+    /**
+     * @return Error messages, if any
      */
     public MultiStatus getResolveStatus() {
-        return fResolveErrors;
+        return getResolutionHandler().getResolveStatus();
+    }
+    
+    /**
+     * @return The Resolution Handler if any, can be null.
+     */
+    private GraficoResolutionHandler getResolutionHandler() {
+        if(fResolutionHandler == null) {
+            fResolutionHandler = new GraficoResolutionHandler(fModel);
+        }
+        return fResolutionHandler;
     }
     
     /**
@@ -124,8 +161,8 @@ public class GraficoModelImporter implements IGraficoConstants {
      * @param folder
      * @throws IOException
      */
-    private void loadImages(IArchimateModel model, File folder) throws IOException {
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(model);
+    private void loadImages(File folder) throws IOException {
+        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         byte[] bytes;
 
         // Add all images files
@@ -140,12 +177,10 @@ public class GraficoModelImporter implements IGraficoConstants {
     }    
    
     /**
-     * Look for all eObject, and resolve proxies on known classes
-     * 
-     * @param object
+     * Iterate through all model objects, and resolve proxies on known classes
      */
-    private void resolveProxies(EObject object) {
-        for(Iterator<EObject> iter = object.eAllContents(); iter.hasNext();) {
+    private void resolveProxies() {
+        for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
 
             if(eObject instanceof IArchimateRelationship) {
@@ -178,26 +213,20 @@ public class GraficoModelImporter implements IGraficoConstants {
 
     /**
      * Check if 'object' is a proxy. if yes, replace it with real object from mapping table.
-     *  
-     * @param object
-     * @return
      */
     private EObject resolve(IIdentifier object, IIdentifier parent) {
         if(object != null && object.eIsProxy()) {
-            IIdentifier newObject = fIDLookup.get(((InternalEObject)object).eProxyURI().fragment());
-            // Log errors if proxy has not been resolved
+            String objectURIFragment = EcoreUtil.getURI(object).fragment();
+            
+            // Get proxy object
+            IIdentifier newObject = fIDLookup.get(objectURIFragment);
+            
+            // If proxy has not been resolved
             if(newObject == null) {
-                String message = String.format(Messages.GraficoModelImporter_0,
-                        ((InternalEObject)object).eProxyURI().fragment(), parent.getClass().getSimpleName(), parent.getId());
-                System.err.println(message);
-                
-                // Create resolveError the first time
-                if(fResolveErrors == null) {
-                    fResolveErrors = new MultiStatus(ModelRepositoryPlugin.PLUGIN_ID, IStatus.ERROR, "Missing concept(s)", null); //$NON-NLS-1$
-                }
-                // Add an error to the list
-                fResolveErrors.add(new Status(IStatus.ERROR, ModelRepositoryPlugin.PLUGIN_ID, message)); // $NON-NLS-1$
+                // Add a resolve problem to the handler
+                getResolutionHandler().addResolveProblem(object, parent);
             }
+            
             return newObject == null ? object : newObject;
         }
         else {

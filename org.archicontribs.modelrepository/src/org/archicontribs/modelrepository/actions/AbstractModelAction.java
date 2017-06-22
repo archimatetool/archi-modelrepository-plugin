@@ -107,26 +107,35 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @throws IOException
      */
     protected IArchimateModel loadModelFromGraficoFiles() throws IOException {
-        GraficoModelImporter importer = new GraficoModelImporter();
-        IArchimateModel graficoModel = importer.importLocalGitRepositoryAsModel(getRepository().getLocalRepositoryFolder());
+        GraficoModelImporter importer = new GraficoModelImporter(getRepository().getLocalRepositoryFolder());
+        IArchimateModel graficoModel = importer.importAsModel();
         
         if(graficoModel != null) {
-            File tmpFile = fRepository.getTempModelFile();
-            graficoModel.setFile(tmpFile);
-            
-            // Errors
-            if(importer.getResolveStatus() != null) {
-                ErrorDialog.openError(fWindow.getShell(),
-                        Messages.AbstractModelAction_3,
-                        Messages.AbstractModelAction_4,
-                        importer.getResolveStatus());
-
-            }
-            
             // Close the real model if it is already open
             IArchimateModel model = fRepository.locateModel();
             if(model != null) {
                 IEditorModelManager.INSTANCE.closeModel(model);
+            }
+            
+            // Set file name
+            File tmpFile = fRepository.getTempModelFile();
+            graficoModel.setFile(tmpFile);
+            
+            // Import problems occured
+            // Show errors for now
+            if(importer.hasProblems()) {
+                // TODO - remove this when problems are resolved
+                ErrorDialog.openError(fWindow.getShell(),
+                        Messages.AbstractModelAction_3,
+                        Messages.AbstractModelAction_4,
+                        importer.getResolveStatus());
+                
+                // TODO - Delete/Add problem objects
+                // importer.deleteProblemObjects();
+                
+                // And re-export to grafico xml files
+                GraficoModelExporter exporter = new GraficoModelExporter(graficoModel, getRepository().getLocalRepositoryFolder());
+                exporter.exportModel();
             }
             
             // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
@@ -154,8 +163,8 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
         
         try {
-            GraficoModelExporter exporter = new GraficoModelExporter();
-            exporter.exportModelToLocalGitRepository(model, getRepository().getLocalRepositoryFolder());
+            GraficoModelExporter exporter = new GraficoModelExporter(model, getRepository().getLocalRepositoryFolder());
+            exporter.exportModel();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbstractModelAction_5, ex);
