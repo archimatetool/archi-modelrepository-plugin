@@ -8,6 +8,10 @@ package org.archicontribs.modelrepository.grafico;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.osgi.util.NLS;
@@ -84,5 +88,15 @@ class GraficoResolutionHandler {
         }
         
         return messages;
+    }
+
+    MultiStatus getResolveStatus() {
+        MultiStatus ms = new MultiStatus(ModelRepositoryPlugin.PLUGIN_ID, IStatus.ERROR, Messages.GraficoResolutionHandler_0, null);
+        
+        for(String message : getErrorMessages()) {
+            ms.add(new Status(IStatus.ERROR, ModelRepositoryPlugin.PLUGIN_ID, message));
+        }
+        
+        return ms;
     }
 }

@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -129,8 +130,18 @@ public class GraficoModelImporter implements IGraficoConstants {
         return getResolutionHandler().hasProblems();
     }
 
+    /**
+     * Delete problem objects, if any
+     */
     public void deleteProblemObjects() {
         getResolutionHandler().deleteProblemObjects();
+    }
+    
+    /**
+     * @return Error messages, if any
+     */
+    public MultiStatus getResolveStatus() {
+        return getResolutionHandler().getResolveStatus();
     }
     
     /**

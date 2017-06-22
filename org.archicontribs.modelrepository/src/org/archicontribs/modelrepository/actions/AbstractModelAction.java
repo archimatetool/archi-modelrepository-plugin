@@ -21,6 +21,7 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -121,9 +122,16 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             graficoModel.setFile(tmpFile);
             
             // Import problems occured
+            // Show errors for now
             if(importer.hasProblems()) {
-                // Delete problem objects
-                importer.deleteProblemObjects();
+                // TODO - remove this when problems are resolved
+                ErrorDialog.openError(fWindow.getShell(),
+                        Messages.AbstractModelAction_3,
+                        Messages.AbstractModelAction_4,
+                        importer.getResolveStatus());
+                
+                // TODO - Delete/Add problem objects
+                // importer.deleteProblemObjects();
                 
                 // And re-export to grafico xml files
                 GraficoModelExporter exporter = new GraficoModelExporter(graficoModel, getRepository().getLocalRepositoryFolder());
