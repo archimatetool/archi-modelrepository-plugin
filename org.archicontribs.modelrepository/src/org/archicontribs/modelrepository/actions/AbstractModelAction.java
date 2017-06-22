@@ -7,6 +7,8 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
@@ -20,6 +22,7 @@ import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -27,10 +30,18 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
+import com.archimatetool.editor.diagram.DiagramEditorInput;
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
  * Abstract ModelAction
@@ -111,9 +122,13 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         IArchimateModel graficoModel = importer.importAsModel();
         
         if(graficoModel != null) {
+            // ids of open diagrams
+            List<String> openModelIDs = null;
+            
             // Close the real model if it is already open
             IArchimateModel model = fRepository.locateModel();
             if(model != null) {
+                openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
                 IEditorModelManager.INSTANCE.closeModel(model);
             }
             
@@ -143,9 +158,53 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             
             // And Save it to the temp file
             IEditorModelManager.INSTANCE.saveModel(graficoModel);
+            
+            // Re-open editors, if any
+            reopenEditors(graficoModel, openModelIDs);
         }
         
         return graficoModel;
+    }
+    
+    /**
+     * @param model
+     * @return All open diagram models' ids so we can restore them
+     */
+    private List<String> getOpenDiagramModelIdentifiers(IArchimateModel model) {
+        List<String> list = new ArrayList<String>();
+        
+        for(IEditorReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
+            try {
+                IEditorInput input = ref.getEditorInput();
+                if(input instanceof DiagramEditorInput) {
+                    IDiagramModel dm = ((DiagramEditorInput)input).getDiagramModel();
+                    if(dm.getArchimateModel() == model) {
+                        list.add(dm.getId());
+                    }
+                }
+            }
+            catch(PartInitException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        return list;
+    }
+    
+    /**
+     * Re-open any diagram editors
+     * @param model
+     * @param ids
+     */
+    private void reopenEditors(IArchimateModel model, List<String> ids) {
+        if(ids != null) {
+            for(String id : ids) {
+                EObject eObject = ArchimateModelUtils.getObjectByID(model, id);
+                if(eObject instanceof IDiagramModel) {
+                    EditorManager.openDiagramEditor((IDiagramModel)eObject);
+                }
+            }
+        }
     }
     
     /**
