@@ -26,12 +26,10 @@ import com.archimatetool.editor.ui.IArchiImages;
 public class NewModelRepoDialog extends TitleAreaDialog {
 
 	private Text txtURL;
-	private Text txtModelName;
     private Text txtUsername;
     private Text txtPassword;
 
     private String URL;
-    private String modelName;
     private String username;
     private String password;
 
@@ -58,7 +56,6 @@ public class NewModelRepoDialog extends TitleAreaDialog {
         container.setLayout(layout);
 
         txtURL = createTextField(container, Messages.NewModelRepoDialog_2, SWT.NONE);
-        txtModelName = createTextField(container, Messages.NewModelRepoDialog_3, SWT.NONE);
         txtUsername = createTextField(container, Messages.NewModelRepoDialog_4, SWT.NONE);
         txtPassword = createTextField(container, Messages.NewModelRepoDialog_5, SWT.PASSWORD);
 
@@ -86,7 +83,6 @@ public class NewModelRepoDialog extends TitleAreaDialog {
         username = txtUsername.getText().trim();
         password = txtPassword.getText().trim();
         URL = txtURL.getText().trim();
-        modelName = txtModelName.getText().trim();
     }
 
     @Override
@@ -106,9 +102,4 @@ public class NewModelRepoDialog extends TitleAreaDialog {
     public String getURL() {
         return URL;
     }
-    
-    public String getModelName() {
-        return modelName;
-    }
-
 }

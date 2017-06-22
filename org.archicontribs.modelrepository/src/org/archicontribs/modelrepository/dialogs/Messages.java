@@ -44,8 +44,6 @@ public class Messages extends NLS {
 
     public static String NewModelRepoDialog_2;
 
-    public static String NewModelRepoDialog_3;
-
     public static String NewModelRepoDialog_4;
 
     public static String NewModelRepoDialog_5;

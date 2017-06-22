@@ -60,13 +60,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        final String modelName = dialog.getModelName();
-        final String repoURL = dialog.getURL() + modelName + ".git"; //$NON-NLS-1$
+        final String repoURL = dialog.getURL();
         final String userName = dialog.getUsername();
         final String userPassword = dialog.getPassword();
         
-//        final String modelName = "ModelName";
-//        final String repoURL = "https://localhost:8443/r/" + modelName + ".git";
+//        final String repoURL = "https://localhost:8443/r/modelName.git";
 //        final String userName = "admin";
 //        final String userPassword = "admin";
         
