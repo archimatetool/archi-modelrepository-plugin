@@ -1,0 +1,41 @@
+<project name="Plugin Packager Ant Script" default="run" basedir=".">
+  	
+	<description>
+	    Make Zip File Distributions for plugins.
+  	</description>
+	
+	<!-- Default/Start Target -->
+	<target name="run" depends="init, package" />
+	
+	<!-- Init some stuff -->
+	<target name="init">
+        <property name="output.dir"             location="c:\plugins"/>
+        <property name="magic.file"             value="archi-plugin"/>
+	</target>
+	
+    <!-- Package It -->
+    <target name="package">
+    	
+        <!-- copy the magic file -->
+        <copy file="${magic.file}" todir="${output.dir}" overwrite="true"/>
+    	
+        <!-- Get the file name with some Ant voodoo -->
+        <path id="id.path">
+            <fileset dir="${output.dir}">
+                <include name="org.archicontribs.modelrepository_*.jar"/>
+            </fileset>
+        </path>
+    	
+    	<property name="id.file" refid="id.path"/>
+    	<basename property="output.file" file="${id.file}" suffix=".jar"/>
+
+        <!-- make zip -->
+        <zip destfile="${output.dir}/${output.file}.zip" update="false">
+            <zipfileset dir="${output.dir}">
+                <exclude name="**/*.zip"/>
+        	</zipfileset>
+        </zip>
+    
+    </target>
+
+</project>
