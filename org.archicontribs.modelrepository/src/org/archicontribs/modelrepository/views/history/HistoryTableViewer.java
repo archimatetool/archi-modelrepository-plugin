@@ -92,7 +92,7 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
     
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(IRepositoryListener.HISTORY_CHANGED.equals(eventName) && repository.equals(getInput())) {
+        if(repository.equals(getInput())) {
             setInput(getInput());
         }
     }
@@ -115,6 +115,11 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
             IArchiRepository repo = (IArchiRepository)newInput;
             
             commits = new ArrayList<RevCommit>();
+            
+            // Local Repo was deleted
+            if(!repo.getLocalRepositoryFolder().exists()) {
+                return;
+            }
             
             // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
             try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
