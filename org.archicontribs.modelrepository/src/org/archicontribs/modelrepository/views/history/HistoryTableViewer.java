@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
@@ -127,11 +128,17 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
 //                    }
                     
                     // We are interested in the local master branch and origin master branch
-                    localMasterCommit = revWalk.parseCommit(git.getRepository().resolve("refs/heads/master")); //$NON-NLS-1$
-                    revWalk.markStart(localMasterCommit); 
+                    ObjectId objectID = git.getRepository().resolve("refs/heads/master"); //$NON-NLS-1$
+                    if(objectID != null) {
+                        localMasterCommit = revWalk.parseCommit(objectID);
+                        revWalk.markStart(localMasterCommit); 
+                    }
                     
-                    originMasterCommit = revWalk.parseCommit(git.getRepository().resolve("origin/master")); //$NON-NLS-1$
-                    revWalk.markStart(originMasterCommit);
+                    objectID = git.getRepository().resolve("origin/master"); //$NON-NLS-1$
+                    if(objectID != null) {
+                        originMasterCommit = revWalk.parseCommit(objectID);
+                        revWalk.markStart(originMasterCommit);
+                    }
                     
                     for(RevCommit commit : revWalk ) {
                         commits.add(commit);
