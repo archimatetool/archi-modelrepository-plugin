@@ -21,6 +21,7 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -93,6 +94,7 @@ public class PushModelAction extends AbstractModelAction {
          * Wrapper class to handle progress monitor
          */
         class PushProgressHandler extends ProgressHandler {
+            private PullResult pullResult;
             
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -102,9 +104,22 @@ public class PushModelAction extends AbstractModelAction {
                     // Proxy
                     ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
                     
-                    // First we need to Pull and resolve any conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                    // First we need to Pull
+                    try {
+                        pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                    }
+                    catch(Exception ex) {
+                        // Remote is blank with no master ref, so do a push
+                        if(ex instanceof RefNotAdvertisedException) {
+                            doPush();
+                            return;
+                        }
+                        else {
+                            throw ex;
+                        }
+                    }
                     
+                    // There were problems on Pull
                     if(!pullResult.isSuccessful()) {
                         monitor.done();
                         
@@ -149,9 +164,7 @@ public class PushModelAction extends AbstractModelAction {
                         }
                         
                         // Push
-                        GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
-
-                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                        doPush();
                     }
                 }
                 catch(IOException | GitAPIException ex) {
@@ -160,6 +173,11 @@ public class PushModelAction extends AbstractModelAction {
                 finally {
                     monitor.done();
                 }
+            }
+            
+            private void doPush() throws IOException, GitAPIException {
+                GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             }
         }
         

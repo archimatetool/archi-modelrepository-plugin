@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -95,6 +96,7 @@ public class RefreshModelAction extends AbstractModelAction {
          * Wrapper class to handle progress monitor
          */
         class RefreshProgressHandler extends ProgressHandler {
+            private PullResult pullResult;
 
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -106,11 +108,23 @@ public class RefreshModelAction extends AbstractModelAction {
                     // Proxy
                     ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
                     
-                    // First we need to Pull and check for conflicts
-                    PullResult pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                    // First we need to Pull
+                    try {
+                        pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                    }
+                    catch(Exception ex) {
+                        // Remote is blank with no master ref
+                        if(ex instanceof RefNotAdvertisedException) {
+                            return;
+                        }
+                        else {
+                            throw ex;
+                        }
+                    }
                     
                     monitor.done();
                     
+                    // Start a new thread because of dialog blocking
                     Display.getCurrent().asyncExec(new Runnable() {
                         @Override
                         public void run() {
