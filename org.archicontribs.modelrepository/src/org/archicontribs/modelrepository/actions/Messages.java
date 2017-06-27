@@ -44,6 +44,8 @@ public class Messages extends NLS {
 
     public static String CloneModelAction_5;
 
+    public static String CloneModelAction_6;
+
     public static String CommitModelAction_0;
 
     public static String CommitModelAction_2;
