@@ -13,6 +13,7 @@ package org.archicontribs.modelrepository.grafico;
  */
 public interface IRepositoryListener {
     
+    String REPOSITORY_ADDED = "repository_added"; //$NON-NLS-1$
     String REPOSITORY_DELETED = "repository_deleted"; //$NON-NLS-1$
     String HISTORY_CHANGED = "history_changed"; //$NON-NLS-1$
 

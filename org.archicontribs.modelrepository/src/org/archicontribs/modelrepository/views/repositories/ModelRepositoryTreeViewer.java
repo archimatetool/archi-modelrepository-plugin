@@ -98,7 +98,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(IRepositoryListener.REPOSITORY_DELETED.equals(eventName)) {
+        if(IRepositoryListener.REPOSITORY_DELETED.equals(eventName) || IRepositoryListener.REPOSITORY_ADDED.equals(eventName)) {
             refresh();
         }
     }
@@ -189,10 +189,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 else {
                     image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE);
                 }
-            }
-            
-            if(image == null) {
-                image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_LCL_LINKTO_HELP);
             }
             
             return image;

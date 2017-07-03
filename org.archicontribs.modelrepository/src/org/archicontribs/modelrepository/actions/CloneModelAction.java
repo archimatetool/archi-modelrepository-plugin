@@ -18,6 +18,7 @@ import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -126,6 +127,9 @@ public class CloneModelAction extends AbstractModelAction {
                         SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
                         scs.store(userName, userPassword);
                     }
+                    
+                    // Notify listeners
+                    notifyChangeListeners(IRepositoryListener.REPOSITORY_ADDED);
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException ex) {
                     displayErrorDialog(Messages.CloneModelAction_0, ex);
