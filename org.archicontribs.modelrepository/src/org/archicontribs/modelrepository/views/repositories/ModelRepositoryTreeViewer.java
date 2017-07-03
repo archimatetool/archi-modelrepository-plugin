@@ -74,12 +74,22 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
     protected void startBackgroundJobs() {
         // Refresh file system job
         Job job = new UIJob(getControl().getDisplay(), "Refresh File System") { //$NON-NLS-1$
+            long lastModified = 0L; // last modified
+            
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 if(!getTree().isDisposed()) { // this is important!
-                    refresh();
-                    schedule(10000);// Schedule again in 10 seconds
+                    // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
+                    File rootFolder = getRootFolder();
+                    if(lastModified != 0L && rootFolder.lastModified() != lastModified) {
+                        refresh();
+                    }
+
+                    lastModified = rootFolder.lastModified();
+                    
+                    schedule(5000);// Schedule again
                 }
+                
                 return Status.OK_STATUS;
             }
         };
@@ -104,6 +114,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
     }
     
+    /**
+     * @return Root folder of model repos
+     */
+    protected File getRootFolder() {
+        return ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
+    }
+    
     // ===============================================================================================
 	// ===================================== Tree Model ==============================================
 	// ===============================================================================================
@@ -120,8 +137,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         }
         
         public Object[] getElements(Object parent) {
-            File reposFolder = ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
-            return getChildren(reposFolder);
+            return getChildren(getRootFolder());
         }
         
         public Object getParent(Object child) {
