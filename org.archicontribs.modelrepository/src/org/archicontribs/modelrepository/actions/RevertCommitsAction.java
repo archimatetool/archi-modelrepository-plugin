@@ -41,7 +41,7 @@ public class RevertCommitsAction extends RevertCommitAction {
             revWalk.markStart(revWalk.parseCommit(git.getRepository().resolve("HEAD"))); //$NON-NLS-1$
             
             for(RevCommit c : revWalk ) {
-                if(c.getParentCount() != 1) {
+                if(c.getParentCount() > 1) {
                     throw new MultipleParentsNotAllowedException(NLS.bind(Messages.RevertCommitsAction_1, c.getName()));
                 }
                 
