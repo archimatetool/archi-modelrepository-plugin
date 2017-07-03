@@ -84,7 +84,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     @Override
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
-        fTreeViewer = new ModelRepositoryTreeViewer(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), parent);
+        fTreeViewer = new ModelRepositoryTreeViewer(parent);
         
         makeActions();
         registerGlobalActions();
