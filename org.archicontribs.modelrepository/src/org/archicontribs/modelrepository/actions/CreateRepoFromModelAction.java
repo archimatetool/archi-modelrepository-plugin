@@ -102,7 +102,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Create a new repo
-                    try(Git git = GraficoUtils.createNewLocalGitRepository(getRepository().getLocalRepositoryFolder(), repoURL)) {
+                    try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
                     }
                     
                     // TODO: If the model has not been saved yet this is fine but if the model already exists
@@ -125,7 +125,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
                     // Push
-                    GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, null);
+                    getRepository().pushToRemote(userName, userPassword, null);
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {

@@ -6,13 +6,20 @@
 package org.archicontribs.modelrepository.grafico;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.GitHelper;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Repository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +45,7 @@ public class ArchiRepositoryTests {
     
     @After
     public void runOnceAfterEachTest() throws IOException {
-        FileUtils.deleteFolder(GraficoUtilsTests.getTempTestsFolder());
+        FileUtils.deleteFolder(GitHelper.getTempTestsFolder());
     }
     
     @Test
@@ -64,11 +71,11 @@ public class ArchiRepositoryTests {
     
     @Test
     public void getRepositoryURL_ShouldReturnURL() throws Exception {
-        File localRepoFolder = new File(GraficoUtilsTests.getTempTestsFolder(), "testRepo");
+        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
         IArchiRepository repo = new ArchiRepository(localRepoFolder);
         String URL = "https://www.somewherethereish.net/myRepo.git";
         
-        try(Git git = GraficoUtils.createNewLocalGitRepository(localRepoFolder, URL)) {
+        try(Git git = repo.createNewLocalGitRepository(URL)) {
             assertNotNull(git);
             assertEquals(URL, repo.getOnlineRepositoryURL());
         }
@@ -89,5 +96,61 @@ public class ArchiRepositoryTests {
         assertEquals(model, repo.locateModel());
     }
 
+    @Test
+    public void createNewLocalGitRepository_CreatesNewRepo() throws Exception {
+        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        String URL = "https://www.somewherethereish.net/myRepo.git";
+        
+        try(Git git = repo.createNewLocalGitRepository(URL)) {
+            assertNotNull(git);
+            assertEquals("origin", git.getRepository().getRemoteName("refs/remotes/origin/"));
+            assertEquals(localRepoFolder, git.getRepository().getWorkTree());
+            assertFalse(git.getRepository().isBare());
+            assertEquals(URL, git.remoteList().call().get(0).getURIs().get(0).toASCIIString());
+        }
+    }
+    
+    @Test (expected=IOException.class)
+    public void createNewLocalGitRepository_ThrowsExceptionIfNotEmptyDir() throws Exception {
+        File tmpFile = File.createTempFile("architest", null, GitHelper.getTempTestsFolder());
+        IArchiRepository repo = new ArchiRepository(tmpFile.getParentFile());
+        
+        // Should throw exception
+        repo.createNewLocalGitRepository("");
+    }
+    
+    @Test
+    public void getFileContents_IsCorrect() throws Exception {
+        File localRepoFolder = new File(GitHelper.getTempTestsFolder(), "testRepo");
+        IArchiRepository repo = new ArchiRepository(localRepoFolder);
+        String contents = "Hello World!\nTesting.";
+        
+        try(Repository repos = GitHelper.createNewRepository(localRepoFolder)) {
+            File file = new File(localRepoFolder, "test.txt");
+            
+            try(FileWriter fw = new FileWriter(file)) {
+                fw.write(contents);
+                fw.flush();
+            }
+            
+            assertTrue(file.exists());
+            
+            // Add file to index
+            AddCommand addCommand = new AddCommand(repos);
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+            
+            // Commit file
+            CommitCommand commitCommand = Git.wrap(repos).commit();
+            commitCommand.setAuthor("Test", "Test");
+            commitCommand.setMessage("Message");
+            commitCommand.call();
+
+            assertEquals(contents, repo.getFileContents("test.txt", "HEAD"));
+        }
+    }
+    
 
 }

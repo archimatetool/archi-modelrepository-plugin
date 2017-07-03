@@ -96,7 +96,7 @@ public class CloneModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Clone
-                    GraficoUtils.cloneModel(getRepository().getLocalRepositoryFolder(), repoURL, userName, userPassword, this);
+                    getRepository().cloneModel(repoURL, userName, userPassword, this);
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     

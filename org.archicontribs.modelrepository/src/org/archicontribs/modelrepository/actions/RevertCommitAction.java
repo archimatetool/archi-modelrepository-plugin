@@ -72,7 +72,7 @@ public class RevertCommitAction extends AbstractModelAction {
             
             MergeResult failingResult = revertCommand.getFailingResult();
             if(failingResult != null) {
-                MergeConflictHandler handler = new MergeConflictHandler(failingResult, getRepository().getLocalRepositoryFolder(), fWindow.getShell());
+                MergeConflictHandler handler = new MergeConflictHandler(failingResult, getRepository(), fWindow.getShell());
                 boolean result = handler.checkForMergeConflicts();
                 if(result) {
                     handler.mergeAndCommit(Messages.RevertCommitAction_4);

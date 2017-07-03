@@ -5,23 +5,48 @@
  */
 package org.archicontribs.modelrepository.grafico;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.InitCommand;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
- * Representation of a repository
+ * Representation of a local repository
+ * This is a wrapper class around a local repo folder
  * 
  * @author Phillip Beauvoir
  */
@@ -132,6 +157,126 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
+    @Override
+    public void cloneModel(String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
+        CloneCommand cloneCommand = Git.cloneRepository();
+        cloneCommand.setDirectory(getLocalRepositoryFolder());
+        cloneCommand.setURI(repoURL);
+        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+        cloneCommand.setProgressMonitor(monitor);
+            
+        try(Git git = cloneCommand.call()) {
+            // Use the same line endings
+            StoredConfig config = git.getRepository().getConfig();
+            config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
+            config.save();
+        }
+    }
+
+    @Override
+    public Iterable<PushResult> pushToRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            PushCommand pushCommand = git.push();
+            pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pushCommand.setProgressMonitor(monitor);
+            return pushCommand.call();
+        }
+    }
+    
+    @Override
+    public PullResult pullFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            PullCommand pullCommand = git.pull();
+            pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.setRebase(false); // Merge, not rebase
+            pullCommand.setProgressMonitor(monitor);
+            return pullCommand.call();
+        }
+    }
+    
+    @Override
+    public FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            FetchCommand fetchCommand = git.fetch();
+            fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            fetchCommand.setProgressMonitor(monitor);
+            return fetchCommand.call();
+        }
+    }
+
+    @Override
+    public Git createNewLocalGitRepository(String URL) throws GitAPIException, IOException, URISyntaxException {
+        if(getLocalRepositoryFolder().exists() && getLocalRepositoryFolder().list().length > 0) {
+            throw new IOException("Directory: " + getLocalRepositoryFolder().getAbsolutePath() + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        
+        InitCommand initCommand = Git.init();
+        initCommand.setDirectory(getLocalRepositoryFolder());
+        Git git = initCommand.call();
+        
+        RemoteAddCommand remoteAddCommand = git.remoteAdd();
+        remoteAddCommand.setName("origin"); //$NON-NLS-1$
+        remoteAddCommand.setUri(new URIish(URL));
+        remoteAddCommand.call();
+        
+        // Use the same line endings
+        StoredConfig config = git.getRepository().getConfig();
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
+        config.save();
+        
+        return git;
+    }
+
+    @Override
+    public String getFileContents(String path, String ref) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            ObjectId lastCommitId = repository.resolve(ref);
+
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(lastCommitId);
+                RevTree tree = commit.getTree();
+
+                // now try to find a specific file
+                try(TreeWalk treeWalk = new TreeWalk(repository)) {
+                    treeWalk.addTree(tree);
+                    treeWalk.setRecursive(true);
+                    treeWalk.setFilter(PathFilter.create(path));
+
+                    if(!treeWalk.next()) {
+                        return Messages.GraficoUtils_0;
+                    }
+
+                    ObjectId objectId = treeWalk.getObjectId(0);
+                    ObjectLoader loader = repository.open(objectId);
+
+                    str = new String(loader.getBytes());
+                }
+
+                revWalk.dispose();
+            }
+        }
+        
+        return str;
+    }
+
+    @Override
+    public String getWorkingTreeFileContents(String path) throws IOException {
+        String str = ""; //$NON-NLS-1$
+        
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            try(BufferedReader in = new BufferedReader(new FileReader(new File(getLocalRepositoryFolder(), path)))) {
+                String line;
+                while((line = in.readLine()) != null) {
+                    str += line + "\n"; //$NON-NLS-1$
+                }
+            }
+        }
+        
+        return str;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {

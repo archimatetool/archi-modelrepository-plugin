@@ -7,19 +7,13 @@ package org.archicontribs.modelrepository.grafico;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.GitHelper;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Repository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +38,7 @@ public class GraficoUtilsTests {
     
     @After
     public void runOnceAfterEachTest() throws IOException {
-        FileUtils.deleteFolder(getTempTestsFolder());
+        FileUtils.deleteFolder(GitHelper.getTempTestsFolder());
     }
     
     
@@ -69,7 +63,7 @@ public class GraficoUtilsTests {
 
     @Test
     public void isGitRepository_EmptyFolderIsNotGitFolder() {
-        File tmpFolder = new File(getTempTestsFolder(), "testFolder");
+        File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         tmpFolder.mkdirs();
         
         assertFalse(GraficoUtils.isGitRepository(tmpFolder));
@@ -77,7 +71,7 @@ public class GraficoUtilsTests {
 
     @Test
     public void isGitRepository_HasGitFolder() {
-        File tmpFolder = new File(getTempTestsFolder(), "testFolder");
+        File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
         File gitFolder = new File(tmpFolder, ".git");
         gitFolder.mkdirs();
         
@@ -109,67 +103,5 @@ public class GraficoUtilsTests {
         assertNull(GraficoUtils.getLocalRepositoryFolderForModel(model));
     }
 
-    @Test
-    public void createNewLocalGitRepository_CreatesNewRepo() throws Exception {
-        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
-        String URL = "https://www.somewherethereish.net/myRepo.git";
-        
-        try(Git git = GraficoUtils.createNewLocalGitRepository(localGitFolder, URL)) {
-            assertNotNull(git);
-            assertEquals("origin", git.getRepository().getRemoteName("refs/remotes/origin/"));
-            assertEquals(localGitFolder, git.getRepository().getWorkTree());
-            assertFalse(git.getRepository().isBare());
-            assertEquals(URL, git.remoteList().call().get(0).getURIs().get(0).toASCIIString());
-        }
-    }
-    
-    @Test (expected=IOException.class)
-    public void createNewLocalGitRepository_ThrowsExceptionIfNotEmptyDir() throws Exception {
-        File tmpFile = File.createTempFile("architest", null, getTempTestsFolder());
-        
-        // Should throw exception
-        GraficoUtils.createNewLocalGitRepository(tmpFile.getParentFile(), "");
-    }
-    
-    @Test
-    public void getFileContents_IsCorrect() throws Exception {
-        File localGitFolder = new File(getTempTestsFolder(), "testRepo");
-        String contents = "Hello World!\nTesting.";
-        
-        try(Repository repo = GitHelper.createNewRepository(localGitFolder)) {
-            File file = new File(localGitFolder, "test.txt");
-            
-            try(FileWriter fw = new FileWriter(file)) {
-                fw.write(contents);
-                fw.flush();
-            }
-            
-            assertTrue(file.exists());
-            
-            // Add file to index
-            AddCommand addCommand = new AddCommand(repo);
-            addCommand.addFilepattern("."); //$NON-NLS-1$
-            addCommand.setUpdate(false);
-            addCommand.call();
-            
-            // Commit file
-            CommitCommand commitCommand = Git.wrap(repo).commit();
-            commitCommand.setAuthor("Test", "Test");
-            commitCommand.setMessage("Message");
-            commitCommand.call();
-
-            assertEquals(contents, GraficoUtils.getFileContents(localGitFolder, "test.txt", "HEAD"));
-        }
-    }
-    
-    // Support
-    
-    public static File getTempTestsFolder() {
-        File file = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tests.tmp");
-        file.deleteOnExit();
-        file.mkdirs();
-        return file;
-    }
-    
 
 }

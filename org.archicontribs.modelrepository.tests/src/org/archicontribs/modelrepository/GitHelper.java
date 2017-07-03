@@ -20,5 +20,13 @@ public class GitHelper {
         return repository;
     }
     
+    public static File getTempTestsFolder() {
+        File file = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tests.tmp");
+        file.deleteOnExit();
+        file.mkdirs();
+        return file;
+    }
+    
+
 }
 

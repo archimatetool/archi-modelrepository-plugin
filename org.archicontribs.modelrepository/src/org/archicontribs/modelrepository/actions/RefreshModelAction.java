@@ -107,7 +107,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     
                     // First we need to Pull
                     try {
-                        pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                        pullResult = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), this);
                     }
                     catch(Exception ex) {
                         // Remote is blank with no master ref
@@ -129,7 +129,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             if(!pullResult.isSuccessful()) {
                                 try {
                                     // Try to handle the merge conflict
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(), fWindow.getShell());
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
                                         handler.merge();
