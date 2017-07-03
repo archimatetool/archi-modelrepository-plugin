@@ -9,20 +9,17 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -110,7 +107,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     
                     // First we need to Pull
                     try {
-                        pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                        pullResult = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), this);
                     }
                     catch(Exception ex) {
                         // Remote is blank with no master ref
@@ -132,7 +129,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             if(!pullResult.isSuccessful()) {
                                 try {
                                     // Try to handle the merge conflict
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(), fWindow.getShell());
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     if(result) {
                                         handler.merge();
@@ -160,9 +157,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             // Do a commit if needed
                             try {
                                 if(getRepository().hasChangesToCommit()) {
-                                    String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-                                    String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                                    GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), new PersonIdent(userName, userEmail), Messages.RefreshModelAction_2);
+                                    getRepository().commitChanges(Messages.RefreshModelAction_2);
                                 }
                             }
                             catch(IOException | GitAPIException ex) {

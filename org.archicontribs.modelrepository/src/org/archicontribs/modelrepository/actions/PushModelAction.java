@@ -106,7 +106,7 @@ public class PushModelAction extends AbstractModelAction {
                     
                     // First we need to Pull
                     try {
-                        pullResult = GraficoUtils.pullFromRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                        pullResult = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), this);
                     }
                     catch(Exception ex) {
                         // Remote is blank with no master ref, so do a push
@@ -128,8 +128,7 @@ public class PushModelAction extends AbstractModelAction {
                             @Override
                             public void run() {
                                 try {
-                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository().getLocalRepositoryFolder(),
-                                            fWindow.getShell());
+                                    MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository(), fWindow.getShell());
                                     boolean result = handler.checkForMergeConflicts();
                                     
                                     if(result) {
@@ -176,7 +175,7 @@ public class PushModelAction extends AbstractModelAction {
             }
             
             private void doPush() throws IOException, GitAPIException {
-                GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), up.getUsername(), up.getPassword(), this);
+                getRepository().pushToRemote(up.getUsername(), up.getPassword(), this);
                 notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             }
         }

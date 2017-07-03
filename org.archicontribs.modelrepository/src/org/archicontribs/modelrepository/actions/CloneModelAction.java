@@ -25,7 +25,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -97,7 +96,7 @@ public class CloneModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Clone
-                    GraficoUtils.cloneModel(getRepository().getLocalRepositoryFolder(), repoURL, userName, userPassword, this);
+                    getRepository().cloneModel(repoURL, userName, userPassword, this);
                     
                     monitor.subTask(Messages.CloneModelAction_5);
                     
@@ -117,9 +116,7 @@ public class CloneModelAction extends AbstractModelAction {
                         exportModelToGraficoFiles();
                         
                         // And do a first commit
-                        String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-                        String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                        GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), new PersonIdent(author, email), Messages.CloneModelAction_6);
+                        getRepository().commitChanges(Messages.CloneModelAction_6);
                     }
                     
                     // Store repo credentials if option is set

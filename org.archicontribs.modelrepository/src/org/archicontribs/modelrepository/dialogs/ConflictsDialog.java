@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -141,9 +140,9 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
                 
                 try {
-                    fFileViewerOurs.setText(GraficoUtils.getFileContents(fHandler.getLocalGitFolder(), path, Constants.HEAD));
-                    fFileViewerTheirs.setText(GraficoUtils.getFileContents(fHandler.getLocalGitFolder(), path, "origin/master")); //$NON-NLS-1$
-                    fFileViewerDiff.setText(GraficoUtils.getWorkingTreeFileContents(fHandler.getLocalGitFolder(), path));
+                    fFileViewerOurs.setText(fHandler.getArchiRepository().getFileContents(path, Constants.HEAD));
+                    fFileViewerTheirs.setText(fHandler.getArchiRepository().getFileContents(path, "origin/master")); //$NON-NLS-1$
+                    fFileViewerDiff.setText(fHandler.getArchiRepository().getWorkingTreeFileContents(path));
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();

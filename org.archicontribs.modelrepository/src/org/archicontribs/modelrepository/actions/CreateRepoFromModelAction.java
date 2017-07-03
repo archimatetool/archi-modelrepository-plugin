@@ -26,7 +26,6 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -103,7 +102,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     ProxyAuthenticater.update(repoURL);
                     
                     // Create a new repo
-                    try(Git git = GraficoUtils.createNewLocalGitRepository(getRepository().getLocalRepositoryFolder(), repoURL)) {
+                    try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
                     }
                     
                     // TODO: If the model has not been saved yet this is fine but if the model already exists
@@ -121,14 +120,12 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     monitor.subTask(Messages.CreateRepoFromModelAction_4);
 
                     // Commit changes
-                    String author = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-                    String email = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-                    GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), new PersonIdent(author, email), Messages.CreateRepoFromModelAction_5);
+                    getRepository().commitChanges(Messages.CreateRepoFromModelAction_5);
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
                     // Push
-                    GraficoUtils.pushToRemote(getRepository().getLocalRepositoryFolder(), userName, userPassword, null);
+                    getRepository().pushToRemote(userName, userPassword, null);
                     
                     // Store repo credentials if option is set
                     if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
