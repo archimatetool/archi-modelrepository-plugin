@@ -11,9 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.InitCommand;
@@ -21,12 +19,10 @@ import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -74,44 +70,6 @@ public class GraficoUtils {
         }
     }
 
-    /**
-     * Commit any changes
-     * @param model
-     * @param localGitFolder
-     * @param personIdent
-     * @param commitMessage
-     * @return 
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public static RevCommit commitChanges(File localRepoFolder, PersonIdent personIdent, String commitMessage) throws GitAPIException, IOException {
-        try(Git git = Git.open(localRepoFolder)) {
-            Status status = git.status().call();
-            
-            // Nothing changed
-            if(status.isClean()) {
-                return null;
-            }
-            
-            // Add modified files to index
-            AddCommand addCommand = git.add();
-            addCommand.addFilepattern("."); //$NON-NLS-1$
-            addCommand.setUpdate(false);
-            addCommand.call();
-            
-            // Add missing files to index
-            for(String s : status.getMissing()) {
-                git.rm().addFilepattern(s).call();
-            }
-            
-            // Commit
-            CommitCommand commitCommand = git.commit();
-            commitCommand.setAuthor(personIdent);
-            commitCommand.setMessage(commitMessage);
-            return commitCommand.call();
-        }
-    }
-    
     /**
      * Push to Remote
      * @param localGitFolder

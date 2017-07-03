@@ -8,9 +8,14 @@ package org.archicontribs.modelrepository.grafico;
 import java.io.File;
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -94,7 +99,39 @@ public class ArchiRepository implements IArchiRepository {
             return !status.isClean();
         }
     }
-
+    
+    @Override
+    public RevCommit commitChanges(String commitMessage) throws GitAPIException, IOException {
+        String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
+        String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
+        
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            Status status = git.status().call();
+            
+            // Nothing changed
+            if(status.isClean()) {
+                return null;
+            }
+            
+            // Add modified files to index
+            AddCommand addCommand = git.add();
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+            
+            // Add missing files to index
+            for(String s : status.getMissing()) {
+                git.rm().addFilepattern(s).call();
+            }
+            
+            // Commit
+            CommitCommand commitCommand = git.commit();
+            commitCommand.setAuthor(userName, userEmail);
+            commitCommand.setMessage(commitMessage);
+            return commitCommand.call();
+        }
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {

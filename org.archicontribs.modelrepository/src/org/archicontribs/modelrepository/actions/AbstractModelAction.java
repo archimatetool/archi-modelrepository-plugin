@@ -17,7 +17,6 @@ import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
@@ -28,7 +27,6 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
@@ -242,14 +240,13 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             String userName = commitDialog.getUserName();
             String userEmail = commitDialog.getUserEmail();
             String commitMessage = commitDialog.getCommitMessage();
-            PersonIdent personIdent = new PersonIdent(userName, userEmail);
             
             // Store Prefs
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_NAME, userName);
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                GraficoUtils.commitChanges(getRepository().getLocalRepositoryFolder(), personIdent, commitMessage);
+                getRepository().commitChanges(commitMessage);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);

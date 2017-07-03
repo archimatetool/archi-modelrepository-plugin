@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 import com.archimatetool.model.IArchimateModel;
 
@@ -49,11 +50,19 @@ public interface IArchiRepository {
     boolean hasLocalChanges();
 
     /**
-     * Return true if there are local changes to commit in the working tree
-     * @return
+     * @return true if there are local changes to commit in the working tree
      * @throws IOException
      * @throws GitAPIException
      */
     boolean hasChangesToCommit() throws IOException, GitAPIException;
+
+    /**
+     * Commit any changes
+     * @param commitMessage
+     * @return RevCommit
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    RevCommit commitChanges(String commitMessage) throws GitAPIException, IOException;
 
 }
