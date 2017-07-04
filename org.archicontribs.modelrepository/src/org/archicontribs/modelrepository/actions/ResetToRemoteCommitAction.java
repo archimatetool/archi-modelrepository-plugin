@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -94,7 +93,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         }
         
         // Do it!
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+        try {
             reset("origin/master"); //$NON-NLS-1$
         }
         catch(IOException | GitAPIException ex) {

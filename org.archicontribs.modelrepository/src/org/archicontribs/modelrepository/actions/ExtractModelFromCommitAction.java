@@ -14,6 +14,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -49,14 +50,14 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
         deleteFolder(tempOutputFolder);
         
         // Wlak the tree and get the contents of the commit
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
+            try(TreeWalk treeWalk = new TreeWalk(repository)) {
                 treeWalk.addTree(fCommit.getTree());
                 treeWalk.setRecursive(true);
 
                 while(treeWalk.next()) {
                     ObjectId objectId = treeWalk.getObjectId(0);
-                    ObjectLoader loader = git.getRepository().open(objectId);
+                    ObjectLoader loader = repository.open(objectId);
                     
                     File file = new File(tempOutputFolder, treeWalk.getPathString());
                     file.getParentFile().mkdirs();

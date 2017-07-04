@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -98,7 +99,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         }
         
         // Do it!
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+        try {
             reset("HEAD^"); //$NON-NLS-1$
         }
         catch(IOException | GitAPIException ex) {
@@ -121,11 +122,11 @@ public class UndoLastCommitAction extends AbstractModelAction {
      * @throws IOException
      */
     protected boolean isHeadAndRemoteSame() throws IOException {
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            Ref online = git.getRepository().findRef("origin/master"); //$NON-NLS-1$
-            Ref local = git.getRepository().findRef("HEAD"); //$NON-NLS-1$
+        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
+            Ref online = repository.findRef("origin/master"); //$NON-NLS-1$
+            Ref local = repository.findRef("HEAD"); //$NON-NLS-1$
             
-            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+            try(RevWalk revWalk = new RevWalk(repository)) {
                 RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
                 RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
                 revWalk.dispose();

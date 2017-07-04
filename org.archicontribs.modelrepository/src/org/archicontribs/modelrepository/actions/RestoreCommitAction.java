@@ -17,6 +17,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -106,14 +107,14 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         // Walk the tree and get the contents of the commit
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            try(TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
+        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
+            try(TreeWalk treeWalk = new TreeWalk(repository)) {
                 treeWalk.addTree(fCommit.getTree());
                 treeWalk.setRecursive(true);
 
                 while(treeWalk.next()) {
                     ObjectId objectId = treeWalk.getObjectId(0);
-                    ObjectLoader loader = git.getRepository().open(objectId);
+                    ObjectLoader loader = repository.open(objectId);
                     
                     File file = new File(getRepository().getLocalRepositoryFolder(), treeWalk.getPathString());
                     file.getParentFile().mkdirs();
@@ -174,8 +175,8 @@ public class RestoreCommitAction extends AbstractModelAction {
             return false;
         }
         
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            ObjectId headID = git.getRepository().resolve("refs/heads/master"); //$NON-NLS-1$
+        try(Repository repo = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
+            ObjectId headID = repo.resolve("refs/heads/master"); //$NON-NLS-1$
             ObjectId commitID = fCommit.getId();
             return commitID.equals(headID);
         }

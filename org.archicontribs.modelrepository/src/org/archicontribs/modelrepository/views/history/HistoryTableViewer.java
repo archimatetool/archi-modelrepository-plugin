@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
@@ -100,24 +101,24 @@ public class HistoryTableViewer extends TableViewer {
             }
             
             // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
-            try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
+            try(Repository repository = Git.open(repo.getLocalRepositoryFolder()).getRepository()) {
                 // get a list of all known heads, tags, remotes, ...
-                //Collection<Ref> allRefs = git.getRepository().getAllRefs().values();
+                //Collection<Ref> allRefs = repository.getAllRefs().values();
                 
                 // a RevWalk allows to walk over commits based on some filtering that is defined
-                try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+                try(RevWalk revWalk = new RevWalk(repository)) {
 //                    for(Ref ref : allRefs ) {
 //                        revWalk.markStart(revWalk.parseCommit(ref.getObjectId()));
 //                    }
                     
                     // We are interested in the local master branch and origin master branch
-                    ObjectId objectID = git.getRepository().resolve("refs/heads/master"); //$NON-NLS-1$
+                    ObjectId objectID = repository.resolve("refs/heads/master"); //$NON-NLS-1$
                     if(objectID != null) {
                         localMasterCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(localMasterCommit); 
                     }
                     
-                    objectID = git.getRepository().resolve("origin/master"); //$NON-NLS-1$
+                    objectID = repository.resolve("origin/master"); //$NON-NLS-1$
                     if(objectID != null) {
                         originMasterCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(originMasterCommit);
@@ -126,6 +127,8 @@ public class HistoryTableViewer extends TableViewer {
                     for(RevCommit commit : revWalk ) {
                         commits.add(commit);
                     }
+                    
+                    revWalk.dispose();
                 }
             }
             catch(IOException ex) {
