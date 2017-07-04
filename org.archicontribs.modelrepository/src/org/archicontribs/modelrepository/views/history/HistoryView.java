@@ -226,6 +226,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         //manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
         
@@ -252,6 +253,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         //manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
     }
