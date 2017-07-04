@@ -122,6 +122,14 @@ public class Messages extends NLS {
 
     public static String ResetToRemoteCommitAction_4;
 
+    public static String RestoreCommitAction_0;
+
+    public static String RestoreCommitAction_1;
+
+    public static String RestoreCommitAction_2;
+
+    public static String RestoreCommitAction_3;
+
     public static String RevertCommitAction_0;
 
     public static String RevertCommitAction_1;

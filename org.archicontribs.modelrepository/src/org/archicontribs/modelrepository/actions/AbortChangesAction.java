@@ -12,10 +12,6 @@ import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.CleanCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -51,17 +47,8 @@ public class AbortChangesAction extends AbstractModelAction {
             return;
         }
         
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            // Reset to master
-            ResetCommand resetCommand = git.reset();
-            resetCommand.setRef("refs/heads/master"); //$NON-NLS-1$
-            resetCommand.setMode(ResetType.HARD);
-            resetCommand.call();
-            
-            // Clean extra files
-            CleanCommand cleanCommand = git.clean();
-            cleanCommand.setCleanDirectories(true);
-            cleanCommand.call();
+        try {
+            getRepository().resetToRef("refs/heads/master"); //$NON-NLS-1$
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);

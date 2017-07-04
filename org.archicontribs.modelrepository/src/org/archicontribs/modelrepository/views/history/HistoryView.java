@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.views.history;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
+import org.archicontribs.modelrepository.actions.RestoreCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -73,6 +74,8 @@ implements IContextProvider, ISelectionListener {
     private ExtractModelFromCommitAction fActionExtractCommit;
     //private RevertCommitAction fActionRevertSingleCommit;
     private RevertCommitsAction fActionRevertUptoCommit;
+    private RestoreCommitAction fActionRestoreCommit;
+    
     private UndoLastCommitAction fActionUndoLastCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     
@@ -167,6 +170,9 @@ implements IContextProvider, ISelectionListener {
         fActionRevertUptoCommit = new RevertCommitsAction(getViewSite().getWorkbenchWindow());
         fActionRevertUptoCommit.setEnabled(false);
         
+        fActionRestoreCommit = new RestoreCommitAction(getViewSite().getWorkbenchWindow());
+        fActionRestoreCommit.setEnabled(false);
+        
         fActionUndoLastCommit = new UndoLastCommitAction(getViewSite().getWorkbenchWindow());
         fActionUndoLastCommit.setEnabled(false);
         
@@ -226,6 +232,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         //manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
@@ -243,6 +250,7 @@ implements IContextProvider, ISelectionListener {
         fActionExtractCommit.setCommit(commit);
         //fActionRevertSingleCommit.setCommit(commit);
         fActionRevertUptoCommit.setCommit(commit);
+        fActionRestoreCommit.setCommit(commit);
         
         fCommentViewer.setCommit(commit);
     }
@@ -253,6 +261,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionExtractCommit);
         //manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
+        manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
@@ -307,6 +316,7 @@ implements IContextProvider, ISelectionListener {
             fActionExtractCommit.setRepository(selectedRepository);
             //fActionRevertSingleCommit.setRepository(selectedRepository);
             fActionRevertUptoCommit.setRepository(selectedRepository);
+            fActionRestoreCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
             

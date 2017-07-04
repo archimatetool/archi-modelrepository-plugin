@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.FetchCommand;
@@ -23,6 +24,8 @@ import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -273,6 +276,22 @@ public class ArchiRepository implements IArchiRepository {
         return str;
     }
 
+    @Override
+    public void resetToRef(String ref) throws IOException, GitAPIException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            // Reset to master
+            ResetCommand resetCommand = git.reset();
+            resetCommand.setRef(ref);
+            resetCommand.setMode(ResetType.HARD);
+            resetCommand.call();
+            
+            // Clean extra files
+            CleanCommand cleanCommand = git.clean();
+            cleanCommand.setCleanDirectories(true);
+            cleanCommand.call();
+        }
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {

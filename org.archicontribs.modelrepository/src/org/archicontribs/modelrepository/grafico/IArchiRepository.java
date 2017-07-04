@@ -139,4 +139,12 @@ public interface IArchiRepository {
      */
     String getWorkingTreeFileContents(String path) throws IOException;
 
+    /**
+     * Do a HARD reset to the given ref
+     * @param ref can be "refs/heads/master" for local, or "origin/master" for remote ref
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    void resetToRef(String ref) throws IOException, GitAPIException;
+
 }
