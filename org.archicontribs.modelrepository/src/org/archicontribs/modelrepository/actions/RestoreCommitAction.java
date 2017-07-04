@@ -41,7 +41,7 @@ public class RestoreCommitAction extends AbstractModelAction {
 
     public void setCommit(RevCommit commit) {
         fCommit = commit;
-        setEnabled(fCommit != null);
+        setEnabled(shouldBeEnabled());
     }
     
     @Override
@@ -158,6 +158,26 @@ public class RestoreCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        return fCommit != null && getRepository() != null;
+        boolean isHead = false;
+        try {
+            isHead = isCommitLocalHead();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return fCommit != null && getRepository() != null && !isHead;
+    }
+    
+    protected boolean isCommitLocalHead() throws IOException {
+        if(fCommit == null) {
+            return false;
+        }
+        
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+            ObjectId headID = git.getRepository().resolve("refs/heads/master"); //$NON-NLS-1$
+            ObjectId commitID = fCommit.getId();
+            return commitID.equals(headID);
+        }
     }
 }

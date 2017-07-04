@@ -36,7 +36,7 @@ public class RevertCommitAction extends AbstractModelAction {
 
     public void setCommit(RevCommit commit) {
         fCommit = commit;
-        setEnabled(fCommit != null);
+        setEnabled(shouldBeEnabled());
     }
     
     @Override
