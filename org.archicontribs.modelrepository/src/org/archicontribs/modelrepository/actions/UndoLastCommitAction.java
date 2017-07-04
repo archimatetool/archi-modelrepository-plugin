@@ -128,6 +128,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
             try(RevWalk revWalk = new RevWalk(git.getRepository())) {
                 RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
                 RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
+                revWalk.dispose();
                 return onlineCommit.equals(localLatestCommit);
             }
         }

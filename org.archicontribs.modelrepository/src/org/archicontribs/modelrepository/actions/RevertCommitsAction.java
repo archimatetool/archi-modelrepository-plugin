@@ -50,6 +50,8 @@ public class RevertCommitsAction extends RevertCommitAction {
                 }
                 revertCommand.include(c);
             }
+            
+            revWalk.dispose();
         }
         
         revertCommand.call();
