@@ -337,10 +337,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     }
                 }
             });
+
+            // Store last selected
+            fSelectedRepository = selectedRepository;
         }
-        
-        // Store last selected
-        fSelectedRepository = selectedRepository;
     }
     
     @Override
