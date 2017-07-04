@@ -41,22 +41,13 @@ public class UndoLastCommitAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // Is the last commit unpushed?
-        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            Ref online = git.getRepository().findRef("origin/master"); //$NON-NLS-1$
-            Ref local = git.getRepository().findRef("HEAD"); //$NON-NLS-1$
-            
-            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
-                RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
-                RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
-                
-                // Must have been pushed
-                if(onlineCommit.equals(localLatestCommit)) {
-                    MessageDialog.openError(fWindow.getShell(),
-                            Messages.UndoLastCommitAction_0,
-                            Messages.UndoLastCommitAction_3);
-                    return;
-                }
+        // If the latest commit (i.e. local and remote head are the same) has already been pushed we can't roll back to the previous commit
+        try {
+            if(isHeadAndRemoteSame()) {
+                MessageDialog.openError(fWindow.getShell(),
+                        Messages.UndoLastCommitAction_0,
+                        Messages.UndoLastCommitAction_3);
+                return;
             }
         }
         catch(IOException ex) {
@@ -96,16 +87,13 @@ public class UndoLastCommitAction extends AbstractModelAction {
             }
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.RevertCommitAction_3, ex);
+            displayErrorDialog(Messages.UndoLastCommitAction_4, ex);
             return;
         }
         
         // Do it!
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            ResetCommand resetCommand = git.reset();
-            resetCommand.setRef("HEAD^"); //$NON-NLS-1$
-            resetCommand.setMode(ResetType.HARD); // And do it hard, boy!
-            resetCommand.call();
+            reset("HEAD^"); //$NON-NLS-1$
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
@@ -122,8 +110,35 @@ public class UndoLastCommitAction extends AbstractModelAction {
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
     
-    @Override
-    protected boolean shouldBeEnabled() {
-        return getRepository() != null;
+    /**
+     * @return true if the latest local HEAD commit and the remote commit are the same
+     * @throws IOException
+     */
+    protected boolean isHeadAndRemoteSame() throws IOException {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+            Ref online = git.getRepository().findRef("origin/master"); //$NON-NLS-1$
+            Ref local = git.getRepository().findRef("HEAD"); //$NON-NLS-1$
+            
+            try(RevWalk revWalk = new RevWalk(git.getRepository())) {
+                RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
+                RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
+                return onlineCommit.equals(localLatestCommit);
+            }
+        }
+    }
+    
+    /**
+     * Reset to ref state HARD
+     * @param ref
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    protected void reset(String ref) throws IOException, GitAPIException {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+            ResetCommand resetCommand = git.reset();
+            resetCommand.setRef(ref);
+            resetCommand.setMode(ResetType.HARD); // And do it hard, boy!
+            resetCommand.call();
+        }
     }
 }

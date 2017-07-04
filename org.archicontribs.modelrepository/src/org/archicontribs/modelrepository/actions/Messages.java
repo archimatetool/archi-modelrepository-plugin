@@ -114,6 +114,16 @@ public class Messages extends NLS {
 
     public static String RefreshModelAction_7;
 
+    public static String ResetToRemoteCommitAction_0;
+
+    public static String ResetToRemoteCommitAction_1;
+
+    public static String ResetToRemoteCommitAction_2;
+
+    public static String ResetToRemoteCommitAction_3;
+
+    public static String ResetToRemoteCommitAction_4;
+
     public static String RevertCommitAction_0;
 
     public static String RevertCommitAction_1;
@@ -137,6 +147,8 @@ public class Messages extends NLS {
     public static String UndoLastCommitAction_2;
 
     public static String UndoLastCommitAction_3;
+
+    public static String UndoLastCommitAction_4;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.views.history;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
+import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitAction;
 import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
@@ -74,6 +75,7 @@ implements IContextProvider, ISelectionListener {
     private RevertCommitAction fActionRevertSingleCommit;
     private RevertCommitsAction fActionRevertUptoCommit;
     private UndoLastCommitAction fActionUndoLastCommit;
+    private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     
     
     /*
@@ -169,6 +171,9 @@ implements IContextProvider, ISelectionListener {
         fActionUndoLastCommit = new UndoLastCommitAction(getViewSite().getWorkbenchWindow());
         fActionUndoLastCommit.setEnabled(false);
         
+        fActionResetToRemoteCommit = new ResetToRemoteCommitAction(getViewSite().getWorkbenchWindow());
+        fActionResetToRemoteCommit.setEnabled(false);
+        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -223,6 +228,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
         manager.add(fActionUndoLastCommit);
+        manager.add(fActionResetToRemoteCommit);
         
         manager.add(new Separator());
     }
@@ -248,6 +254,7 @@ implements IContextProvider, ISelectionListener {
         manager.add(fActionRevertSingleCommit);
         manager.add(fActionRevertUptoCommit);
         manager.add(fActionUndoLastCommit);
+        manager.add(fActionResetToRemoteCommit);
     }
 
     /**
@@ -300,6 +307,7 @@ implements IContextProvider, ISelectionListener {
             fActionRevertSingleCommit.setRepository(selectedRepository);
             fActionRevertUptoCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
+            fActionResetToRemoteCommit.setRepository(selectedRepository);
             
             // Select first row
             Display.getDefault().asyncExec(new Runnable() {
