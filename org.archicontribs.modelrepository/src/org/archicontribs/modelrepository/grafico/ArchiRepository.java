@@ -167,9 +167,7 @@ public class ArchiRepository implements IArchiRepository {
             
         try(Git git = cloneCommand.call()) {
             // Use the same line endings
-            StoredConfig config = git.getRepository().getConfig();
-            config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
-            config.save();
+            setConfigLineEndings(git);
         }
     }
 
@@ -220,9 +218,7 @@ public class ArchiRepository implements IArchiRepository {
         remoteAddCommand.call();
         
         // Use the same line endings
-        StoredConfig config = git.getRepository().getConfig();
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
-        config.save();
+        setConfigLineEndings(git);
         
         return git;
     }
@@ -283,5 +279,17 @@ public class ArchiRepository implements IArchiRepository {
             return fLocalRepoFolder != null && fLocalRepoFolder.equals(((IArchiRepository)obj).getLocalRepositoryFolder());
         }
         return false;
+    }
+    
+    /**
+     * Set Line endings in the config file to autocrlf=true
+     * This ensures that files are not seen as different
+     * @param git
+     * @throws IOException
+     */
+    private void setConfigLineEndings(Git git) throws IOException {
+        StoredConfig config = git.getRepository().getConfig();
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
+        config.save();
     }
 }
