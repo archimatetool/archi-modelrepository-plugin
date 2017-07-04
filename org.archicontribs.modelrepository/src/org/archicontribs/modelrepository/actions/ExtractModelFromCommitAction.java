@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
@@ -20,6 +19,7 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 
@@ -32,7 +32,7 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
 	
     public ExtractModelFromCommitAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_UNSTAGE));
+        setImageDescriptor(IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ICON_MODELS));
         setText(Messages.ExtractModelFromCommitAction_0);
         setToolTipText(Messages.ExtractModelFromCommitAction_0);
     }

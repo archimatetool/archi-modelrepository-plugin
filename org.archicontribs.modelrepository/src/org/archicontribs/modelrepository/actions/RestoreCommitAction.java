@@ -34,7 +34,7 @@ public class RestoreCommitAction extends AbstractModelAction {
 	
     public RestoreCommitAction(IWorkbenchWindow window) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REVERT));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_SYNCED));
         setText(Messages.RestoreCommitAction_0);
         setToolTipText(Messages.RestoreCommitAction_0);
     }
