@@ -58,7 +58,13 @@ public class CommitModelAction extends AbstractModelAction {
         }
 
         // Do the Grafico Export first
-        exportModelToGraficoFiles();
+        try {
+            exportModelToGraficoFiles();
+        }
+        catch(IOException ex) {
+            displayErrorDialog(Messages.CommitModelAction_0, ex);
+            return;
+        }
         
         // Then Commit
         try {

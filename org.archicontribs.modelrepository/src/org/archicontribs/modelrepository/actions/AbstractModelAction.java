@@ -207,25 +207,18 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     
     /**
      * Export the model to Grafico files
+     * @throws IOException 
      */
-    protected void exportModelToGraficoFiles() {
+    protected void exportModelToGraficoFiles() throws IOException {
         // Open the model
         IArchimateModel model = IEditorModelManager.INSTANCE.openModel(fRepository.getTempModelFile());
         
         if(model == null) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.AbstractModelAction_7,
-                    Messages.AbstractModelAction_8);
-            return;
+            throw new IOException(Messages.AbstractModelAction_8);
         }
         
-        try {
-            GraficoModelExporter exporter = new GraficoModelExporter(model, getRepository().getLocalRepositoryFolder());
-            exporter.exportModel();
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.AbstractModelAction_5, ex);
-        }
+        GraficoModelExporter exporter = new GraficoModelExporter(model, getRepository().getLocalRepositoryFolder());
+        exporter.exportModel();
     }
     
     /**

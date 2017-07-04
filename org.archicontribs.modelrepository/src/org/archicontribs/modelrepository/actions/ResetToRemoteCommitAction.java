@@ -60,7 +60,13 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         }
         
         // Do the Grafico Export first
-        exportModelToGraficoFiles();
+        try {
+            exportModelToGraficoFiles();
+        }
+        catch(IOException ex) {
+            displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
+            return;
+        }
         
         try {
             // If there are changes to commit then they'll have to be committed first or abandoned

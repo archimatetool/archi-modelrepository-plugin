@@ -69,7 +69,13 @@ public class PushModelAction extends AbstractModelAction {
         }
 
         // Do the Grafico Export first
-        exportModelToGraficoFiles();
+        try {
+            exportModelToGraficoFiles();
+        }
+        catch(IOException ex) {
+            displayErrorDialog(Messages.PushModelAction_0, ex);
+            return;
+        }
         
         // Then offer to Commit
         try {

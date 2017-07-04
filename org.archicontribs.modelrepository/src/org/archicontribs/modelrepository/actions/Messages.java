@@ -22,8 +22,6 @@ public class Messages extends NLS {
 
     public static String AbstractModelAction_4;
 
-    public static String AbstractModelAction_5;
-
     public static String AbstractModelAction_6;
 
     public static String AbstractModelAction_7;
