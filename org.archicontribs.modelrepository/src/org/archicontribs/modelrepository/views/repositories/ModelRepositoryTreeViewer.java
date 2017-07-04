@@ -109,9 +109,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(IRepositoryListener.REPOSITORY_DELETED.equals(eventName) || IRepositoryListener.REPOSITORY_ADDED.equals(eventName)) {
-            refresh();
-        }
+        refresh();
     }
     
     /**

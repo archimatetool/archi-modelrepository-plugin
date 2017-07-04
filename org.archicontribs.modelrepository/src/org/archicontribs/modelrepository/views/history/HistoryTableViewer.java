@@ -12,8 +12,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -27,8 +25,6 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
@@ -36,7 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 /**
  * History Table Viewer
  */
-public class HistoryTableViewer extends TableViewer implements IRepositoryListener {
+public class HistoryTableViewer extends TableViewer {
     
     private RevCommit localMasterCommit, originMasterCommit;
     
@@ -50,17 +46,6 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
         
         setContentProvider(new HistoryContentProvider());
         setLabelProvider(new HistoryLabelProvider());
-        
-        // Add listener
-        RepositoryListenerManager.INSTANCE.addListener(this);
-        
-        // Dispose of listener
-        getTable().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                RepositoryListenerManager.INSTANCE.removeListener(HistoryTableViewer.this);
-            }
-        });
     }
 
     /**
@@ -88,13 +73,6 @@ public class HistoryTableViewer extends TableViewer implements IRepositoryListen
         column.getColumn().setText(Messages.HistoryTableViewer_3);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     
-    }
-    
-    @Override
-    public void repositoryChanged(String eventName, IArchiRepository repository) {
-        if(repository.equals(getInput())) {
-            setInput(getInput());
-        }
     }
     
     // ===============================================================================================

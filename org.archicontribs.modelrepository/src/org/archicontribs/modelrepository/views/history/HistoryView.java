@@ -14,6 +14,8 @@ import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -56,7 +58,7 @@ import com.archimatetool.model.IArchimateModelObject;
  */
 public class HistoryView
 extends ViewPart
-implements IContextProvider, ISelectionListener {
+implements IContextProvider, ISelectionListener, IRepositoryListener {
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
@@ -155,6 +157,9 @@ implements IContextProvider, ISelectionListener {
         if(part != null) {
             selectionChanged(part, getSite().getWorkbenchWindow().getSelectionService().getSelection());
         }
+        
+        // Add listener
+        RepositoryListenerManager.INSTANCE.addListener(this);
     }
     
     /**
@@ -339,9 +344,18 @@ implements IContextProvider, ISelectionListener {
     }
     
     @Override
+    public void repositoryChanged(String eventName, IArchiRepository repository) {
+        if(repository.equals(fSelectedRepository)) {
+            fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+            getViewer().setInput(repository);
+        }
+    }
+    
+    @Override
     public void dispose() {
         super.dispose();
         getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
+        RepositoryListenerManager.INSTANCE.removeListener(this);
     }
     
 

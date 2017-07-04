@@ -10,6 +10,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -76,7 +79,28 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getName() {
-        return fLocalRepoFolder.getName();
+        String[] result = new String[1];
+        result[0] = fLocalRepoFolder.getName();
+        
+        // Find the "folder.xml" file and read it from there
+        File file = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER + "/" + IGraficoConstants.FOLDER_XML); //$NON-NLS-1$
+        if(file.exists()) {
+            try(Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
+                stream.forEach(s -> {
+                    if(s.indexOf("name=") != -1) { //$NON-NLS-1$
+                        String segments[] = s.split("\""); //$NON-NLS-1$
+                        if(segments.length == 2) {
+                            result[0] = segments[1];
+                        }
+                    }
+                });
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        
+        return result[0];
     }
 
     @Override
