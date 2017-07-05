@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -55,7 +54,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     /**
      * Resolution Handler
      */
-    private GraficoResolutionHandler fResolutionHandler;
+    private ConflictResolutionHandler fResolutionHandler;
     
     /**
      * Resource Set
@@ -124,33 +123,9 @@ public class GraficoModelImporter implements IGraficoConstants {
     }
     
     /**
-     * @return True if there are problems on import
+     * @return The Resolution Handler. Can be null
      */
-    public boolean hasProblems() {
-        return getResolutionHandler().hasProblems();
-    }
-
-    /**
-     * Delete problem objects, if any
-     */
-    public void deleteProblemObjects() {
-        getResolutionHandler().deleteProblemObjects();
-    }
-    
-    /**
-     * @return Error messages, if any
-     */
-    public MultiStatus getResolveStatus() {
-        return getResolutionHandler().getResolveStatus();
-    }
-    
-    /**
-     * @return The Resolution Handler if any, can be null.
-     */
-    private GraficoResolutionHandler getResolutionHandler() {
-        if(fResolutionHandler == null) {
-            fResolutionHandler = new GraficoResolutionHandler(fModel);
-        }
+    public ConflictResolutionHandler getResolutionHandler() {
         return fResolutionHandler;
     }
     
@@ -224,7 +199,10 @@ public class GraficoModelImporter implements IGraficoConstants {
             // If proxy has not been resolved
             if(newObject == null) {
                 // Add a resolve problem to the handler
-                getResolutionHandler().addResolveProblem(object, parent);
+                if(fResolutionHandler == null) {
+                    fResolutionHandler = new ConflictResolutionHandler(fModel);
+                }
+                fResolutionHandler.addResolveProblem(object, parent);
             }
             
             return newObject == null ? object : newObject;

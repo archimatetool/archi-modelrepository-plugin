@@ -5,6 +5,7 @@
  */
 package org.archicontribs.modelrepository.grafico;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.osgi.util.NLS;
@@ -21,11 +23,11 @@ import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
- * Internal Helper class to Resolve Issues on Grafico Import
+ * Handler to Resolve Conflict Issues on Grafico Import
  * 
  * @author Phillip Beauvoir
  */
-class GraficoResolutionHandler {
+public class ConflictResolutionHandler {
 
     private static class ProblemPair {
         IIdentifier object;
@@ -41,7 +43,7 @@ class GraficoResolutionHandler {
     
     private List<ProblemPair> fProblems;
     
-    GraficoResolutionHandler(IArchimateModel model) {
+    public ConflictResolutionHandler(IArchimateModel model) {
         fModel = model;
         fProblems = new ArrayList<ProblemPair>();
     }
@@ -55,7 +57,24 @@ class GraficoResolutionHandler {
         fProblems.add(new ProblemPair(object, parent));
     }
     
-    void deleteProblemObjects() {
+    public void resolveProblemObjects() {
+        // deleteProblemObjects();
+        
+        restoreProblemObjects();
+    }
+    
+    public void restoreProblemObjects() {
+        for(ProblemPair problemPair : fProblems) {
+            URI objectURI = EcoreUtil.getURI(problemPair.object);
+            String objectID = objectURI.fragment();
+            //String parentID = problemPair.parent.getId();
+            
+            // Find the problem object xml files from the commit history and restore them
+            // Then I think we need to do another Grafico Import...
+        }
+    }
+
+    public void deleteProblemObjects() throws IOException {
         for(ProblemPair problemPair : fProblems) {
             //String objectID = EcoreUtil.getURI(problemPair.object).fragment();
             String parentID = problemPair.parent.getId();
@@ -65,16 +84,20 @@ class GraficoResolutionHandler {
                 EcoreUtil.remove(eObject);
             }
         }
+        
+        // And re-export to grafico xml files
+        GraficoModelExporter exporter = new GraficoModelExporter(fModel, GraficoUtils.getLocalRepositoryFolderForModel(fModel));
+        exporter.exportModel();
     }
     
-    boolean hasProblems() {
+    public boolean hasProblems() {
         return !fProblems.isEmpty();
     }
     
     /**
      * @return A list of error messages
      */
-    List<String> getErrorMessages() {
+    public List<String> getErrorMessages() {
         List<String> messages = new ArrayList<String>();
         
         for(ProblemPair problemPair : fProblems) {
@@ -90,7 +113,7 @@ class GraficoResolutionHandler {
         return messages;
     }
 
-    MultiStatus getResolveStatus() {
+    public MultiStatus getResolveStatus() {
         MultiStatus ms = new MultiStatus(ModelRepositoryPlugin.PLUGIN_ID, IStatus.ERROR, Messages.GraficoResolutionHandler_0, null);
         
         for(String message : getErrorMessages()) {
