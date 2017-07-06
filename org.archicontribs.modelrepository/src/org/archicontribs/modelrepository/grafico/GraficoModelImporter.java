@@ -191,10 +191,11 @@ public class GraficoModelImporter implements IGraficoConstants {
      */
     private EObject resolve(IIdentifier object, IIdentifier parent) {
         if(object != null && object.eIsProxy()) {
-            String objectURIFragment = EcoreUtil.getURI(object).fragment();
+            URI objectURI = EcoreUtil.getURI(object);
+            String objectID = EcoreUtil.getURI(object).fragment();
             
             // Get proxy object
-            IIdentifier newObject = fIDLookup.get(objectURIFragment);
+            IIdentifier newObject = fIDLookup.get(objectID);
             
             // If proxy has not been resolved
             if(newObject == null) {
@@ -202,7 +203,7 @@ public class GraficoModelImporter implements IGraficoConstants {
                 if(fResolutionHandler == null) {
                     fResolutionHandler = new ConflictResolutionHandler(fModel);
                 }
-                fResolutionHandler.addResolveProblem(object, parent);
+                fResolutionHandler.addResolveProblem(objectURI, parent);
             }
             
             return newObject == null ? object : newObject;

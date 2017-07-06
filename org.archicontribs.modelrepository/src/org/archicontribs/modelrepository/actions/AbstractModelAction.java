@@ -130,15 +130,15 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 IEditorModelManager.INSTANCE.closeModel(model);
             }
             
-            // Set file name
-            File tmpFile = fRepository.getTempModelFile();
-            graficoModel.setFile(tmpFile);
+            // Set file name on the grafico model so we can locate it
+            graficoModel.setFile(fRepository.getTempModelFile());
             
             // Import problems occured
             ConflictResolutionHandler resolutionHandler = importer.getResolutionHandler();
             if(resolutionHandler != null) {
                 // Resolve problem objects
-                resolutionHandler.resolveProblemObjects();
+                graficoModel = resolutionHandler.resolveProblemObjects();
+                graficoModel.setFile(fRepository.getTempModelFile()); // do this again
             }
             
             // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
