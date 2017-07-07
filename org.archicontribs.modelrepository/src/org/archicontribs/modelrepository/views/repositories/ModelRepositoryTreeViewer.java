@@ -112,7 +112,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                             String userName = scs.getUsername();
                             String userPassword = scs.getPassword();
                             if(userName != null && userPassword != null) {
-                                repo.fetchFromRemote(userName, userPassword, null, true);
+                                repo.fetchFromRemote(userName, userPassword, null, false);
                                 refreshInBackground();
                             }
                         }
