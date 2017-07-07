@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,17 +21,18 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 
 
@@ -62,6 +64,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 stopBackgroundJobs();
             }
         });
+        
+        ColumnViewerToolTipSupport.enableFor(this);
         
         setInput(""); //$NON-NLS-1$
         
@@ -172,40 +176,53 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 	// ===================================== Label Model ==============================================
 	// ===============================================================================================
 
-    class ModelRepoTreeLabelProvider extends LabelProvider {
-        
+    class ModelRepoTreeLabelProvider extends CellLabelProvider {
         @Override
-        public String getText(Object obj) {
-        	if(obj instanceof IArchiRepository) {
-        	    IArchiRepository repo = (IArchiRepository)obj;
-        	    return repo.getName();
-        	}
-        	else if(obj instanceof File) {
-        	    return ((File)obj).getName();
-        	}
-        	
-        	return ""; //$NON-NLS-1$
+        public void update(ViewerCell cell) {
+            if(cell.getElement() instanceof IArchiRepository) {
+                IArchiRepository repo = (IArchiRepository)cell.getElement();
+                
+                // Text
+                cell.setText(repo.getName());
+                
+                // Image
+                Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+                
+                try {
+                    if(repo.hasUnpushedCommits("refs/heads/master")) { //$NON-NLS-1$
+                        image = IModelRepositoryImages.getOverlayImage(image,
+                                IModelRepositoryImages.ICON_WARNING_OVERLAY, IDecoration.BOTTOM_LEFT);
+                    }
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                
+                cell.setImage(image);
+            }
         }
         
         @Override
-        public Image getImage(Object obj) {
-            Image image = null;
-            
-            if(obj instanceof IArchiRepository) {
-                image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
-            }
-            else if(obj instanceof File) {
-                File file = (File)obj;
+        public String getToolTipText(Object element) {
+            if(element instanceof IArchiRepository) {
+                IArchiRepository repo = (IArchiRepository)element;
                 
-                if(file.isDirectory()) {
-                    image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
+                String s = "'" + repo.getName() + "'"; //$NON-NLS-1$ //$NON-NLS-2$
+                
+                try {
+                    if(repo.hasUnpushedCommits("refs/heads/master")) { //$NON-NLS-1$
+                        s += "\n" + //$NON-NLS-1$
+                             Messages.ModelRepositoryTreeViewer_0;
+                    }
                 }
-                else {
-                    image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE);
+                catch(IOException ex) {
+                    ex.printStackTrace();
                 }
+                
+                return s;
             }
             
-            return image;
+            return null;
         }
     }
 }

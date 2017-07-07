@@ -147,4 +147,11 @@ public interface IArchiRepository {
      */
     void resetToRef(String ref) throws IOException, GitAPIException;
 
+    /**
+     * @return true if there are unpushed commits in branch
+     * @param branch The branch name
+     * @throws IOException
+     */
+    boolean hasUnpushedCommits(String branch) throws IOException;
+
 }

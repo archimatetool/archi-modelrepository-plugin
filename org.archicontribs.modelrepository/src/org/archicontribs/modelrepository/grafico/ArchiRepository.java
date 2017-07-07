@@ -31,6 +31,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -313,6 +314,17 @@ public class ArchiRepository implements IArchiRepository {
             CleanCommand cleanCommand = git.clean();
             cleanCommand.setCleanDirectories(true);
             cleanCommand.call();
+        }
+    }
+    
+    @Override
+    public boolean hasUnpushedCommits(String branch) throws IOException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
+            if(trackingStatus != null) {
+                return trackingStatus.getAheadCount() > 0;
+            }
+            return false;
         }
     }
     

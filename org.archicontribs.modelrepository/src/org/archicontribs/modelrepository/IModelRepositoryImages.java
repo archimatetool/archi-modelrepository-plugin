@@ -5,6 +5,11 @@
  */
 package org.archicontribs.modelrepository;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.swt.graphics.Image;
+
 import com.archimatetool.editor.ui.ImageFactory;
 
 
@@ -38,6 +43,33 @@ public interface IModelRepositoryImages {
     String ICON_SYNCED = IMGPATH + "synced.png"; //$NON-NLS-1$
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
     String ICON_UNSTAGE = IMGPATH + "unstage.gif"; //$NON-NLS-1$
+    String ICON_WARNING_OVERLAY = IMGPATH + "warning_ovr.png"; //$NON-NLS-1$
     
     String BANNER_COMMIT = IMGPATH + "commit_wizban.png"; //$NON-NLS-1$
+    
+    
+    /*
+     * TODO - This is temporarily here until the next version of Archi is released which has this method
+     */
+    static public Image getOverlayImage(Image underlay, String overlayName, int quadrant) {
+        // Make a registry name, cached
+        String key_name = overlayName + quadrant;
+
+        Image image = ImageFactory.getImage(key_name);
+        
+        // Make it and cache it
+        if(image == null) {
+            ImageDescriptor overlay = ImageFactory.getImageDescriptor(overlayName);
+            if(overlay != null) {
+                image = new DecorationOverlayIcon(underlay, overlay, quadrant).createImage();
+                if(image != null) {
+                    ImageRegistry registry = ModelRepositoryPlugin.INSTANCE.getImageRegistry();
+                    registry.put(key_name, image);
+                }
+            }
+        }
+        
+        return image;
+    }
+
 }
