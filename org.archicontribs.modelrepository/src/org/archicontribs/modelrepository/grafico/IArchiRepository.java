@@ -106,10 +106,11 @@ public interface IArchiRepository {
      * Fetch from Remote
      * @param userName
      * @param userPassword
+     * @param isDryrun
      * @throws IOException
      * @throws GitAPIException
      */
-    FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException;
+    FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException;
 
     /**
      * Create a new, local Git repository with name set to "origin"
@@ -153,5 +154,12 @@ public interface IArchiRepository {
      * @throws IOException
      */
     boolean hasUnpushedCommits(String branch) throws IOException;
+
+    /**
+     * @return true if the are unpulled commits in the remote
+     * @param branch The branch name
+     * @throws IOException
+     */
+    boolean hasRemoteCommits(String branch) throws IOException;
 
 }

@@ -12,9 +12,11 @@ import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -28,12 +30,12 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.progress.UIJob;
 
 
 /**
@@ -77,37 +79,76 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     protected void startBackgroundJobs() {
         // Refresh file system job
-        Job job = new UIJob(getControl().getDisplay(), "Refresh File System") { //$NON-NLS-1$
+        Job refreshFileSystemJob = new Job("Refresh File System") { //$NON-NLS-1$
             long lastModified = 0L; // last modified
             
             @Override
-            public IStatus runInUIThread(IProgressMonitor monitor) {
-                if(!getTree().isDisposed()) { // this is important!
-                    // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
-                    File rootFolder = getRootFolder();
-                    if(lastModified != 0L && rootFolder.lastModified() != lastModified) {
-                        refresh();
+            public IStatus run(IProgressMonitor monitor) {
+                // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
+                File rootFolder = getRootFolder();
+                
+                if(lastModified != 0L && rootFolder.lastModified() != lastModified) {
+                    refreshInBackground();
+                }
+
+                lastModified = rootFolder.lastModified();
+
+                schedule(5000);// Schedule again in 5 seconds
+                
+                return Status.OK_STATUS;
+            }
+        };
+        fRunningJobs.add(refreshFileSystemJob);
+        
+        // Fetch
+        Job fetchJob = new Job("Fetch") { //$NON-NLS-1$
+            @Override
+            public IStatus run(IProgressMonitor monitor) {
+                if(!getControl().isDisposed()) {
+                    for(IArchiRepository repo : getRepositories(getRootFolder())) {
+                        // If the user name and password are stored
+                        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                        try {
+                            String userName = scs.getUsername();
+                            String userPassword = scs.getPassword();
+                            if(userName != null && userPassword != null) {
+                                repo.fetchFromRemote(userName, userPassword, null, true);
+                                refreshInBackground();
+                            }
+                        }
+                        catch(IOException | GitAPIException ex) {
+                            // silence is golden
+                        }
                     }
 
-                    lastModified = rootFolder.lastModified();
-                    
-                    schedule(5000);// Schedule again
+                    schedule(20000); // Schedule again in 20 seconds
                 }
                 
                 return Status.OK_STATUS;
             }
         };
-        fRunningJobs.add(job);
-        
-        // Start all jobs 5 seconds from now
+        fRunningJobs.add(fetchJob);
+
+        // Start all jobs 1 second from now
         for(Job j : fRunningJobs) {
-            j.schedule(5000);
+            j.schedule(1000);
         }
     }
     
     protected void stopBackgroundJobs() {
         for(Job job : fRunningJobs) {
             job.cancel();
+        }
+    }
+    
+    protected void refreshInBackground() {
+        if(!getControl().isDisposed()) {
+            getControl().getDisplay().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    refresh();
+                }
+            });
         }
     }
 
@@ -121,6 +162,24 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     protected File getRootFolder() {
         return ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
+    }
+    
+    /**
+     * @return All repos in the file system
+     */
+    protected List<IArchiRepository> getRepositories(File folder) {
+        // Only show top level folders that are git repos
+        List<IArchiRepository> repos = new ArrayList<IArchiRepository>();
+        
+        if(folder.exists() && folder.isDirectory()) {
+            for(File file : getRootFolder().listFiles()) {
+                if(GraficoUtils.isGitRepository(file)) {
+                    repos.add(new ArchiRepository(file));
+                }
+            }
+        }
+        
+        return repos;
     }
     
     // ===============================================================================================
@@ -152,19 +211,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             return null;
         }
         
-        public Object [] getChildren(Object parent) {
-        	// Only show top level folders that are git repos
-            List<ArchiRepository> repos = new ArrayList<ArchiRepository>();
-            
-            if(parent instanceof File && ((File)parent).exists()) {
-                for(File file : ((File)parent).listFiles()) {
-                    if(GraficoUtils.isGitRepository(file)) {
-                        repos.add(new ArchiRepository(file));
-                    }
-                }
+        public Object[] getChildren(Object parent) {
+            if(parent instanceof File) {
+                return getRepositories((File)parent).toArray();
             }
             
-            return repos.toArray();
+            return new Object[0];
         }
         
         public boolean hasChildren(Object parent) {
@@ -193,6 +245,11 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                         image = IModelRepositoryImages.getOverlayImage(image,
                                 IModelRepositoryImages.ICON_WARNING_OVERLAY, IDecoration.BOTTOM_LEFT);
                     }
+                    
+                    if(repo.hasRemoteCommits("refs/heads/master")) { //$NON-NLS-1$
+                        image = IModelRepositoryImages.getOverlayImage(image,
+                                IModelRepositoryImages.ICON_HAS_REMOTE_COMMITS_OVERLAY, IDecoration.BOTTOM_RIGHT);
+                    }
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
@@ -213,6 +270,10 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     if(repo.hasUnpushedCommits("refs/heads/master")) { //$NON-NLS-1$
                         s += "\n" + //$NON-NLS-1$
                              Messages.ModelRepositoryTreeViewer_0;
+                    }
+                    if(repo.hasRemoteCommits("refs/heads/master")) { //$NON-NLS-1$
+                        s += "\n" + //$NON-NLS-1$
+                             Messages.ModelRepositoryTreeViewer_1;
                     }
                 }
                 catch(IOException ex) {

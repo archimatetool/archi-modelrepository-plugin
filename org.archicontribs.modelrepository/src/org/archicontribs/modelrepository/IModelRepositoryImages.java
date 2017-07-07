@@ -33,6 +33,7 @@ public interface IModelRepositoryImages {
     String ICON_COMMIT = IMGPATH + "commit.png"; //$NON-NLS-1$
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png"; //$NON-NLS-1$
     String ICON_DELETE = IMGPATH + "delete.png"; //$NON-NLS-1$
+    String ICON_HAS_REMOTE_COMMITS_OVERLAY = IMGPATH + "version_controlled.gif"; //$NON-NLS-1$
     String ICON_HISTORY_VIEW = IMGPATH + "history_view.png"; //$NON-NLS-1$
     String ICON_MODEL = IMGPATH + "elements_obj.png"; //$NON-NLS-1$
     String ICON_OPEN = IMGPATH + "open.png"; //$NON-NLS-1$

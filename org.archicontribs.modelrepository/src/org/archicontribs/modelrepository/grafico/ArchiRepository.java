@@ -221,11 +221,12 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
+            fetchCommand.setDryRun(isDryrun);
             return fetchCommand.call();
         }
     }
@@ -323,6 +324,18 @@ public class ArchiRepository implements IArchiRepository {
             BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
             if(trackingStatus != null) {
                 return trackingStatus.getAheadCount() > 0;
+            }
+            return false;
+        }
+    }
+    
+
+    @Override
+    public boolean hasRemoteCommits(String branch) throws IOException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
+            if(trackingStatus != null) {
+                return trackingStatus.getBehindCount() > 0;
             }
             return false;
         }
