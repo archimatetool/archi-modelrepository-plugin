@@ -53,24 +53,21 @@ public interface IModelRepositoryImages {
      * TODO - This is temporarily here until the next version of Archi is released which has this method
      */
     static public Image getOverlayImage(Image underlay, String overlayName, int quadrant) {
-        // Make a registry name, cached
-        String key_name = overlayName + quadrant;
-
-        Image image = ImageFactory.getImage(key_name);
+        String key = underlay.hashCode() + overlayName + quadrant;
         
-        // Make it and cache it
-        if(image == null) {
-            ImageDescriptor overlay = ImageFactory.getImageDescriptor(overlayName);
-            if(overlay != null) {
-                image = new DecorationOverlayIcon(underlay, overlay, quadrant).createImage();
-                if(image != null) {
+        Image newImage = ImageFactory.getImage(key);
+        if(newImage == null) {
+            ImageDescriptor overlayDescripter = ImageFactory.getImageDescriptor(overlayName);
+            if(overlayDescripter != null) {
+                newImage = new DecorationOverlayIcon(underlay, overlayDescripter, quadrant).createImage();
+                if(newImage != null) {
                     ImageRegistry registry = ModelRepositoryPlugin.INSTANCE.getImageRegistry();
-                    registry.put(key_name, image);
+                    registry.put(key, newImage);
                 }
             }
         }
         
-        return image;
+        return newImage != null ? newImage : underlay;
     }
 
 }

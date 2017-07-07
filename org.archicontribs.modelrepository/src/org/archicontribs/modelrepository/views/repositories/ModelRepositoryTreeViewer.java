@@ -8,7 +8,9 @@ package org.archicontribs.modelrepository.views.repositories;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -34,8 +36,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+
+import com.archimatetool.editor.ui.ColorFactory;
 
 
 /**
@@ -105,6 +110,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             @Override
             public IStatus run(IProgressMonitor monitor) {
                 if(!getControl().isDisposed()) {
+                    boolean needsRefresh = false;
+                    
                     for(IArchiRepository repo : getRepositories(getRootFolder())) {
                         // If the user name and password are stored
                         SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
@@ -113,12 +120,16 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                             String userPassword = scs.getPassword();
                             if(userName != null && userPassword != null) {
                                 repo.fetchFromRemote(userName, userPassword, null, false);
-                                refreshInBackground();
+                                needsRefresh = true;
                             }
                         }
                         catch(IOException | GitAPIException ex) {
                             // silence is golden
                         }
+                    }
+                    
+                    if(needsRefresh) {
+                        refreshInBackground();
                     }
 
                     schedule(20000); // Schedule again in 20 seconds
@@ -229,6 +240,19 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 	// ===============================================================================================
 
     class ModelRepoTreeLabelProvider extends CellLabelProvider {
+        // Cache status for expensive calls
+        private class StatusCache {
+            boolean hasUnpushedCommits;
+            boolean hasRemoteCommits;
+            
+            public StatusCache(boolean hasUnpushedCommits, boolean hasRemoteCommits) {
+                this.hasUnpushedCommits = hasUnpushedCommits;
+                this.hasRemoteCommits = hasRemoteCommits;
+            }
+        }
+        
+        Map<IArchiRepository, StatusCache> cache = new Hashtable<IArchiRepository, StatusCache>();
+        
         @Override
         public void update(ViewerCell cell) {
             if(cell.getElement() instanceof IArchiRepository) {
@@ -241,12 +265,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
                 
                 try {
-                    if(repo.hasUnpushedCommits("refs/heads/master")) { //$NON-NLS-1$
+                    boolean hasUnpushedCommits = repo.hasUnpushedCommits("refs/heads/master"); //$NON-NLS-1$
+                    boolean hasRemoteCommits = repo.hasRemoteCommits("refs/heads/master"); //$NON-NLS-1$
+                    
+                    StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits);
+                    cache.put(repo, sc);
+                    
+                    if(hasUnpushedCommits) {
                         image = IModelRepositoryImages.getOverlayImage(image,
                                 IModelRepositoryImages.ICON_WARNING_OVERLAY, IDecoration.BOTTOM_LEFT);
                     }
                     
-                    if(repo.hasRemoteCommits("refs/heads/master")) { //$NON-NLS-1$
+                    if(hasRemoteCommits) {
                         image = IModelRepositoryImages.getOverlayImage(image,
                                 IModelRepositoryImages.ICON_HAS_REMOTE_COMMITS_OVERLAY, IDecoration.BOTTOM_RIGHT);
                     }
@@ -266,21 +296,35 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 String s = "'" + repo.getName() + "'"; //$NON-NLS-1$ //$NON-NLS-2$
                 
-                try {
-                    if(repo.hasUnpushedCommits("refs/heads/master")) { //$NON-NLS-1$
+                StatusCache sc = cache.get(repo);
+                if(sc != null) {
+                    if(sc.hasUnpushedCommits) {
                         s += "\n" + //$NON-NLS-1$
                              Messages.ModelRepositoryTreeViewer_0;
                     }
-                    if(repo.hasRemoteCommits("refs/heads/master")) { //$NON-NLS-1$
+                    if(sc.hasRemoteCommits) {
                         s += "\n" + //$NON-NLS-1$
                              Messages.ModelRepositoryTreeViewer_1;
                     }
                 }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
                 
                 return s;
+            }
+            
+            return null;
+        }
+        
+        @Override
+        public Color getToolTipForegroundColor(Object object) {
+            if(object instanceof IArchiRepository) {
+                IArchiRepository repo = (IArchiRepository)object;
+                
+                StatusCache sc = cache.get(repo);
+                if(sc != null) {
+                    if(sc.hasUnpushedCommits || sc.hasRemoteCommits) {
+                        return ColorFactory.get(255, 0, 0);
+                    }
+                }
             }
             
             return null;
