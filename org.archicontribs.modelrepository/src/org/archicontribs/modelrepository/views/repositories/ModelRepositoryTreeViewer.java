@@ -311,7 +311,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             if(element instanceof IArchiRepository) {
                 IArchiRepository repo = (IArchiRepository)element;
                 
-                String s = "'" + repo.getName() + "'"; //$NON-NLS-1$ //$NON-NLS-2$
+                String s = repo.getName();
                 
                 StatusCache sc = cache.get(repo);
                 if(sc != null) {

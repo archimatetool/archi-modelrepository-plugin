@@ -33,6 +33,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ProgressMonitor;
@@ -223,6 +224,9 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
+            // Check and set tracked master branch
+            setTrackedMasterBranch(git);
+            
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
@@ -248,6 +252,9 @@ public class ArchiRepository implements IArchiRepository {
         
         // Use the same line endings
         setConfigLineEndings(git);
+        
+        // Set tracked master branch
+        setTrackedMasterBranch(git);
         
         return git;
     }
@@ -359,5 +366,22 @@ public class ArchiRepository implements IArchiRepository {
         StoredConfig config = git.getRepository().getConfig();
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
         config.save();
+    }
+    
+    /**
+     * Set the tracked master branch to "origin"
+     * @param git
+     * @throws IOException
+     */
+    private void setTrackedMasterBranch(Git git) throws IOException {
+        StoredConfig config = git.getRepository().getConfig();
+        String branchName = "master"; //$NON-NLS-1$
+        String remoteName = "origin"; //$NON-NLS-1$
+        
+        if(!remoteName.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
+            config.save();
+        }
     }
 }
