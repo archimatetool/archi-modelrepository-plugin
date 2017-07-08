@@ -84,6 +84,10 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             
             @Override
             public IStatus run(IProgressMonitor monitor) {
+                if(getControl().isDisposed()) {
+                    return Status.OK_STATUS;
+                }
+                
                 // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
                 File rootFolder = getRootFolder();
                 
