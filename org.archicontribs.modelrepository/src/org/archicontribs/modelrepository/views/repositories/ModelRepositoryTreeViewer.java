@@ -47,11 +47,7 @@ import com.archimatetool.editor.ui.ColorFactory;
  * Repository Tree Viewer
  */
 public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener {
-    /**
-     * Background jobs
-     */
-    private List<Job> fRunningJobs = new ArrayList<Job>();
-    
+
     /**
      * Constructor
      */
@@ -68,7 +64,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             @Override
             public void widgetDisposed(DisposeEvent e) {
                 RepositoryListenerManager.INSTANCE.removeListener(ModelRepositoryTreeViewer.this);
-                stopBackgroundJobs();
             }
         });
         
@@ -84,7 +79,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     protected void startBackgroundJobs() {
         // Refresh file system job
-        Job refreshFileSystemJob = new Job("Refresh File System") { //$NON-NLS-1$
+        Job refreshFileSystemJob = new Job("Refresh File System Job") { //$NON-NLS-1$
             long lastModified = 0L; // last modified
             
             @Override
@@ -98,58 +93,78 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
                 lastModified = rootFolder.lastModified();
 
-                schedule(5000);// Schedule again in 5 seconds
-                
-                return Status.OK_STATUS;
-            }
-        };
-        fRunningJobs.add(refreshFileSystemJob);
-        
-        // Fetch
-        Job fetchJob = new Job("Fetch") { //$NON-NLS-1$
-            @Override
-            public IStatus run(IProgressMonitor monitor) {
                 if(!getControl().isDisposed()) {
-                    boolean needsRefresh = false;
-                    
-                    for(IArchiRepository repo : getRepositories(getRootFolder())) {
-                        // If the user name and password are stored
-                        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                        try {
-                            String userName = scs.getUsername();
-                            String userPassword = scs.getPassword();
-                            if(userName != null && userPassword != null) {
-                                repo.fetchFromRemote(userName, userPassword, null, false);
-                                needsRefresh = true;
-                            }
-                        }
-                        catch(IOException | GitAPIException ex) {
-                            // silence is golden
-                        }
-                    }
-                    
-                    if(needsRefresh) {
-                        refreshInBackground();
-                    }
-
-                    schedule(20000); // Schedule again in 20 seconds
+                    schedule(5000);// Schedule again in 5 seconds
                 }
                 
                 return Status.OK_STATUS;
             }
         };
-        fRunningJobs.add(fetchJob);
+        
+        refreshFileSystemJob.schedule(5000);
+        
+        // Fetch Job
+        Job fetchJob = new Job("Fetch Job") { //$NON-NLS-1$
+            @Override
+            public IStatus run(IProgressMonitor monitor) {
+                boolean needsRefresh = false;
 
-        // Start all jobs 1 second from now
-        for(Job j : fRunningJobs) {
-            j.schedule(1000);
-        }
-    }
-    
-    protected void stopBackgroundJobs() {
-        for(Job job : fRunningJobs) {
-            job.cancel();
-        }
+                for(IArchiRepository repo : getRepositories(getRootFolder())) {
+                    if(getControl().isDisposed()) {
+                        return Status.OK_STATUS;
+                    }
+
+                    // If the user name and password are stored
+                    SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                    try {
+                        String userName = scs.getUsername();
+                        String userPassword = scs.getPassword();
+                        if(userName != null && userPassword != null) {
+                            repo.fetchFromRemote(userName, userPassword, null, false);
+                            needsRefresh = true;
+                        }
+                    }
+                    catch(IOException | GitAPIException ex) {
+                        // silence is golden
+                    }
+                }
+
+                if(needsRefresh) {
+                    refreshInBackground();
+                }
+
+                if(!getControl().isDisposed()) {
+                    schedule(20000); // Schedule again in 20 seconds
+                }
+                
+                return Status.OK_STATUS;
+            }
+            
+            @Override
+            protected void canceling() {
+                /*
+                 * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
+                 * So, if the user closes the app this job might be running. So we will wait for this job to finish
+                 */
+                int timeout = 0;
+                final int delay = 100;
+                
+                try {
+                    while(getState() == Job.RUNNING) {
+                        Thread.sleep(delay);
+                        timeout += delay;
+                        if(timeout > 30000) { // don't wait longer than this
+                            break;
+                        }
+                    }
+                }
+                catch(InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        
+        fetchJob.schedule(1000);
     }
     
     protected void refreshInBackground() {
@@ -157,7 +172,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             getControl().getDisplay().asyncExec(new Runnable() {
                 @Override
                 public void run() {
-                    refresh();
+                    if(!getControl().isDisposed()) {
+                        refresh();
+                    }
                 }
             });
         }
