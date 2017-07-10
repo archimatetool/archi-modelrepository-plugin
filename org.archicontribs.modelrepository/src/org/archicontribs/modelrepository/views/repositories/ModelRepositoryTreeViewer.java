@@ -294,12 +294,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     
                     if(hasUnpushedCommits) {
                         image = IModelRepositoryImages.getOverlayImage(image,
-                                IModelRepositoryImages.ICON_WARNING_OVERLAY, IDecoration.BOTTOM_LEFT);
+                                IModelRepositoryImages.ICON_HAS_PENDING_PUSH_OVERLAY, IDecoration.BOTTOM_RIGHT);
                     }
                     
                     if(hasRemoteCommits) {
                         image = IModelRepositoryImages.getOverlayImage(image,
-                                IModelRepositoryImages.ICON_HAS_REMOTE_COMMITS_OVERLAY, IDecoration.BOTTOM_RIGHT);
+                                IModelRepositoryImages.ICON_HAS_REMOTE_COMMITS_OVERLAY, IDecoration.BOTTOM_LEFT);
                     }
                 }
                 catch(IOException ex) {

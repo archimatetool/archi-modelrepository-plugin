@@ -33,7 +33,6 @@ public interface IModelRepositoryImages {
     String ICON_COMMIT = IMGPATH + "commit.png"; //$NON-NLS-1$
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png"; //$NON-NLS-1$
     String ICON_DELETE = IMGPATH + "delete.png"; //$NON-NLS-1$
-    String ICON_HAS_REMOTE_COMMITS_OVERLAY = IMGPATH + "version_controlled.gif"; //$NON-NLS-1$
     String ICON_HISTORY_VIEW = IMGPATH + "history_view.png"; //$NON-NLS-1$
     String ICON_MODEL = IMGPATH + "elements_obj.png"; //$NON-NLS-1$
     String ICON_OPEN = IMGPATH + "open.png"; //$NON-NLS-1$
@@ -44,7 +43,9 @@ public interface IModelRepositoryImages {
     String ICON_SYNCED = IMGPATH + "synced.png"; //$NON-NLS-1$
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
     String ICON_UNSTAGE = IMGPATH + "unstage.gif"; //$NON-NLS-1$
-    String ICON_WARNING_OVERLAY = IMGPATH + "warning_ovr.png"; //$NON-NLS-1$
+
+    String ICON_HAS_REMOTE_COMMITS_OVERLAY = IMGPATH + "remote_commits_ovr.png"; //$NON-NLS-1$
+    String ICON_HAS_PENDING_PUSH_OVERLAY = IMGPATH + "pending_push_ovr.png"; //$NON-NLS-1$
     
     String BANNER_COMMIT = IMGPATH + "commit_wizban.png"; //$NON-NLS-1$
     
