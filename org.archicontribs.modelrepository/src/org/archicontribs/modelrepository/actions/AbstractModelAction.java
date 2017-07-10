@@ -37,8 +37,11 @@ import org.eclipse.ui.PlatformUI;
 import com.archimatetool.editor.diagram.DiagramEditorInput;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.EditorManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
@@ -149,6 +152,20 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             
             // Re-open editors, if any
             reopenEditors(graficoModel, openModelIDs);
+            
+            // Display message
+            if(resolutionHandler != null && !resolutionHandler.getRestoredObjects().isEmpty()) {
+                String message = Messages.AbstractModelAction_5 + "\n"; //$NON-NLS-1$
+                for(IIdentifier id : resolutionHandler.getRestoredObjects()) {
+                    if(id instanceof IArchimateModelObject) {
+                        String name = ((IArchimateModelObject)id).getName();
+                        String className = id.eClass().getName();
+                        message += "\n" + (StringUtils.isSet(name) ? name + " (" + className + ")" : className); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                    }
+                }
+                
+                MessageDialog.openInformation(fWindow.getShell(), Messages.AbstractModelAction_11, message);
+            }
         }
         
         return graficoModel;

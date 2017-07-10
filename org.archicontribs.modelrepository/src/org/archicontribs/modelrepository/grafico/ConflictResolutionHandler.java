@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -23,7 +24,6 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.osgi.util.NLS;
@@ -53,6 +53,8 @@ public class ConflictResolutionHandler {
     
     private List<ProblemPair> fProblems;
     
+    private List<IIdentifier> fRestoredObjects;
+    
     public ConflictResolutionHandler(IArchimateModel model) {
         fModel = model;
         fProblems = new ArrayList<ProblemPair>();
@@ -66,36 +68,44 @@ public class ConflictResolutionHandler {
     }
     
     public IArchimateModel resolveProblemObjects() throws IOException {
-        // deleteProblemObjects();
-        
         return restoreProblemObjects();
     }
     
-    IArchimateModel restoreProblemObjects() throws IOException {
+    // Find the problem object xml files from the commit history and restore them
+    private IArchimateModel restoreProblemObjects() throws IOException {
         File localRepoFolder = GraficoUtils.getLocalRepositoryFolderForModel(fModel);
+        fRestoredObjects = new ArrayList<IIdentifier>();
+        List<String> restoredIdentifiers = new ArrayList<String>();
         
-        for(ProblemPair problemPair : fProblems) {
-            String missingFileName = problemPair.missingObjectURI.lastSegment();
-            
-            // Find the problem object xml files from the commit history and restore them
-            try(Repository repository = Git.open(localRepoFolder).getRepository()) {
-                try(RevWalk revWalk = new RevWalk(repository)) {
+        try(Repository repository = Git.open(localRepoFolder).getRepository()) {
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                for(ProblemPair problemPair : fProblems) {
+                    String missingFileName = problemPair.missingObjectURI.lastSegment();
+                    String missingObjectID = problemPair.missingObjectURI.fragment();
+                    
+                    // Already got this one
+                    if(restoredIdentifiers.contains(missingObjectID)) {
+                        continue;
+                    }
+                    
+                    boolean found = false;
+                    
+                    // Reset RevWalk
+                    revWalk.reset();
                     ObjectId id = repository.resolve("refs/heads/master"); //$NON-NLS-1$
                     if(id != null) {
                         revWalk.markStart(revWalk.parseCommit(id)); 
                     }
                     
+                    // Iterate all commits
                     for(RevCommit commit : revWalk ) {
-                        RevTree tree = commit.getTree();
-
-                        // now try to find a specific file
                         try(TreeWalk treeWalk = new TreeWalk(repository)) {
-                            treeWalk.addTree(tree);
+                            treeWalk.addTree(commit.getTree());
                             treeWalk.setRecursive(true);
-
+                            
                             // Iterate through all files
                             // We can't use a PathFilter for the file name as its path is not correct
-                            while(treeWalk.next()) {
+                            while(!found && treeWalk.next()) {
                                 // File is found
                                 if(treeWalk.getPathString().endsWith(missingFileName)) {
                                     // Save file
@@ -109,23 +119,41 @@ public class ConflictResolutionHandler {
                                         loader.copyTo(out);
                                     }
                                     
-                                    break;
+                                    restoredIdentifiers.add(missingObjectID);
+                                    found = true;
                                 }
                             }
                         }
+                        
+                        if(found) {
+                            break;
+                        }
                     }
-
-                    revWalk.dispose();
                 }
+                
+                revWalk.dispose();
             }
         }
         
         // Then re-import
         GraficoModelImporter importer = new GraficoModelImporter(localRepoFolder);
-        return importer.importAsModel();
+        IArchimateModel graficoModel = importer.importAsModel();
+        
+        // Collect restored objects
+        for(Iterator<EObject> iter = graficoModel.eAllContents(); iter.hasNext();) {
+            EObject element = iter.next();
+            for(String id : restoredIdentifiers) {
+                if(element instanceof IIdentifier && id.equals(((IIdentifier)element).getId())) {
+                    fRestoredObjects.add((IIdentifier)element);
+                }
+            }
+        }
+        
+        return graficoModel;
     }
     
-    void deleteProblemObjects() throws IOException {
+    @SuppressWarnings("unused")
+    private void deleteProblemObjects() throws IOException {
         for(ProblemPair problemPair : fProblems) {
             String parentID = problemPair.parentObject.getId();
             
@@ -169,5 +197,12 @@ public class ConflictResolutionHandler {
         }
         
         return ms;
+    }
+    
+    /**
+     * @return Any objects that were restored
+     */
+    public List<IIdentifier> getRestoredObjects() {
+        return fRestoredObjects;
     }
 }
