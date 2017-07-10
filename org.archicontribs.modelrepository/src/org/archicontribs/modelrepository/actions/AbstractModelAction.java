@@ -15,6 +15,7 @@ import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
+import org.archicontribs.modelrepository.grafico.ConflictResolutionHandler;
 import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -23,7 +24,6 @@ import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -37,8 +37,11 @@ import org.eclipse.ui.PlatformUI;
 import com.archimatetool.editor.diagram.DiagramEditorInput;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.EditorManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
@@ -130,25 +133,15 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 IEditorModelManager.INSTANCE.closeModel(model);
             }
             
-            // Set file name
-            File tmpFile = fRepository.getTempModelFile();
-            graficoModel.setFile(tmpFile);
+            // Set file name on the grafico model so we can locate it
+            graficoModel.setFile(fRepository.getTempModelFile());
             
             // Import problems occured
-            // Show errors for now
-            if(importer.hasProblems()) {
-                // TODO - remove this when problems are resolved
-                ErrorDialog.openError(fWindow.getShell(),
-                        Messages.AbstractModelAction_3,
-                        Messages.AbstractModelAction_4,
-                        importer.getResolveStatus());
-                
-                // TODO - Delete/Add problem objects
-                // importer.deleteProblemObjects();
-                
-                // And re-export to grafico xml files
-                GraficoModelExporter exporter = new GraficoModelExporter(graficoModel, getRepository().getLocalRepositoryFolder());
-                exporter.exportModel();
+            ConflictResolutionHandler resolutionHandler = importer.getResolutionHandler();
+            if(resolutionHandler != null) {
+                // Resolve problem objects
+                graficoModel = resolutionHandler.resolveProblemObjects();
+                graficoModel.setFile(fRepository.getTempModelFile()); // do this again
             }
             
             // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
@@ -159,6 +152,20 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             
             // Re-open editors, if any
             reopenEditors(graficoModel, openModelIDs);
+            
+            // Display message
+            if(resolutionHandler != null && !resolutionHandler.getRestoredObjects().isEmpty()) {
+                String message = Messages.AbstractModelAction_5 + "\n"; //$NON-NLS-1$
+                for(IIdentifier id : resolutionHandler.getRestoredObjects()) {
+                    if(id instanceof IArchimateModelObject) {
+                        String name = ((IArchimateModelObject)id).getName();
+                        String className = id.eClass().getName();
+                        message += "\n" + (StringUtils.isSet(name) ? name + " (" + className + ")" : className); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                    }
+                }
+                
+                MessageDialog.openInformation(fWindow.getShell(), Messages.AbstractModelAction_11, message);
+            }
         }
         
         return graficoModel;
