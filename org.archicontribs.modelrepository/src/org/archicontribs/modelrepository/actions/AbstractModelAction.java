@@ -42,6 +42,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
@@ -157,8 +158,8 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             if(resolutionHandler != null && !resolutionHandler.getRestoredObjects().isEmpty()) {
                 String message = Messages.AbstractModelAction_5 + "\n"; //$NON-NLS-1$
                 for(IIdentifier id : resolutionHandler.getRestoredObjects()) {
-                    if(id instanceof IArchimateModelObject) {
-                        String name = ((IArchimateModelObject)id).getName();
+                    if(id instanceof INameable) {
+                        String name = ((INameable)id).getName();
                         String className = id.eClass().getName();
                         message += "\n" + (StringUtils.isSet(name) ? name + " (" + className + ")" : className); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                     }
