@@ -44,8 +44,9 @@ public interface IModelRepositoryImages {
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
     String ICON_UNSTAGE = IMGPATH + "unstage.gif"; //$NON-NLS-1$
 
-    String ICON_HAS_REMOTE_COMMITS_OVERLAY = IMGPATH + "remote_commits_ovr.png"; //$NON-NLS-1$
-    String ICON_HAS_PENDING_PUSH_OVERLAY = IMGPATH + "pending_push_ovr.png"; //$NON-NLS-1$
+    String ICON_LEFT_BALL_OVERLAY = IMGPATH + "left_ball_ovr.png"; //$NON-NLS-1$
+    String ICON_RIGHT_BALL_OVERLAY = IMGPATH + "right_ball_ovr.png"; //$NON-NLS-1$
+    String ICON_TOP_BALL_OVERLAY = IMGPATH + "top_ball_ovr.png"; //$NON-NLS-1$
     
     String BANNER_COMMIT = IMGPATH + "commit_wizban.png"; //$NON-NLS-1$
     
