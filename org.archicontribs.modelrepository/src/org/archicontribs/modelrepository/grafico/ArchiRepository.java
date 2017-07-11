@@ -349,6 +349,19 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
+    public void exportModelToGraficoFiles() throws IOException {
+        // Open the model
+        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
+        
+        if(model == null) {
+            throw new IOException(Messages.ArchiRepository_0);
+        }
+        
+        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
+        exporter.exportModel();
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if((obj != null) && (obj instanceof ArchiRepository)) {
             return fLocalRepoFolder != null && fLocalRepoFolder.equals(((IArchiRepository)obj).getLocalRepositoryFolder());

@@ -52,7 +52,7 @@ public class RevertCommitAction extends AbstractModelAction {
         
         // Do the Grafico Export first
         try {
-            exportModelToGraficoFiles();
+            getRepository().exportModelToGraficoFiles();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.RevertCommitAction_0, ex);

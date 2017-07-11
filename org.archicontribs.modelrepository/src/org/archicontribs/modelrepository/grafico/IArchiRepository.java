@@ -162,4 +162,10 @@ public interface IArchiRepository {
      */
     boolean hasRemoteCommits(String branch) throws IOException;
 
+    /**
+     * Export the model to Grafico files
+     * @throws IOException
+     */
+    void exportModelToGraficoFiles() throws IOException;
+
 }

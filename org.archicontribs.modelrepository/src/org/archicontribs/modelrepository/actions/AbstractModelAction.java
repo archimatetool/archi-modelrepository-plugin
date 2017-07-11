@@ -16,7 +16,6 @@ import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.ConflictResolutionHandler;
-import org.archicontribs.modelrepository.grafico.GraficoModelExporter;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -210,22 +209,6 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 }
             }
         }
-    }
-    
-    /**
-     * Export the model to Grafico files
-     * @throws IOException 
-     */
-    protected void exportModelToGraficoFiles() throws IOException {
-        // Open the model
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(fRepository.getTempModelFile());
-        
-        if(model == null) {
-            throw new IOException(Messages.AbstractModelAction_8);
-        }
-        
-        GraficoModelExporter exporter = new GraficoModelExporter(model, getRepository().getLocalRepositoryFolder());
-        exporter.exportModel();
     }
     
     /**

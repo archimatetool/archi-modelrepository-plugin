@@ -69,7 +69,7 @@ public class RefreshModelAction extends AbstractModelAction {
         
         // Do the Grafico Export first
         try {
-            exportModelToGraficoFiles();
+            getRepository().exportModelToGraficoFiles();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);

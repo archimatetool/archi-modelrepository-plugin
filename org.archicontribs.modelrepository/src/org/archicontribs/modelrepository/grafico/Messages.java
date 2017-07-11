@@ -6,6 +6,8 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "org.archicontribs.modelrepository.grafico.messages"; //$NON-NLS-1$
 
+    public static String ArchiRepository_0;
+
     public static String GraficoResolutionHandler_0;
 
     public static String GraficoUtils_0;

@@ -115,7 +115,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     IEditorModelManager.INSTANCE.saveModel(fModel);
                     
                     // Export to Grafico
-                    exportModelToGraficoFiles();
+                    getRepository().exportModelToGraficoFiles();
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_4);
 

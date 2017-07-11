@@ -113,7 +113,7 @@ public class CloneModelAction extends AbstractModelAction {
                         IEditorModelManager.INSTANCE.saveModel(model);
                         
                         // Export to Grafico
-                        exportModelToGraficoFiles();
+                        getRepository().exportModelToGraficoFiles();
                         
                         // And do a first commit
                         getRepository().commitChanges(Messages.CloneModelAction_6);
