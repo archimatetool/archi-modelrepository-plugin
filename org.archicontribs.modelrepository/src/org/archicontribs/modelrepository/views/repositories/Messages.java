@@ -10,6 +10,8 @@ public class Messages extends NLS {
 
     public static String ModelRepositoryTreeViewer_1;
 
+    public static String ModelRepositoryTreeViewer_2;
+
     public static String ModelRepositoryView_0;
     static {
         // initialize resource bundle

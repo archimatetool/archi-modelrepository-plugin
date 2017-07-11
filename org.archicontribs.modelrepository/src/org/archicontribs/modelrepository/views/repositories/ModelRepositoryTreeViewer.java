@@ -329,7 +329,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 if(sc != null) {
                     if(sc.hasChangesToCommit) {
                         s += "\n" + //$NON-NLS-1$
-                             "There are changes to commit";
+                             Messages.ModelRepositoryTreeViewer_2;
                     }
                     if(sc.hasUnpushedCommits) {
                         s += "\n" + //$NON-NLS-1$
