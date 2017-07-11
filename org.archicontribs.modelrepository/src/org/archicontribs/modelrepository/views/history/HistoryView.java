@@ -346,8 +346,20 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
         if(repository.equals(fSelectedRepository)) {
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
-            getViewer().setInput(repository);
+            switch(eventName) {
+                case IRepositoryListener.HISTORY_CHANGED:
+                case IRepositoryListener.REPOSITORY_DELETED:
+                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                    getViewer().setInput(repository);
+                    break;
+                    
+                case IRepositoryListener.REPOSITORY_CHANGED:
+                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
     

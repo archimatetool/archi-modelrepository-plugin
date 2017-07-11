@@ -186,7 +186,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        refresh();
+        refresh(repository);
     }
     
     /**
