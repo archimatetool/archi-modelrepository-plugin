@@ -9,13 +9,11 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.model.IArchimateModel;
@@ -47,44 +45,11 @@ public class PushModelAction extends RefreshModelAction {
     }
 
     @Override
-    public void run() {
-        // Save, Export and Commit
-        boolean result = doSaveExportCommit();
-        if(!result) {
-            return;
-        }
-        
-        // Get User Credentials first
-        UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-        if(up == null) {
-            return;
-        }
-        
-        // Proxy update
-        try {
-            ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.PushModelAction_0, ex);
-            return;
-        }
-
-        Display.getCurrent().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, new PushHandler(up));
-                }
-                catch(InvocationTargetException | InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+    protected IRunnableWithProgress getHandler(UsernamePassword up) {
+        return new PushHandler(up);
     }
     
-    class PushHandler extends RefreshHandler {
-
+    protected class PushHandler extends RefreshHandler {
         PushHandler(UsernamePassword up) {
             super(up);
         }
@@ -94,7 +59,7 @@ public class PushModelAction extends RefreshModelAction {
             this.monitor = monitor;
             
             try {
-                if(doPull(monitor)) {
+                if(doPull()) {
                     monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
                     getRepository().pushToRemote(up.getUsername(), up.getPassword(), this);
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
