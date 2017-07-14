@@ -48,13 +48,28 @@ import com.archimatetool.model.IIdentifier;
  */
 public class GraficoModelImporter implements IGraficoConstants {
     
+    /**
+     * Unresolved missing object class
+     * 
+     * @author Phillip Beauvoir
+     */
+    static class UnresolvedObject {
+        URI missingObjectURI;
+        IIdentifier parentObject;
+
+        UnresolvedObject(URI missingObjectURI, IIdentifier parentObject) {
+            this.missingObjectURI = missingObjectURI;
+            this.parentObject = parentObject;
+        }
+    }
+    
 	// ID -> Object lookup table
     private Map<String, IIdentifier> fIDLookup;
     
     /**
-     * Resolution Handler
+     * Unresolved missing objects
      */
-    private ConflictResolutionHandler fResolutionHandler;
+    private List<UnresolvedObject> fUnresolvedObjects;
     
     /**
      * Resource Set
@@ -113,7 +128,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
     	
     	// Resolve proxies
-    	fResolutionHandler = null;
+    	fUnresolvedObjects = null;
     	resolveProxies();
 
     	// Load images
@@ -123,10 +138,10 @@ public class GraficoModelImporter implements IGraficoConstants {
     }
     
     /**
-     * @return The Resolution Handler. Can be null
+     * @return A list of unresolved objects. Can be null if no unresolved objects
      */
-    public ConflictResolutionHandler getResolutionHandler() {
-        return fResolutionHandler;
+    public List<UnresolvedObject> getUnresolvedObjects() {
+        return fUnresolvedObjects;
     }
     
     /**
@@ -199,11 +214,11 @@ public class GraficoModelImporter implements IGraficoConstants {
             
             // If proxy has not been resolved
             if(newObject == null) {
-                // Add a resolve problem to the handler
-                if(fResolutionHandler == null) {
-                    fResolutionHandler = new ConflictResolutionHandler(fModel);
+                // Add to list
+                if(fUnresolvedObjects == null) {
+                    fUnresolvedObjects = new ArrayList<UnresolvedObject>();
                 }
-                fResolutionHandler.addResolveProblem(objectURI, parent);
+                fUnresolvedObjects.add(new UnresolvedObject(objectURI, parent));
             }
             
             return newObject == null ? object : newObject;

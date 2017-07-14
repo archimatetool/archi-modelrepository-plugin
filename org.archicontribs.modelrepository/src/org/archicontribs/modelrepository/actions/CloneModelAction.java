@@ -16,6 +16,7 @@ import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -101,7 +102,7 @@ public class CloneModelAction extends AbstractModelAction {
                     monitor.subTask(Messages.CloneModelAction_5);
                     
                     // Load it from the Grafico files if we can
-                    IArchimateModel graficoModel = loadModelFromGraficoFiles();
+                    IArchimateModel graficoModel = new GraficoModelLoader(getRepository()).loadModel();
                     
                     // We couldn't load it from Grafico so create a new blank model
                     if(graficoModel == null) {

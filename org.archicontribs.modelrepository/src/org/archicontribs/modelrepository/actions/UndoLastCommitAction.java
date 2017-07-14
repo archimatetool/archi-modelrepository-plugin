@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
@@ -108,7 +109,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         
         // Reload the model from the Grafico XML files
         try {
-            loadModelFromGraficoFiles();
+            new GraficoModelLoader(getRepository()).loadModel();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);

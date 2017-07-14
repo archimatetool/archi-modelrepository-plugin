@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jgit.api.Git;
@@ -89,7 +90,7 @@ public class RevertCommitAction extends AbstractModelAction {
                 }
             }
             else {
-                loadModelFromGraficoFiles();
+                new GraficoModelLoader(getRepository()).loadModel();
             }
 
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);

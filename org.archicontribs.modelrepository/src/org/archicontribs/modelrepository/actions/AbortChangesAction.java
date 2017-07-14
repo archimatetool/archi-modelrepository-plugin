@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -55,7 +56,7 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
-            loadModelFromGraficoFiles();
+            new GraficoModelLoader(getRepository()).loadModel();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);

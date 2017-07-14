@@ -7,41 +7,25 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
-import org.archicontribs.modelrepository.grafico.ConflictResolutionHandler;
-import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
-import com.archimatetool.editor.diagram.DiagramEditorInput;
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.ui.services.EditorManager;
-import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.INameable;
-import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
  * Abstract ModelAction
@@ -110,105 +94,6 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
         
         return response;
-    }
-    
-    /**
-     * Load the model from the Grafico XML files
-     * @return the model or null if there are no Grafico files
-     * @throws IOException
-     */
-    protected IArchimateModel loadModelFromGraficoFiles() throws IOException {
-        GraficoModelImporter importer = new GraficoModelImporter(getRepository().getLocalRepositoryFolder());
-        IArchimateModel graficoModel = importer.importAsModel();
-        
-        if(graficoModel != null) {
-            // ids of open diagrams
-            List<String> openModelIDs = null;
-            
-            // Close the real model if it is already open
-            IArchimateModel model = fRepository.locateModel();
-            if(model != null) {
-                openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
-                IEditorModelManager.INSTANCE.closeModel(model);
-            }
-            
-            // Set file name on the grafico model so we can locate it
-            graficoModel.setFile(fRepository.getTempModelFile());
-            
-            // Import problems occured
-            ConflictResolutionHandler resolutionHandler = importer.getResolutionHandler();
-            if(resolutionHandler != null) {
-                // Resolve problem objects
-                graficoModel = resolutionHandler.resolveProblemObjects();
-                graficoModel.setFile(fRepository.getTempModelFile()); // do this again
-            }
-            
-            // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
-            IEditorModelManager.INSTANCE.openModel(graficoModel);
-            
-            // And Save it to the temp file
-            IEditorModelManager.INSTANCE.saveModel(graficoModel);
-            
-            // Re-open editors, if any
-            reopenEditors(graficoModel, openModelIDs);
-            
-            // Display message
-            if(resolutionHandler != null && !resolutionHandler.getRestoredObjects().isEmpty()) {
-                String message = Messages.AbstractModelAction_5 + "\n"; //$NON-NLS-1$
-                for(IIdentifier id : resolutionHandler.getRestoredObjects()) {
-                    if(id instanceof INameable) {
-                        String name = ((INameable)id).getName();
-                        String className = id.eClass().getName();
-                        message += "\n" + (StringUtils.isSet(name) ? name + " (" + className + ")" : className); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                    }
-                }
-                
-                MessageDialog.openInformation(fWindow.getShell(), Messages.AbstractModelAction_11, message);
-            }
-        }
-        
-        return graficoModel;
-    }
-    
-    /**
-     * @param model
-     * @return All open diagram models' ids so we can restore them
-     */
-    private List<String> getOpenDiagramModelIdentifiers(IArchimateModel model) {
-        List<String> list = new ArrayList<String>();
-        
-        for(IEditorReference ref : PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences()) {
-            try {
-                IEditorInput input = ref.getEditorInput();
-                if(input instanceof DiagramEditorInput) {
-                    IDiagramModel dm = ((DiagramEditorInput)input).getDiagramModel();
-                    if(dm.getArchimateModel() == model) {
-                        list.add(dm.getId());
-                    }
-                }
-            }
-            catch(PartInitException ex) {
-                ex.printStackTrace();
-            }
-        }
-        
-        return list;
-    }
-    
-    /**
-     * Re-open any diagram editors
-     * @param model
-     * @param ids
-     */
-    private void reopenEditors(IArchimateModel model, List<String> ids) {
-        if(ids != null) {
-            for(String id : ids) {
-                EObject eObject = ArchimateModelUtils.getObjectByID(model, id);
-                if(eObject instanceof IDiagramModel) {
-                    EditorManager.openDiagramEditor((IDiagramModel)eObject);
-                }
-            }
-        }
     }
     
     /**

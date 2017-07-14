@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -102,7 +103,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
 
         // Reload the model from the Grafico XML files
         try {
-            loadModelFromGraficoFiles();
+            new GraficoModelLoader(getRepository()).loadModel();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);

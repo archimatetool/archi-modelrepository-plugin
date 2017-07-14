@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -132,7 +133,7 @@ public class RestoreCommitAction extends AbstractModelAction {
 
         // Reload the model from the Grafico XML files
         try {
-            IArchimateModel graficoModel = loadModelFromGraficoFiles();
+            IArchimateModel graficoModel = new GraficoModelLoader(getRepository()).loadModel();
             // If this is null then it failed because of no model in this commit
             if(graficoModel == null) {
                 // Reset
