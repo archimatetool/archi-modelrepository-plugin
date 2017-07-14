@@ -138,7 +138,7 @@ public class PushModelAction extends AbstractModelAction {
                                     boolean result = handler.checkForMergeConflicts();
                                     
                                     if(result) {
-                                        handler.mergeAndCommit(Messages.PushModelAction_8);
+                                        handler.merge();
                                         
                                         // We should return now and ask the user to try again, in case there have been more changes since this
                                         MessageDialog.openInformation(fWindow.getShell(),
@@ -154,7 +154,7 @@ public class PushModelAction extends AbstractModelAction {
                                     
                                     // Do a commit if needed
                                     if(getRepository().hasChangesToCommit()) {
-                                        getRepository().commitChanges(Messages.PushModelAction_0);
+                                        getRepository().commitChanges(Messages.RefreshModelAction_2);
                                     }
 
                                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
