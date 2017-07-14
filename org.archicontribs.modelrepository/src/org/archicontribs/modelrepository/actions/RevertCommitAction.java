@@ -82,19 +82,17 @@ public class RevertCommitAction extends AbstractModelAction {
                 boolean result = handler.checkForMergeConflicts();
                 if(result) {
                     handler.mergeAndCommit(Messages.RevertCommitAction_4);
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 }
                 else {
                     // User cancelled - we assume user has committed all changes so we can reset
                     handler.resetToLocalState();
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                    return;
                 }
             }
             else {
                 loadModelFromGraficoFiles();
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             }
+
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.RevertCommitAction_1, ex);
