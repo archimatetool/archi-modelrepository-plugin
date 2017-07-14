@@ -229,7 +229,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                getRepository().commitChanges(commitMessage);
+                getRepository().commitChanges(commitMessage, false);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);

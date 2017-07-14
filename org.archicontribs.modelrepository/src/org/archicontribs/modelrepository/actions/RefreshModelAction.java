@@ -158,7 +158,7 @@ public class RefreshModelAction extends AbstractModelAction {
                                 
                                 // Do a commit if needed
                                 if(getRepository().hasChangesToCommit()) {
-                                    getRepository().commitChanges(Messages.RefreshModelAction_2);
+                                    getRepository().commitChanges(Messages.RefreshModelAction_2, false);
                                 }
                             }
                             catch(IOException | GitAPIException ex) {

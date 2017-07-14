@@ -116,7 +116,7 @@ public class CloneModelAction extends AbstractModelAction {
                         getRepository().exportModelToGraficoFiles();
                         
                         // And do a first commit
-                        getRepository().commitChanges(Messages.CloneModelAction_6);
+                        getRepository().commitChanges(Messages.CloneModelAction_6, false);
                     }
                     
                     // Store repo credentials if option is set

@@ -81,7 +81,7 @@ public class RevertCommitAction extends AbstractModelAction {
                 MergeConflictHandler handler = new MergeConflictHandler(failingResult, getRepository(), fWindow.getShell());
                 boolean result = handler.checkForMergeConflicts();
                 if(result) {
-                    handler.mergeAndCommit(Messages.RevertCommitAction_4);
+                    handler.mergeAndCommit(Messages.RevertCommitAction_4, false);
                 }
                 else {
                     // User cancelled - we assume user has committed all changes so we can reset

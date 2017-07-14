@@ -147,7 +147,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         
         // Commit changes
         try {
-            getRepository().commitChanges(Messages.RestoreCommitAction_3 + " '" + fCommit.getShortMessage() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+            getRepository().commitChanges(Messages.RestoreCommitAction_3 + " '" + fCommit.getShortMessage() + "'", false); //$NON-NLS-1$ //$NON-NLS-2$
         }
         catch(GitAPIException | IOException ex) {
             displayErrorDialog(Messages.RestoreCommitAction_0, ex);

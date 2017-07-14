@@ -96,7 +96,7 @@ public class MergeConflictHandler {
         }
     }
     
-    public void mergeAndCommit(String commitMessage) throws IOException, GitAPIException {
+    public void mergeAndCommit(String commitMessage, boolean amend) throws IOException, GitAPIException {
         merge();
         
         try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
@@ -112,6 +112,7 @@ public class MergeConflictHandler {
             String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
             commitCommand.setAuthor(userName, userEmail);
             commitCommand.setMessage(commitMessage);
+            commitCommand.setAmend(amend);
             commitCommand.call();
         }
     }

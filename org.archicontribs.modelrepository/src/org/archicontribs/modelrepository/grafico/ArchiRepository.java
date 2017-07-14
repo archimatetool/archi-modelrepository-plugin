@@ -155,7 +155,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public RevCommit commitChanges(String commitMessage) throws GitAPIException, IOException {
+    public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
         String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
         String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
         
@@ -182,6 +182,7 @@ public class ArchiRepository implements IArchiRepository {
             CommitCommand commitCommand = git.commit();
             commitCommand.setAuthor(userName, userEmail);
             commitCommand.setMessage(commitMessage);
+            commitCommand.setAmend(amend);
             return commitCommand.call();
         }
     }

@@ -152,7 +152,7 @@ public class PushModelAction extends AbstractModelAction {
                                     
                                     // Do a commit if needed
                                     if(getRepository().hasChangesToCommit()) {
-                                        getRepository().commitChanges(Messages.RefreshModelAction_2);
+                                        getRepository().commitChanges(Messages.RefreshModelAction_2, false);
                                     }
 
                                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);

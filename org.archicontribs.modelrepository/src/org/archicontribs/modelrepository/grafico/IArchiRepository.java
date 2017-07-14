@@ -65,11 +65,12 @@ public interface IArchiRepository {
     /**
      * Commit any changes
      * @param commitMessage
-     * @return RevCommit
+     * @param amend If true, previous commit is amended
+     * @return
      * @throws GitAPIException
      * @throws IOException
      */
-    RevCommit commitChanges(String commitMessage) throws GitAPIException, IOException;
+    RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException;
 
     /**
      * Clone a model

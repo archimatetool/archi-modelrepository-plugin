@@ -120,7 +120,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     monitor.subTask(Messages.CreateRepoFromModelAction_4);
 
                     // Commit changes
-                    getRepository().commitChanges(Messages.CreateRepoFromModelAction_5);
+                    getRepository().commitChanges(Messages.CreateRepoFromModelAction_5, false);
                     
                     monitor.subTask(Messages.CreateRepoFromModelAction_6);
                     
