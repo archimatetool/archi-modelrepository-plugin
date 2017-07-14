@@ -140,8 +140,11 @@ public class PushModelAction extends AbstractModelAction {
                                     if(result) {
                                         handler.merge();
                                     }
+                                    // User cancelled
                                     else {
-                                        // User cancelled - do nothing (I think!)
+                                        handler.resetToLocalState();
+                                        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                                        return;
                                     }
 
                                     // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
