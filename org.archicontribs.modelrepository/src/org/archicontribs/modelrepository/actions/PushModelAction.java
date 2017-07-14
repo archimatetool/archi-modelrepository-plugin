@@ -139,11 +139,6 @@ public class PushModelAction extends AbstractModelAction {
                                     
                                     if(result) {
                                         handler.merge();
-                                        
-                                        // We should return now and ask the user to try again, in case there have been more changes since this
-                                        MessageDialog.openInformation(fWindow.getShell(),
-                                                Messages.PushModelAction_0,
-                                                Messages.PushModelAction_6);
                                     }
                                     else {
                                         // User cancelled - do nothing (I think!)
@@ -158,6 +153,13 @@ public class PushModelAction extends AbstractModelAction {
                                     }
 
                                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+
+                                    if(result) {
+                                        // We should return now and ask the user to try again, in case there have been more changes since this
+                                        MessageDialog.openInformation(fWindow.getShell(),
+                                                Messages.PushModelAction_0,
+                                                Messages.PushModelAction_6);
+                                    }
                                 }
                                 catch(IOException | GitAPIException ex) {
                                     displayErrorDialog(Messages.PushModelAction_0, ex);
