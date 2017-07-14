@@ -151,6 +151,11 @@ public class PushModelAction extends AbstractModelAction {
 
                                     // Reload model from Grafico as Grafico files have been impacted by the pull (potential merges have been done)
                                     loadModelFromGraficoFiles();
+                                    
+                                    // Do a commit if needed
+                                    if(getRepository().hasChangesToCommit()) {
+                                        getRepository().commitChanges(Messages.PushModelAction_0);
+                                    }
 
                                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                                 }

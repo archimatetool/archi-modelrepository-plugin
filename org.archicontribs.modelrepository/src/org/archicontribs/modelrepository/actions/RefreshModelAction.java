@@ -152,23 +152,17 @@ public class RefreshModelAction extends AbstractModelAction {
                                 }
                             }
                             
-                            // Reload the model from the Grafico XML files
                             try {
+                                // Reload the model from the Grafico XML files
                                 loadModelFromGraficoFiles();
-                            }
-                            catch(IOException ex) {
-                                displayErrorDialog(Messages.RefreshModelAction_0, ex);
-                            }
-                            
-                            // Do a commit if needed
-                            try {
+                                
+                                // Do a commit if needed
                                 if(getRepository().hasChangesToCommit()) {
                                     getRepository().commitChanges(Messages.RefreshModelAction_2);
                                 }
                             }
                             catch(IOException | GitAPIException ex) {
-                                displayErrorDialog(Messages.RefreshModelAction_3, ex);
-                                return;
+                                displayErrorDialog(Messages.RefreshModelAction_0, ex);
                             }
                             
                             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
