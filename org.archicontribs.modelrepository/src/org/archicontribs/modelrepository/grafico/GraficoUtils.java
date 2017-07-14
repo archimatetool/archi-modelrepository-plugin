@@ -6,6 +6,12 @@
 package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
+import org.eclipse.jgit.lib.ObjectLoader;
 
 import com.archimatetool.model.IArchimateModel;
 
@@ -83,4 +89,15 @@ public class GraficoUtils {
         return parent.getParentFile();
     }
     
+    /**
+     * Write an object from an ObjectLoader to file using system file endings
+     * @param file
+     * @param loader
+     * @throws IOException
+     */
+    public static void writeObjectToFileWithSystemLineEndings(File file, ObjectLoader loader) throws IOException {
+        String str = new String(loader.getBytes());
+        str = str.replaceAll("\\r?\\n", System.lineSeparator()); //$NON-NLS-1$
+        Files.write(Paths.get(file.getAbsolutePath()), str.getBytes(), StandardOpenOption.CREATE);
+    }
 }
