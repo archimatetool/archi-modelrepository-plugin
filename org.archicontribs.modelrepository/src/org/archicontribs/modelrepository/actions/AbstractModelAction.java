@@ -86,7 +86,9 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 
         if(response) {
             try {
+                ModelRepositoryPlugin.INSTANCE.setSaveListener(false); // Don't export as a result of this save
                 IEditorModelManager.INSTANCE.saveModel(model);
+                ModelRepositoryPlugin.INSTANCE.setSaveListener(true);
             }
             catch(IOException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_1, ex);

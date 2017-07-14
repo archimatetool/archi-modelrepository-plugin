@@ -46,6 +46,11 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
      * The shared instance
      */
     public static ModelRepositoryPlugin INSTANCE;
+    
+    /**
+     * If this is true, when a model is saved a grafico export is done
+     */
+    private boolean fDoSaveListener = true;
 
     public ModelRepositoryPlugin() {
         INSTANCE = this;
@@ -97,14 +102,18 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         return new File(path);
     }
     
+    public void setSaveListener(boolean active) {
+        fDoSaveListener = active;
+    }
+    
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         // Export to Grafico on Save
-        if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
+        if(fDoSaveListener && evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
             IArchimateModel model = (IArchimateModel)evt.getNewValue();
             if(GraficoUtils.isModelInLocalRepository(model)) {
                 IArchiRepository repo = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
-                
+
                 Job job = new UIJob("Export to Grafico") { //$NON-NLS-1$
                     @Override
                     public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -120,7 +129,7 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                         return Status.OK_STATUS;
                     }
                 };
-                
+
                 job.schedule();
             }
         }

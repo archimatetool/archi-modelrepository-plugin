@@ -112,7 +112,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                     fModel.setFile(getRepository().getTempModelFile());
                     
                     // And Save it
+                    ModelRepositoryPlugin.INSTANCE.setSaveListener(false); // Don't export as a result of this save
                     IEditorModelManager.INSTANCE.saveModel(fModel);
+                    ModelRepositoryPlugin.INSTANCE.setSaveListener(true);
                     
                     // Export to Grafico
                     getRepository().exportModelToGraficoFiles();

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter.UnresolvedObject;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -90,7 +91,9 @@ public class GraficoModelLoader {
         IEditorModelManager.INSTANCE.openModel(graficoModel);
         
         // And Save it to the temp file
+        ModelRepositoryPlugin.INSTANCE.setSaveListener(false); // Don't export as a result of this save
         IEditorModelManager.INSTANCE.saveModel(graficoModel);
+        ModelRepositoryPlugin.INSTANCE.setSaveListener(true);
         
         // Re-open editors, if any
         reopenEditors(graficoModel, openModelIDs);
