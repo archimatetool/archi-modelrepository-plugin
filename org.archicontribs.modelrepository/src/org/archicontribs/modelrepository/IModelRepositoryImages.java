@@ -48,6 +48,9 @@ public interface IModelRepositoryImages {
     String ICON_RIGHT_BALL_OVERLAY = IMGPATH + "right_ball_ovr.png"; //$NON-NLS-1$
     String ICON_TOP_BALL_OVERLAY = IMGPATH + "top_ball_ovr.png"; //$NON-NLS-1$
     
+    String ICON_LOCAL = IMGPATH + "local.png"; //$NON-NLS-1$
+    String ICON_REMOTE = IMGPATH + "remote.png"; //$NON-NLS-1$
+
     String BANNER_COMMIT = IMGPATH + "commit_wizban.png"; //$NON-NLS-1$
     
     

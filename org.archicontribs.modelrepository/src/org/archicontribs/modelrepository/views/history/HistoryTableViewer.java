@@ -11,15 +11,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
@@ -47,6 +49,8 @@ public class HistoryTableViewer extends TableViewer {
         
         setContentProvider(new HistoryContentProvider());
         setLabelProvider(new HistoryLabelProvider());
+        
+        ColumnViewerToolTipSupport.enableFor(this);
     }
 
     /**
@@ -148,40 +152,17 @@ public class HistoryTableViewer extends TableViewer {
 	// ===================================== Label Model ==============================================
 	// ===============================================================================================
 
-    class HistoryLabelProvider extends LabelProvider implements ITableLabelProvider {
+    class HistoryLabelProvider extends CellLabelProvider {
         
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         
-        @Override
-        public Image getColumnImage(Object element, int columnIndex) {
-            return null;
-        }
-
-        @Override
-        public String getColumnText(Object element, int columnIndex) {
-            RevCommit commit = (RevCommit)element;
-            
+        public String getColumnText(RevCommit commit, int columnIndex) {
             switch(columnIndex) {
                 case 0:
                     return commit.getName().substring(0, 8);
                     
                 case 1:
-                    String s = ""; //$NON-NLS-1$
-                    
-                    if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
-                        s += "[local/remote] "; //$NON-NLS-1$
-                    }
-                    else {
-                        if(commit.equals(localMasterCommit)) {
-                            s += "[local] "; //$NON-NLS-1$
-                        }
-                        
-                        if(commit.equals(originMasterCommit)) {
-                            s += "[remote] "; //$NON-NLS-1$
-                        }
-                    }
-                    
-                    return s += commit.getShortMessage();
+                    return commit.getShortMessage();
                     
                 case 2:
                     return commit.getAuthorIdent().getName();
@@ -192,6 +173,57 @@ public class HistoryTableViewer extends TableViewer {
                 default:
                     return null;
             }
+        }
+
+        @Override
+        public void update(ViewerCell cell) {
+            if(cell.getElement() instanceof RevCommit) {
+                RevCommit commit = (RevCommit)cell.getElement();
+                
+                cell.setText(getColumnText(commit, cell.getColumnIndex()));
+                
+                if(cell.getColumnIndex() == 1) {
+                    Image image = null;
+                    
+                    if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
+                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_HISTORY_VIEW);
+                    }
+                    else if(commit.equals(originMasterCommit)) {
+                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_REMOTE);
+                    }
+                    else if(commit.equals(localMasterCommit)) {
+                        image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_LOCAL);
+                    }
+                    
+                    cell.setImage(image);
+                }
+            }
+        }
+        
+        @Override
+        public String getToolTipText(Object element) {
+            if(element instanceof RevCommit) {
+                RevCommit commit = (RevCommit)element;
+                
+                String s = ""; //$NON-NLS-1$
+                
+                if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
+                    s += Messages.HistoryTableViewer_4 + " "; //$NON-NLS-1$
+                }
+                else if(commit.equals(localMasterCommit)) {
+                    s += Messages.HistoryTableViewer_5 + " "; //$NON-NLS-1$
+                }
+
+                else if(commit.equals(originMasterCommit)) {
+                    s += Messages.HistoryTableViewer_6 + " "; //$NON-NLS-1$
+                }
+                
+                s += commit.getFullMessage().trim();
+                
+                return s;
+            }
+            
+            return null;
         }
     }
 }
