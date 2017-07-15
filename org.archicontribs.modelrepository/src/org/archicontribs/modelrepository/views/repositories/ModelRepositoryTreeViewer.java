@@ -36,7 +36,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
@@ -349,22 +348,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
                 
                 return s;
-            }
-            
-            return null;
-        }
-        
-        @Override
-        public Color getToolTipForegroundColor(Object object) {
-            if(object instanceof IArchiRepository) {
-                IArchiRepository repo = (IArchiRepository)object;
-                
-                StatusCache sc = cache.get(repo);
-                if(sc != null) {
-                    if(sc.hasUnpushedCommits || sc.hasRemoteCommits) {
-                        return ColorFactory.get(255, 0, 0);
-                    }
-                }
             }
             
             return null;
