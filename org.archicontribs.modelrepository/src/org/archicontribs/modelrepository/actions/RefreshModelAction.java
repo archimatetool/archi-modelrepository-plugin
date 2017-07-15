@@ -190,7 +190,7 @@ public class RefreshModelAction extends AbstractModelAction {
             }
 
             // Reload the model from the Grafico XML files
-            monitor.beginTask("Reloading and reconciling", IProgressMonitor.UNKNOWN);
+            monitor.beginTask(Messages.RefreshModelAction_1, IProgressMonitor.UNKNOWN);
             GraficoModelLoader loader = new GraficoModelLoader(getRepository());
             loader.loadModel();
             
@@ -202,7 +202,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     message += "\n\n" + restored; //$NON-NLS-1$
                 }
 
-                monitor.beginTask("Committing resolved merge", IProgressMonitor.UNKNOWN);
+                monitor.beginTask(Messages.RefreshModelAction_5, IProgressMonitor.UNKNOWN);
                 getRepository().commitChanges(message, true);
 
                 Display.getCurrent().asyncExec(new Runnable() {
