@@ -309,6 +309,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                         image = IModelRepositoryImages.getOverlayImage(image,
                                 IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
                     }
+                    
+                    if(hasUnpushedCommits || hasRemoteCommits || hasChangesToCommit) {
+                        cell.setForeground(ColorFactory.get(255, 64, 0));
+                    }
+                    else {
+                        cell.setForeground(null);
+                    }
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
