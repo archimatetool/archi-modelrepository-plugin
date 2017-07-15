@@ -91,6 +91,9 @@ public class GraficoUtils {
     
     /**
      * Write an object from an ObjectLoader to file using system file endings
+     * On Windows when a file is restored from the ObjectLoader it has CR line endings.
+     * Then when a Grafic export is done, CRLF line endings are used, resulting in git seeing a diff.
+     * So, we write the object file with the system's line endings, as Grafico does it.
      * @param file
      * @param loader
      * @throws IOException

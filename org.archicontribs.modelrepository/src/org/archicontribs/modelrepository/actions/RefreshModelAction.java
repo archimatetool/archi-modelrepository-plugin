@@ -50,7 +50,7 @@ public class RefreshModelAction extends AbstractModelAction {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
         setText(Messages.RefreshModelAction_0);
-        setToolTipText(Messages.RefreshModelAction_1);
+        setToolTipText(Messages.RefreshModelAction_0);
     }
     
     public RefreshModelAction(IWorkbenchWindow window, IArchimateModel model) {
@@ -190,6 +190,7 @@ public class RefreshModelAction extends AbstractModelAction {
             }
 
             // Reload the model from the Grafico XML files
+            monitor.beginTask("Reloading and reconciling", IProgressMonitor.UNKNOWN);
             GraficoModelLoader loader = new GraficoModelLoader(getRepository());
             loader.loadModel();
             
@@ -201,8 +202,8 @@ public class RefreshModelAction extends AbstractModelAction {
                     message += "\n\n" + restored; //$NON-NLS-1$
                 }
 
+                monitor.beginTask("Committing resolved merge", IProgressMonitor.UNKNOWN);
                 getRepository().commitChanges(message, true);
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
 
                 Display.getCurrent().asyncExec(new Runnable() {
                     @Override
@@ -211,6 +212,8 @@ public class RefreshModelAction extends AbstractModelAction {
                     }
                 });
             }
+            
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
             
             return true;
         }
