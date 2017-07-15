@@ -50,7 +50,6 @@ import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.model.IArchimateModelObject;
 
 
 /**
@@ -301,8 +300,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             selectedRepository = (IArchiRepository)selected;
         }
         // Model selected, but is it in a git repo?
-        else if(selected instanceof IArchimateModelObject) {
-            IArchimateModel model = ((IArchimateModelObject)selected).getArchimateModel();
+        else {
+            IArchimateModel model = part.getAdapter(IArchimateModel.class);
             if(GraficoUtils.isModelInLocalRepository(model)) {
                 selectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
             }
