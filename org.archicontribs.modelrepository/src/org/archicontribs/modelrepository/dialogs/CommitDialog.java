@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
+import com.archimatetool.editor.utils.StringUtils;
 
 /**
  * Commit (Save) Dialog
@@ -92,6 +93,16 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd = new GridData(GridData.FILL_BOTH);
         gd.horizontalSpan = 2;
         fTextCommitMessage.setLayoutData(gd);
+        
+        if(!StringUtils.isSet(userName)) {
+            fTextUserName.setFocus();
+        }
+        else if(!StringUtils.isSet(userEmail)) {
+            fTextUserEmail.setFocus();
+        }
+        else {
+            fTextCommitMessage.setFocus();
+        }
         
         return area;
     }
