@@ -309,12 +309,18 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     s += Messages.ModelRepositoryTreeViewer_2;
                 }
                 if(sc.hasUnpushedCommits) {
-                    s += " | " + Messages.ModelRepositoryTreeViewer_0; //$NON-NLS-1$
+                    if(StringUtils.isSet(s)) {
+                        s += " | "; //$NON-NLS-1$
+                    }
+                    s += Messages.ModelRepositoryTreeViewer_0;
                 }
                 if(sc.hasRemoteCommits) {
-                    s += " | " + Messages.ModelRepositoryTreeViewer_1; //$NON-NLS-1$
+                    if(StringUtils.isSet(s)) {
+                        s += " | "; //$NON-NLS-1$
+                    }
+                    s += Messages.ModelRepositoryTreeViewer_1;
                 }
-                if("".equals(s)) { //$NON-NLS-1$
+                if(!StringUtils.isSet(s)) {
                     s = Messages.ModelRepositoryTreeViewer_3;
                 }
             }
