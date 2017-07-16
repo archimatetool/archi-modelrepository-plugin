@@ -40,6 +40,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ColorFactory;
+import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -275,17 +276,58 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         Map<IArchiRepository, StatusCache> cache = new Hashtable<IArchiRepository, StatusCache>();
         
+        Image getImage(IArchiRepository repo) {
+            Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+            
+            StatusCache sc = cache.get(repo);
+            if(sc != null) {
+                if(sc.hasChangesToCommit) {
+                    image = IModelRepositoryImages.getOverlayImage(image,
+                            IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
+                }
+                
+                if(sc.hasUnpushedCommits) {
+                    image = IModelRepositoryImages.getOverlayImage(image,
+                            IModelRepositoryImages.ICON_RIGHT_BALL_OVERLAY, IDecoration.BOTTOM_RIGHT);
+                }
+                
+                if(sc.hasRemoteCommits) {
+                    image = IModelRepositoryImages.getOverlayImage(image,
+                            IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
+                }
+            }
+            
+            return image;
+        }
+        
+        String getStatusText(IArchiRepository repo) {
+            String s = ""; //$NON-NLS-1$
+            
+            StatusCache sc = cache.get(repo);
+            if(sc != null) {
+                if(sc.hasChangesToCommit) {
+                    s += Messages.ModelRepositoryTreeViewer_2;
+                }
+                if(sc.hasUnpushedCommits) {
+                    s += " | " + Messages.ModelRepositoryTreeViewer_0; //$NON-NLS-1$
+                }
+                if(sc.hasRemoteCommits) {
+                    s += " | " + Messages.ModelRepositoryTreeViewer_1; //$NON-NLS-1$
+                }
+                if("".equals(s)) { //$NON-NLS-1$
+                    s = Messages.ModelRepositoryTreeViewer_3;
+                }
+            }
+            
+            return s;
+        }
+        
         @Override
         public void update(ViewerCell cell) {
             if(cell.getElement() instanceof IArchiRepository) {
                 IArchiRepository repo = (IArchiRepository)cell.getElement();
                 
-                // Text
-                cell.setText(repo.getName());
-                
                 // Image
-                Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
-                
                 try {
                     boolean hasUnpushedCommits = repo.hasUnpushedCommits("refs/heads/master"); //$NON-NLS-1$
                     boolean hasRemoteCommits = repo.hasRemoteCommits("refs/heads/master"); //$NON-NLS-1$
@@ -293,22 +335,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     
                     StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasChangesToCommit);
                     cache.put(repo, sc);
-                    
-                    if(hasChangesToCommit) {
-                        image = IModelRepositoryImages.getOverlayImage(image,
-                                IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
-                    }
-                    
-                    if(hasUnpushedCommits) {
-                        image = IModelRepositoryImages.getOverlayImage(image,
-                                IModelRepositoryImages.ICON_RIGHT_BALL_OVERLAY, IDecoration.BOTTOM_RIGHT);
-                    }
-                    
-                    if(hasRemoteCommits) {
-                        image = IModelRepositoryImages.getOverlayImage(image,
-                                IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
-                    }
-                    
+
                     if(hasUnpushedCommits || hasRemoteCommits || hasChangesToCommit) {
                         cell.setForeground(ColorFactory.get(255, 64, 0));
                     }
@@ -320,7 +347,8 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     ex.printStackTrace();
                 }
                 
-                cell.setImage(image);
+                cell.setText(repo.getName());
+                cell.setImage(getImage(repo));
             }
         }
         
@@ -331,20 +359,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 String s = repo.getName();
                 
-                StatusCache sc = cache.get(repo);
-                if(sc != null) {
-                    if(sc.hasChangesToCommit) {
-                        s += "\n" + //$NON-NLS-1$
-                             Messages.ModelRepositoryTreeViewer_2;
-                    }
-                    if(sc.hasUnpushedCommits) {
-                        s += "\n" + //$NON-NLS-1$
-                             Messages.ModelRepositoryTreeViewer_0;
-                    }
-                    if(sc.hasRemoteCommits) {
-                        s += "\n" + //$NON-NLS-1$
-                             Messages.ModelRepositoryTreeViewer_1;
-                    }
+                String status = getStatusText(repo);
+                if(StringUtils.isSet(status)) {
+                    s += "\n" + status.replaceAll(" \\| ", "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
                 }
                 
                 return s;

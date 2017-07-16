@@ -17,6 +17,7 @@ import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
@@ -33,6 +34,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
@@ -101,6 +103,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         getViewer().addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions(event.getSelection());
+                updateStatusBar(event.getSelection());
             }
         });
         
@@ -234,11 +237,11 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
      * Update the Local Actions depending on the selection 
      * @param selection
      */
-    public void updateActions(ISelection selection) {
+    protected void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
         if(obj instanceof IArchiRepository) {
-            IArchiRepository repo = (IArchiRepository)((IStructuredSelection)selection).getFirstElement();
+            IArchiRepository repo = (IArchiRepository)obj;
             
             fActionRefresh.setRepository(repo);
             fActionOpen.setRepository(repo);
@@ -251,6 +254,21 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
             fActionShowInHistory.setRepository(repo);
             
             fActionProperties.setRepository(repo);
+        }
+    }
+    
+    protected void updateStatusBar(ISelection selection) {
+        Object obj = ((IStructuredSelection)selection).getFirstElement();
+        
+        if(obj instanceof IArchiRepository) {
+            IArchiRepository repo = (IArchiRepository)obj;
+            ModelRepoTreeLabelProvider labelProvider = (ModelRepoTreeLabelProvider)getViewer().getLabelProvider();
+            Image image = labelProvider.getImage(repo);
+            String text = repo.getName() + " - " + labelProvider.getStatusText(repo); //$NON-NLS-1$
+            getViewSite().getActionBars().getStatusLineManager().setMessage(image, text);
+        }
+        else {
+            getViewSite().getActionBars().getStatusLineManager().setMessage(null, ""); //$NON-NLS-1$
         }
     }
     
