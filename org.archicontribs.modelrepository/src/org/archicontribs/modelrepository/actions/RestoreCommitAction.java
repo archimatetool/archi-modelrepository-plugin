@@ -71,7 +71,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             if(getRepository().hasChangesToCommit()) {
                 if(!MessageDialog.openConfirm(fWindow.getShell(),
                         Messages.RestoreCommitAction_0,
-                        Messages.UndoLastCommitAction_2)) {
+                        Messages.RestoreCommitAction_4)) {
                     return;
                 }
             }

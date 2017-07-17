@@ -74,16 +74,26 @@ public class UndoLastCommitAction extends AbstractModelAction {
             return;
         }
         
+        int choice = 1;
+        
         try {
-            // If there are changes to commit then they'll have to be committed first or abandoned
+            // If there are changes to commit then ask user for choice
             if(getRepository().hasChangesToCommit()) {
-                if(!MessageDialog.openConfirm(fWindow.getShell(),
+                choice = new MessageDialog(fWindow.getShell(),
                         Messages.UndoLastCommitAction_0,
-                        Messages.UndoLastCommitAction_2)) {
+                        null,
+                        Messages.UndoLastCommitAction_2,
+                        MessageDialog.QUESTION,
+                        new String[] {Messages.UndoLastCommitAction_5,
+                                Messages.UndoLastCommitAction_6,
+                                Messages.UndoLastCommitAction_7},
+                        1).open();
+                
+                if(choice == 2) {
                     return;
                 }
             }
-            // Else, confirm
+            // Else, confirm to undo
             else {
                 boolean response = MessageDialog.openConfirm(fWindow.getShell(),
                         Messages.UndoLastCommitAction_0,
@@ -107,9 +117,15 @@ public class UndoLastCommitAction extends AbstractModelAction {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         
-        // Reload the model from the Grafico XML files
         try {
-            new GraficoModelLoader(getRepository()).loadModel();
+            // Reload the model from the Grafico XML files if we are rolling back
+            if(choice == 0) {
+                new GraficoModelLoader(getRepository()).loadModel();
+            }
+            // Export to grafico if just undoing last commit
+            else {
+                getRepository().exportModelToGraficoFiles();
+            }
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
