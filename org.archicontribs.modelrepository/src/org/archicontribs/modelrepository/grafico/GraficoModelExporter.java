@@ -197,7 +197,11 @@ public class GraficoModelExporter implements IGraficoConstants {
      */
     private void saveImages() throws IOException {
         List<String> added = new ArrayList<String>();
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
+
+        IArchiveManager archiveManager = (IArchiveManager)fModel.getAdapter(IArchiveManager.class);
+        if(archiveManager == null) {
+            archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
+        }
         
         byte[] bytes;
 
