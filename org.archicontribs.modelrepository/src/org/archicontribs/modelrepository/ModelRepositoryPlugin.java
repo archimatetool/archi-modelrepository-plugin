@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.progress.UIJob;
 import org.osgi.framework.BundleContext;
@@ -114,12 +115,17 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
             if(GraficoUtils.isModelInLocalRepository(model)) {
                 IArchiRepository repo = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
 
-                Job job = new UIJob("Export to Grafico") { //$NON-NLS-1$
+                Job job = new Job("Export to Grafico") { //$NON-NLS-1$
                     @Override
-                    public IStatus runInUIThread(IProgressMonitor monitor) {
+                    protected IStatus run(IProgressMonitor monitor) {
                         try {
                             repo.exportModelToGraficoFiles();
-                            RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
+                            Display.getDefault().asyncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
+                                }
+                            });
                         }
                         catch(IOException ex) {
                             ex.printStackTrace();
