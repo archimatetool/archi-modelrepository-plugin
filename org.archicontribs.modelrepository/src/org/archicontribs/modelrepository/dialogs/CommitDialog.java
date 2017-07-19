@@ -13,6 +13,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -33,8 +34,10 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     private static String DIALOG_ID = "CommitDialog"; //$NON-NLS-1$
     
     private Text fTextUserName, fTextUserEmail, fTextCommitMessage;
+    private Button fAmendLastCommitCheckbox;
     
     private String fUserName, fUserEmail, fCommitMessage;
+    private boolean fAmend;
     
     public CommitDialog(Shell parentShell) {
         super(parentShell, DIALOG_ID);
@@ -80,9 +83,6 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         // Single text control so strip CRLFs
         UIUtils.conformSingleTextControl(fTextUserEmail);
         
-        new Label(container, SWT.NONE);
-        new Label(container, SWT.NONE);
-        
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_4);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -93,6 +93,12 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd = new GridData(GridData.FILL_BOTH);
         gd.horizontalSpan = 2;
         fTextCommitMessage.setLayoutData(gd);
+        
+        fAmendLastCommitCheckbox = new Button(container, SWT.CHECK);
+        fAmendLastCommitCheckbox.setText(Messages.CommitDialog_5);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 2;
+        fAmendLastCommitCheckbox.setLayoutData(gd);
         
         if(!StringUtils.isSet(userName)) {
             fTextUserName.setFocus();
@@ -128,12 +134,17 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     public String getCommitMessage() {
         return fCommitMessage;
     }
+    
+    public boolean getAmend() {
+        return fAmend;
+    }
 
     @Override
     protected void okPressed() {
         fUserEmail = fTextUserEmail.getText().trim();
         fUserName = fTextUserName.getText().trim();
         fCommitMessage = fTextCommitMessage.getText();
+        fAmend =fAmendLastCommitCheckbox.getSelection();
         
         super.okPressed();
     }

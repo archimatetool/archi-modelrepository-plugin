@@ -108,13 +108,14 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             String userName = commitDialog.getUserName();
             String userEmail = commitDialog.getUserEmail();
             String commitMessage = commitDialog.getCommitMessage();
+            boolean amend = commitDialog.getAmend();
             
             // Store Prefs
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_NAME, userName);
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL, userEmail);
 
             try {
-                getRepository().commitChanges(commitMessage, false);
+                getRepository().commitChanges(commitMessage, amend);
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);

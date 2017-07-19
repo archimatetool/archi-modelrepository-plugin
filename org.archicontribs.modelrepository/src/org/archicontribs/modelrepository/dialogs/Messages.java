@@ -26,6 +26,8 @@ public class Messages extends NLS {
 
     public static String CommitDialog_4;
 
+    public static String CommitDialog_5;
+
     public static String ConflictsDialog_0;
 
     public static String ConflictsDialog_1;
