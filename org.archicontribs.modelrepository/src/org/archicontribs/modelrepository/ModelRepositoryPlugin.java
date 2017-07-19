@@ -5,32 +5,15 @@
  */
 package org.archicontribs.modelrepository;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.progress.UIJob;
-import org.osgi.framework.BundleContext;
 
-import com.archimatetool.editor.Logger;
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.model.IArchimateModel;
 
 
 
@@ -39,7 +22,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyChangeListener {
+public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.archicontribs.modelrepository"; //$NON-NLS-1$
     
@@ -48,27 +31,10 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
      */
     public static ModelRepositoryPlugin INSTANCE;
     
-    /**
-     * If this is true, when a model is saved a grafico export is done
-     */
-    private boolean fDoSaveListener = true;
-
     public ModelRepositoryPlugin() {
         INSTANCE = this;
     }
 
-    @Override
-    public void start(BundleContext context) throws Exception {
-        super.start(context);
-        IEditorModelManager.INSTANCE.addPropertyChangeListener(this);
-    }
-    
-    @Override
-    public void stop(BundleContext context) throws Exception {
-        IEditorModelManager.INSTANCE.removePropertyChangeListener(this);
-        super.stop(context);
-    }
-    
     /**
      * @return The File Location of this plugin
      */
@@ -101,43 +67,5 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         // Default
         path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
         return new File(path);
-    }
-    
-    public void setSaveListener(boolean active) {
-        fDoSaveListener = active;
-    }
-    
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        // Export to Grafico on Save
-        if(fDoSaveListener && evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
-            IArchimateModel model = (IArchimateModel)evt.getNewValue();
-            if(GraficoUtils.isModelInLocalRepository(model)) {
-                IArchiRepository repo = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
-
-                Job job = new Job("Export to Grafico") { //$NON-NLS-1$
-                    @Override
-                    protected IStatus run(IProgressMonitor monitor) {
-                        try {
-                            repo.exportModelToGraficoFiles();
-                            Display.getDefault().asyncExec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
-                                }
-                            });
-                        }
-                        catch(IOException ex) {
-                            ex.printStackTrace();
-                            Logger.logError("Export to Grafico", ex); //$NON-NLS-1$
-                        }
-
-                        return Status.OK_STATUS;
-                    }
-                };
-
-                job.schedule();
-            }
-        }
     }
 }
