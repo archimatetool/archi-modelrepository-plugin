@@ -75,10 +75,13 @@ public class UndoLastCommitAction extends AbstractModelAction {
         }
         
         int choice = 1;
+        boolean hadChangesToCommit = false;
         
         try {
+            hadChangesToCommit = getRepository().hasChangesToCommit();
+            
             // If there are changes to commit then ask user for choice
-            if(getRepository().hasChangesToCommit()) {
+            if(hadChangesToCommit) {
                 choice = new MessageDialog(fWindow.getShell(),
                         Messages.UndoLastCommitAction_0,
                         null,
@@ -122,8 +125,8 @@ public class UndoLastCommitAction extends AbstractModelAction {
             if(choice == 0) {
                 new GraficoModelLoader(getRepository()).loadModel();
             }
-            // Export to grafico if just undoing last commit
-            else {
+            // Export to grafico if just undoing last commit and had changes to commit
+            else if(hadChangesToCommit) {
                 getRepository().exportModelToGraficoFiles();
             }
         }
