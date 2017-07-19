@@ -65,15 +65,6 @@ public class UndoLastCommitAction extends AbstractModelAction {
             }
         }
         
-        // Do the Grafico Export first
-        try {
-            getRepository().exportModelToGraficoFiles();
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
-            return;
-        }
-        
         int choice = new MessageDialog(fWindow.getShell(),
                 Messages.UndoLastCommitAction_0,
                 null,
