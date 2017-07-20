@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -99,8 +100,8 @@ public class GraficoUtils {
      * @throws IOException
      */
     public static void writeObjectToFileWithSystemLineEndings(File file, ObjectLoader loader) throws IOException {
-        String str = new String(loader.getBytes());
+        String str = new String(loader.getBytes(), StandardCharsets.UTF_8);
         str = str.replaceAll("\\r?\\n", System.lineSeparator()); //$NON-NLS-1$
-        Files.write(Paths.get(file.getAbsolutePath()), str.getBytes(), StandardOpenOption.CREATE);
+        Files.write(Paths.get(file.getAbsolutePath()), str.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
     }
 }
