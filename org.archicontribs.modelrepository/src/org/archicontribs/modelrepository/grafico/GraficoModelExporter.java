@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -23,6 +29,8 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
@@ -59,7 +67,7 @@ public class GraficoModelExporter implements IGraficoConstants {
      * Local repo folder
      */
     private File fLocalRepoFolder;
-	
+    
 	/**
 	 * @param model The model to export
 	 * @param folder The root folder in which to write the grafico XML files
@@ -99,7 +107,7 @@ public class GraficoModelExporter implements IGraficoConstants {
         fResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("*", new XMLResourceFactoryImpl()); //$NON-NLS-1$
         // Add a URIConverter that will be used to map full filenames to logical names
         fResourceSet.setURIConverter(new ExtensibleURIConverterImpl());
-
+        
         // Now work on a copy
         IArchimateModel copy = EcoreUtil.copy(fModel);
         
@@ -107,9 +115,36 @@ public class GraficoModelExporter implements IGraficoConstants {
         createAndSaveResourceForFolder(copy, modelFolder);
 
         // Now save all Resources
+        JobGroup jobgroup = new JobGroup("GraficoModelExporter", 0, 1); //$NON-NLS-1$
+        
         for(Resource resource : fResourceSet.getResources()) {
-            resource.save(null);
+            Job job = new Job("Resource Save Job") { //$NON-NLS-1$
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
+                    try {
+                        resource.save(null);
+                    }
+                    catch(IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    return Status.OK_STATUS;
+                }
+            };
+            job.setJobGroup(jobgroup);
+            job.schedule();
         }
+        
+        BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    jobgroup.join(0, null);
+                }
+                catch(OperationCanceledException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
     
     /**
