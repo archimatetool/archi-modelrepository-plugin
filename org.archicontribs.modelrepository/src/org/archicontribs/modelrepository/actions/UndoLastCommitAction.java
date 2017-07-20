@@ -74,6 +74,9 @@ public class UndoLastCommitAction extends AbstractModelAction {
             
             // Reload the model from the Grafico XML files
             new GraficoModelLoader(getRepository()).loadModel();
+            
+            // Save the checksum
+            getRepository().saveChecksum();
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);

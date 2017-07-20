@@ -132,6 +132,9 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                         SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
                         sc.store(userName, userPassword);
                     }
+                    
+                    // Save the checksum
+                    getRepository().saveChecksum();
                 }
                 catch(GitAPIException | IOException | NoSuchAlgorithmException | URISyntaxException ex) {
                     displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);

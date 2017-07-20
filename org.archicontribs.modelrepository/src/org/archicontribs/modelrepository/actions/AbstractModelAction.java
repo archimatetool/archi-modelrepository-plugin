@@ -116,6 +116,9 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 
             try {
                 getRepository().commitChanges(commitMessage, amend);
+
+                // Save the checksum
+                getRepository().saveChecksum();
             }
             catch(IOException | GitAPIException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);

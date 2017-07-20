@@ -104,6 +104,9 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         // Reload the model from the Grafico XML files
         try {
             new GraficoModelLoader(getRepository()).loadModel();
+
+            // Save the checksum
+            getRepository().saveChecksum();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);

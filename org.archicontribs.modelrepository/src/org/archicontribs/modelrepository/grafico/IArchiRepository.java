@@ -52,8 +52,9 @@ public interface IArchiRepository {
 
     /**
      * @return true if the local .archimate file has been modified since the last Grafico export
+     * @throws IOException 
      */
-    boolean hasLocalChanges();
+    boolean hasLocalChanges() throws IOException;
 
     /**
      * @return true if there are local changes to commit in the working tree
@@ -168,5 +169,12 @@ public interface IArchiRepository {
      * @throws IOException
      */
     void exportModelToGraficoFiles() throws IOException;
+
+    /**
+     * Save a checksum
+     * @return true if saved
+     * @throws IOException
+     */
+    boolean saveChecksum() throws IOException;
 
 }

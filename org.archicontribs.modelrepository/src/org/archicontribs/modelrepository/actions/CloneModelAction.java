@@ -118,6 +118,9 @@ public class CloneModelAction extends AbstractModelAction {
                         
                         // And do a first commit
                         getRepository().commitChanges(Messages.CloneModelAction_6, false);
+                        
+                        // Save the checksum
+                        getRepository().saveChecksum();
                     }
                     
                     // Store repo credentials if option is set

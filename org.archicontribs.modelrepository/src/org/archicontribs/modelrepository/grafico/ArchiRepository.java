@@ -7,11 +7,15 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -128,22 +132,6 @@ public class ArchiRepository implements IArchiRepository {
         }
         
         return null;
-    }
-
-    @Override
-    public boolean hasLocalChanges() {
-        File tempFile = getTempModelFile();
-        
-        File gitModelFolder = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER);
-        
-        if(!tempFile.exists() || !gitModelFolder.exists()) {
-            return false;
-        }
-        
-        long localFileLastModified = tempFile.lastModified();
-        long gitFolderLastModified = gitModelFolder.lastModified();
-        
-        return localFileLastModified > gitFolderLastModified;
     }
 
     @Override
@@ -397,5 +385,83 @@ public class ArchiRepository implements IArchiRepository {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }
+    }
+    
+    
+    @Override
+    public boolean hasLocalChanges() throws IOException {
+        String latestChecksum = getLatestChecksum();
+        if(latestChecksum == null) {
+            return false;
+        }
+
+        String currentChecksum = createChecksum();
+        return !latestChecksum.equals(currentChecksum);
+    }
+
+    @Override
+    public boolean saveChecksum() throws IOException {
+        // Get the file's checksum as string
+        String checksum = createChecksum();
+        if(checksum == null) {
+            return false;
+        }
+
+        File checksumFile = new File(getLocalGitFolder(), "checksum"); //$NON-NLS-1$
+        Files.write(Paths.get(checksumFile.getAbsolutePath()), checksum.getBytes(), StandardOpenOption.CREATE);
+        
+        return true;
+    }
+    
+    private String getLatestChecksum() throws IOException {
+        File checksumFile = new File(getLocalGitFolder(), "checksum"); //$NON-NLS-1$
+        if(!checksumFile.exists()) {
+            return null;
+        }
+        
+        byte[] bytes = Files.readAllBytes(Paths.get(checksumFile.getAbsolutePath()));
+        return new String(bytes);
+    }
+    
+    private String createChecksum() throws IOException {
+        File tempFile = getTempModelFile();
+        
+        if(tempFile == null) {
+            return null;
+        }
+        
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("MD5"); //$NON-NLS-1$
+        }
+        catch(NoSuchAlgorithmException ex) {
+            throw new IOException("NoSuchAlgorithm Exception", ex); //$NON-NLS-1$
+        } 
+
+        // Get file input stream for reading the file content
+        FileInputStream fis = new FileInputStream(tempFile);
+
+        // Create byte array to read data in chunks
+        byte[] byteArray = new byte[1024];
+        int bytesCount = 0;
+
+        // Read file data and update in message digest
+        while((bytesCount = fis.read(byteArray)) != -1) {
+            digest.update(byteArray, 0, bytesCount);
+        }
+
+        fis.close();
+
+        // Get the hash's bytes
+        byte[] bytes = digest.digest();
+        
+        // This bytes[] has bytes in decimal format;
+        // Convert it to hexadecimal format
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < bytes.length; i++) {
+            sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        
+        return sb.toString();
     }
 }

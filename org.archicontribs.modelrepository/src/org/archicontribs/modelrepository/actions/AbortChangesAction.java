@@ -56,7 +56,11 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
+            // Load the model
             new GraficoModelLoader(getRepository()).loadModel();
+            
+            // Save the checksum
+            getRepository().saveChecksum();
         }
         catch(IOException ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);

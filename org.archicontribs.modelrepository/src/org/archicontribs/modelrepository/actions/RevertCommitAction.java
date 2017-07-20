@@ -92,6 +92,9 @@ public class RevertCommitAction extends AbstractModelAction {
             else {
                 new GraficoModelLoader(getRepository()).loadModel();
             }
+            
+            // Save the checksum
+            getRepository().saveChecksum();
 
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }

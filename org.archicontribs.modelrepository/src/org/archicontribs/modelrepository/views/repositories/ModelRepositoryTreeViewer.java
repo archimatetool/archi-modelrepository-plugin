@@ -265,12 +265,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         private class StatusCache {
             boolean hasUnpushedCommits;
             boolean hasRemoteCommits;
-            boolean hasChangesToCommit;
+            boolean hasLocalChanges;
             
-            public StatusCache(boolean hasUnpushedCommits, boolean hasRemoteCommits, boolean hasChangesToCommit) {
+            public StatusCache(boolean hasUnpushedCommits, boolean hasRemoteCommits, boolean hasLocalChanges) {
                 this.hasUnpushedCommits = hasUnpushedCommits;
                 this.hasRemoteCommits = hasRemoteCommits;
-                this.hasChangesToCommit = hasChangesToCommit;
+                this.hasLocalChanges = hasLocalChanges;
             }
         }
         
@@ -281,7 +281,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             
             StatusCache sc = cache.get(repo);
             if(sc != null) {
-                if(sc.hasChangesToCommit) {
+                if(sc.hasLocalChanges) {
                     image = IModelRepositoryImages.getOverlayImage(image,
                             IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
                 }
@@ -305,7 +305,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             
             StatusCache sc = cache.get(repo);
             if(sc != null) {
-                if(sc.hasChangesToCommit) {
+                if(sc.hasLocalChanges) {
                     s += Messages.ModelRepositoryTreeViewer_2;
                 }
                 if(sc.hasUnpushedCommits) {
@@ -337,19 +337,19 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 try {
                     boolean hasUnpushedCommits = repo.hasUnpushedCommits("refs/heads/master"); //$NON-NLS-1$
                     boolean hasRemoteCommits = repo.hasRemoteCommits("refs/heads/master"); //$NON-NLS-1$
-                    boolean hasChangesToCommit = repo.hasChangesToCommit();
+                    boolean hasLocalChanges = repo.hasLocalChanges();
                     
-                    StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasChangesToCommit);
+                    StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);
                     cache.put(repo, sc);
 
-                    if(hasUnpushedCommits || hasRemoteCommits || hasChangesToCommit) {
+                    if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
                         cell.setForeground(ColorFactory.get(255, 64, 0));
                     }
                     else {
                         cell.setForeground(null);
                     }
                 }
-                catch(IOException | GitAPIException ex) {
+                catch(IOException ex) {
                     ex.printStackTrace();
                 }
                 
