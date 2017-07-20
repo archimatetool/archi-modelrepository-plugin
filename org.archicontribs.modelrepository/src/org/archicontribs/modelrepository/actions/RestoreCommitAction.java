@@ -49,7 +49,6 @@ public class RestoreCommitAction extends AbstractModelAction {
     @Override
     public void run() {
         // Offer to save the model if open and dirty
-        // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
@@ -57,37 +56,11 @@ public class RestoreCommitAction extends AbstractModelAction {
             }
         }
         
-        // Do the Grafico Export first
-        try {
-            getRepository().exportModelToGraficoFiles();
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RestoreCommitAction_0, ex);
-            return;
-        }
-        
-        try {
-            // If there are changes to commit then they'll have to be committed first or abandoned
-            if(getRepository().hasChangesToCommit()) {
-                if(!MessageDialog.openConfirm(fWindow.getShell(),
-                        Messages.RestoreCommitAction_0,
-                        Messages.RestoreCommitAction_4)) {
-                    return;
-                }
-            }
-            // Else, confirm
-            else {
-                boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                        Messages.RestoreCommitAction_0,
-                        Messages.RestoreCommitAction_1);
+        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
+                Messages.RestoreCommitAction_0,
+                Messages.RestoreCommitAction_1);
 
-                if(!response) {
-                    return;
-                }
-            }
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.RestoreCommitAction_0, ex);
+        if(!response) {
             return;
         }
         
