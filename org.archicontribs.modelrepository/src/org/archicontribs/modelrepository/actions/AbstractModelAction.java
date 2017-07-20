@@ -101,7 +101,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @return true if successful, false otherwise
      */
     protected boolean offerToCommitChanges() {
-        CommitDialog commitDialog = new CommitDialog(fWindow.getShell());
+        CommitDialog commitDialog = new CommitDialog(fWindow.getShell(), getRepository());
         int response = commitDialog.open();
         
         if(response == Window.OK) {

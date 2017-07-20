@@ -5,8 +5,11 @@
  */
 package org.archicontribs.modelrepository.dialogs;
 
+import java.io.IOException;
+
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
@@ -39,9 +42,12 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     private String fUserName, fUserEmail, fCommitMessage;
     private boolean fAmend;
     
-    public CommitDialog(Shell parentShell) {
+    private IArchiRepository fRepository;
+    
+    public CommitDialog(Shell parentShell, IArchiRepository repo) {
         super(parentShell, DIALOG_ID);
         setTitle(Messages.CommitDialog_0);
+        fRepository = repo;
     }
 
     @Override
@@ -99,6 +105,14 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         fAmendLastCommitCheckbox.setLayoutData(gd);
+        
+        try {
+            fAmendLastCommitCheckbox.setEnabled(!fRepository.isHeadAndRemoteSame());
+        }
+        catch(IOException ex) {
+            fAmendLastCommitCheckbox.setEnabled(false);
+            ex.printStackTrace();
+        }
         
         if(!StringUtils.isSet(userName)) {
             fTextUserName.setFocus();

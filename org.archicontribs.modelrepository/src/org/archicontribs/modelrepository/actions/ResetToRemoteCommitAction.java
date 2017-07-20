@@ -39,7 +39,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         // If the latest local commit == remote commit nothing to do
         
         try {
-            if(isHeadAndRemoteSame()) {
+            if(getRepository().isHeadAndRemoteSame()) {
                 MessageDialog.openInformation(fWindow.getShell(),
                         Messages.ResetToRemoteCommitAction_0,
                         Messages.ResetToRemoteCommitAction_1);
@@ -95,7 +95,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         
         // Do it!
         try {
-            reset("origin/master"); //$NON-NLS-1$
+            getRepository().resetToRef("origin/master"); //$NON-NLS-1$
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);

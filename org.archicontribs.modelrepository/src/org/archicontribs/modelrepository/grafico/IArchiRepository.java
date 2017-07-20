@@ -165,6 +165,12 @@ public interface IArchiRepository {
     boolean hasRemoteCommits(String branch) throws IOException;
 
     /**
+     * @return if the latest local HEAD commit and the remote commit are the same
+     * @throws IOException
+     */
+    boolean isHeadAndRemoteSame() throws IOException;
+
+    /**
      * Export the model to Grafico files
      * @throws IOException
      */
@@ -176,5 +182,4 @@ public interface IArchiRepository {
      * @throws IOException
      */
     boolean saveChecksum() throws IOException;
-
 }

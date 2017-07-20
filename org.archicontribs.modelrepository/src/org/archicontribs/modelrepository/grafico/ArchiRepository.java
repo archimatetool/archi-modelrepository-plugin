@@ -41,6 +41,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ProgressMonitor;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -311,6 +312,21 @@ public class ArchiRepository implements IArchiRepository {
             CleanCommand cleanCommand = git.clean();
             cleanCommand.setCleanDirectories(true);
             cleanCommand.call();
+        }
+    }
+    
+    @Override
+    public boolean isHeadAndRemoteSame() throws IOException {
+        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            Ref online = repository.findRef("origin/master"); //$NON-NLS-1$
+            Ref local = repository.findRef("HEAD"); //$NON-NLS-1$
+            
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
+                RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
+                revWalk.dispose();
+                return onlineCommit.equals(localLatestCommit);
+            }
         }
     }
     
