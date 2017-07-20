@@ -34,8 +34,10 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -115,7 +117,11 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
                 Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
                 if(obj instanceof IArchiRepository) {
                     IArchiRepository repo = (IArchiRepository)obj;
-                    IEditorModelManager.INSTANCE.openModel(repo.getTempModelFile());
+                    BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+                        public void run() {
+                            IEditorModelManager.INSTANCE.openModel(repo.getTempModelFile());
+                        }
+                    });
                 }
             }
         });

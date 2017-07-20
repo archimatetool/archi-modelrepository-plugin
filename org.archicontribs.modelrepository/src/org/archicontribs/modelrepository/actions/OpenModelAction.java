@@ -6,6 +6,8 @@
 package org.archicontribs.modelrepository.actions;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -27,6 +29,10 @@ public class OpenModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        IEditorModelManager.INSTANCE.openModel(getRepository().getTempModelFile());
+        BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+            public void run() {
+                IEditorModelManager.INSTANCE.openModel(getRepository().getTempModelFile());
+            }
+        });
     }
 }
