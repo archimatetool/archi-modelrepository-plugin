@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -53,6 +54,16 @@ import com.archimatetool.model.IIdentifier;
  */
 public class GraficoModelExporter implements IGraficoConstants {
 	
+    // Use a ProgressMonitor to cancel running Jobs and track Exception
+    static class ExceptionProgressMonitor extends NullProgressMonitor {
+        IOException ex;
+        
+        void catchException(IOException ex) {
+            this.ex = ex;
+            setCanceled(true);
+        }
+    }
+    
 	/**
 	 * ResourceSet
 	 */
@@ -117,6 +128,8 @@ public class GraficoModelExporter implements IGraficoConstants {
         // Now save all Resources
         JobGroup jobgroup = new JobGroup("GraficoModelExporter", 0, 1); //$NON-NLS-1$
         
+        final ExceptionProgressMonitor pm = new ExceptionProgressMonitor();
+        
         for(Resource resource : fResourceSet.getResources()) {
             Job job = new Job("Resource Save Job") { //$NON-NLS-1$
                 @Override
@@ -125,11 +138,12 @@ public class GraficoModelExporter implements IGraficoConstants {
                         resource.save(null);
                     }
                     catch(IOException ex) {
-                        ex.printStackTrace();
+                        pm.catchException(ex);
                     }
                     return Status.OK_STATUS;
                 }
             };
+            
             job.setJobGroup(jobgroup);
             job.schedule();
         }
@@ -138,13 +152,17 @@ public class GraficoModelExporter implements IGraficoConstants {
             @Override
             public void run() {
                 try {
-                    jobgroup.join(0, null);
+                    jobgroup.join(0, pm);
                 }
                 catch(OperationCanceledException | InterruptedException ex) {
-                    ex.printStackTrace();
                 }
             }
         });
+        
+        // Throw on any exception
+        if(pm.ex != null) {
+            throw pm.ex;
+        }
     }
     
     /**
