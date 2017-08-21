@@ -24,4 +24,6 @@ public interface IPreferenceConstants {
     String PREFS_PROXY_HOST = "proxyHost"; //$NON-NLS-1$
     String PREFS_PROXY_PORT = "proxyPort"; //$NON-NLS-1$
     String PREFS_PROXY_REQUIRES_AUTHENTICATION = "proxyAuthenticate"; //$NON-NLS-1$
+    
+    String PREFS_EXPORT_MAX_THREADS = "exportMaxThreads";  //$NON-NLS-1$
  }

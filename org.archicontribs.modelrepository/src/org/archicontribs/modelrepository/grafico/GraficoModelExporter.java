@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -126,7 +128,8 @@ public class GraficoModelExporter implements IGraficoConstants {
         createAndSaveResourceForFolder(copy, modelFolder);
 
         // Now save all Resources
-        JobGroup jobgroup = new JobGroup("GraficoModelExporter", 0, 1); //$NON-NLS-1$
+        int maxThreads = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_EXPORT_MAX_THREADS);
+        JobGroup jobgroup = new JobGroup("GraficoModelExporter", maxThreads, 1); //$NON-NLS-1$
         
         final ExceptionProgressMonitor pm = new ExceptionProgressMonitor();
         
