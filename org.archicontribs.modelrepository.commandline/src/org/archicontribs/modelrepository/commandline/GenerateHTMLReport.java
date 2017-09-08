@@ -21,6 +21,21 @@ import com.archimatetool.reports.html.HTMLReportExporter;
 /**
  * Command Line interface for generating a HTML Report from Model Repository
  * 
+ * Usage - (should be all on one line):
+ * 
+ * Archi -consoleLog -console -nosplash -application com.archimatetool.commandline.app
+   -GenerateHTMLReport_CloneFolder "/pathToCloneFolder"
+   -GenerateHTMLReport_ReportFolder "/pathToReportFolder"
+   -GenerateHTMLReport_URL "https://bitbucket.org/xxxxx/archi-demo.git"
+   -GenerateHTMLReport_UserName "john@nowhere.com"
+   -GenerateHTMLReport_Password "secret"
+ * 
+ * This will clone an online Archi model repository into clonefolder and generate report to reportfolder.
+ * 
+ * If username/password is not set, it will not clone the model, but will look for the model in the given clone folder and generate report.
+ * This allows for the case where the model may already have been cloned by another process.
+ * 
+ * 
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
