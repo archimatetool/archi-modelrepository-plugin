@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Archi Repository Command Line
+Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
+Bundle-Localization: plugin
+Bundle-Version: 0.2.8.qualifier
+Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
+Require-Bundle: com.archimatetool.reports,
+ com.archimatetool.commandline,
+ org.archicontribs.modelrepository
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
