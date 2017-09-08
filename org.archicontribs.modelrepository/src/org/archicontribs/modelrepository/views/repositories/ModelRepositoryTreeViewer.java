@@ -282,17 +282,17 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             StatusCache sc = cache.get(repo);
             if(sc != null) {
                 if(sc.hasLocalChanges) {
-                    image = IModelRepositoryImages.getOverlayImage(image,
+                    image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
                 }
                 
                 if(sc.hasUnpushedCommits) {
-                    image = IModelRepositoryImages.getOverlayImage(image,
+                    image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_RIGHT_BALL_OVERLAY, IDecoration.BOTTOM_RIGHT);
                 }
                 
                 if(sc.hasRemoteCommits) {
-                    image = IModelRepositoryImages.getOverlayImage(image,
+                    image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
                 }
             }
