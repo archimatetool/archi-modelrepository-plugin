@@ -32,7 +32,10 @@ public class SimpleCredentialsStorage {
     }
 
     public void store(String userName, String password) throws IOException, NoSuchAlgorithmException {
-        Writer out = new OutputStreamWriter(new FileOutputStream(getCredentialsFile()));
+        File file = getCredentialsFile();
+        file.getParentFile().mkdirs();
+        
+        Writer out = new OutputStreamWriter(new FileOutputStream(file));
         out.append(encrypt(userName) + "\n"); //$NON-NLS-1$
         out.append(encrypt(password));
         out.close();
