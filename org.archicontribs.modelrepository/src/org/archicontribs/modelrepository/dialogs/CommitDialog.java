@@ -172,17 +172,14 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
 
     /*
      * Store user name and email
-     * If there are no global .gitconfig settings then store there, otherwise store in local repo config file
+     * If these are the same as those in .gitconfig don't store
      */
     private void storeUserDetails(String name, String email) throws IOException, ConfigInvalidException {
         PersonIdent global = GraficoUtils.getGitConfigUserDetails();
         String globalName = global.getName();
         String globalEmail = global.getEmailAddress();
 
-        if(!StringUtils.isSet(globalName) && !StringUtils.isSet(globalEmail)) {
-            GraficoUtils.saveGitConfigUserDetails(name, email);
-        }
-        else {
+        if(!globalName.equals(name) || !globalEmail.equals(email)) {
             fRepository.saveUserDetails(name, email);
         }
     }
