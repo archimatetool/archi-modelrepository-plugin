@@ -18,8 +18,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -35,11 +33,13 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -55,6 +55,7 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -145,9 +146,6 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public RevCommit commitChanges(String commitMessage, boolean amend) throws GitAPIException, IOException {
-        String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-        String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-        
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             Status status = git.status().call();
             
@@ -169,7 +167,8 @@ public class ArchiRepository implements IArchiRepository {
             
             // Commit
             CommitCommand commitCommand = git.commit();
-            commitCommand.setAuthor(userName, userEmail);
+            PersonIdent userDetails = getUserDetails();
+            commitCommand.setAuthor(userDetails);
             commitCommand.setMessage(commitMessage);
             commitCommand.setAmend(amend);
             return commitCommand.call();
@@ -364,6 +363,52 @@ public class ArchiRepository implements IArchiRepository {
         
         GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
         exporter.exportModel();
+    }
+    
+    @Override
+    public PersonIdent getUserDetails() throws IOException {
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            StoredConfig config = git.getRepository().getConfig();
+            String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
+            String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
+            return new PersonIdent(name, email);
+        }
+    }
+    
+    public void saveUserDetails(String name, String email) throws IOException {
+        // Get global user details from .gitconfig for comparison
+        PersonIdent global = new PersonIdent("", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        try {
+            global = GraficoUtils.getGitConfigUserDetails();
+        }
+        catch(ConfigInvalidException ex) {
+            ex.printStackTrace();
+        }
+        
+        // Save to local config
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            StoredConfig config = git.getRepository().getConfig();
+            
+            // If global name == local name or blank then unset
+            if(!StringUtils.isSet(name) || global.getName().equals(name)) {
+                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME);
+            }
+            // Set
+            else {
+                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME, name);
+            }
+            
+            // If global email == local email or blank then unset
+            if(!StringUtils.isSet(email) || global.getEmailAddress().equals(email)) {
+                config.unset(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL);
+            }
+            else {
+                config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL, email);
+            }
+
+            config.save();
+        }
     }
     
     @Override

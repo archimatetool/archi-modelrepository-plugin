@@ -11,8 +11,11 @@ import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -76,6 +79,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         Label label = new Label(client, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_0);
+        
+        new Label(client, SWT.NULL);
         
         // User details
         Group userDetailsGroup = new Group(client, SWT.NULL);
@@ -240,8 +245,10 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     }
 
     private void setValues() {
-        fUserNameTextField.setText(getPreferenceStore().getString(PREFS_COMMIT_USER_NAME));
-        fUserEmailTextField.setText(getPreferenceStore().getString(PREFS_COMMIT_USER_EMAIL));
+        PersonIdent result = getUserDetails();
+        fUserNameTextField.setText(result.getName());
+        fUserEmailTextField.setText(result.getEmailAddress());
+        
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         fStoreCredentialsButton.setSelection(getPreferenceStore().getBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
@@ -265,8 +272,16 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     @Override
     public boolean performOk() {
-        getPreferenceStore().setValue(PREFS_COMMIT_USER_NAME, fUserNameTextField.getText());
-        getPreferenceStore().setValue(PREFS_COMMIT_USER_EMAIL, fUserEmailTextField.getText());
+        String name = fUserNameTextField.getText();
+        String email = fUserEmailTextField.getText();
+        
+        try {
+            GraficoUtils.saveGitConfigUserDetails(name, email);
+        }
+        catch(IOException | ConfigInvalidException ex) {
+            ex.printStackTrace();
+        }
+        
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
         
@@ -289,8 +304,10 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     @Override
     protected void performDefaults() {
-        fUserNameTextField.setText(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_NAME));
-        fUserEmailTextField.setText(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
+        PersonIdent result = getUserDetails();
+        fUserNameTextField.setText(result.getName());
+        fUserEmailTextField.setText(result.getEmailAddress());
+        
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
         fStoreCredentialsButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
@@ -311,6 +328,18 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fRequiresProxyAuthenticationButton.setEnabled(fUseProxyButton.getSelection());
         fProxyUserNameTextField.setEnabled(fUseProxyButton.getSelection() && fRequiresProxyAuthenticationButton.getSelection());
         fProxyUserPasswordTextField.setEnabled(fUseProxyButton.getSelection() && fRequiresProxyAuthenticationButton.getSelection());
+    }
+    
+    private PersonIdent getUserDetails() {
+        try {
+            return GraficoUtils.getGitConfigUserDetails();
+        }
+        catch(IOException | ConfigInvalidException ex) {
+            ex.printStackTrace();
+        }
+        
+        // Default
+        return new PersonIdent(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_NAME), getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
     }
     
     public void init(IWorkbench workbench) {

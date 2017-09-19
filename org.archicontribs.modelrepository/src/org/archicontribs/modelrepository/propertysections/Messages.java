@@ -9,6 +9,10 @@ public class Messages extends NLS {
     public static String RepoInfoSection_0;
 
     public static String RepoInfoSection_1;
+
+    public static String UserDetailsSection_0;
+
+    public static String UserDetailsSection_1;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

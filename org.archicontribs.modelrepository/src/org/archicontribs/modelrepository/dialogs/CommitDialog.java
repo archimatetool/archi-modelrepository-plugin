@@ -8,10 +8,11 @@ package org.archicontribs.modelrepository.dialogs;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -39,7 +40,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     private Text fTextUserName, fTextUserEmail, fTextCommitMessage;
     private Button fAmendLastCommitCheckbox;
     
-    private String fUserName, fUserEmail, fCommitMessage;
+    private String fCommitMessage;
     private boolean fAmend;
     
     private IArchiRepository fRepository;
@@ -68,9 +69,18 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         container.setLayout(layout);
         
         // User name & email
-        String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-        String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
+        String userName = ""; //$NON-NLS-1$
+        String userEmail = ""; //$NON-NLS-1$
         
+        try {
+            PersonIdent result = fRepository.getUserDetails();
+            userName = result.getName();
+            userEmail = result.getEmailAddress();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+
         Label label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_2);
         
@@ -137,14 +147,6 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         return new Point(600, 450);
     }
     
-    public String getUserName() {
-        return fUserName;
-    }
-
-    public String getUserEmail() {
-        return fUserEmail;
-    }
-
     public String getCommitMessage() {
         return fCommitMessage;
     }
@@ -155,12 +157,33 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
 
     @Override
     protected void okPressed() {
-        fUserEmail = fTextUserEmail.getText().trim();
-        fUserName = fTextUserName.getText().trim();
         fCommitMessage = fTextCommitMessage.getText();
         fAmend =fAmendLastCommitCheckbox.getSelection();
+        
+        try {
+            storeUserDetails(fTextUserName.getText().trim(), fTextUserEmail.getText().trim());
+        }
+        catch(IOException | ConfigInvalidException ex) {
+            ex.printStackTrace();
+        }
         
         super.okPressed();
     }
 
+    /*
+     * Store user name and email
+     * If there are no global .gitconfig settings then store there, otherwise store in local repo config file
+     */
+    private void storeUserDetails(String name, String email) throws IOException, ConfigInvalidException {
+        PersonIdent global = GraficoUtils.getGitConfigUserDetails();
+        String globalName = global.getName();
+        String globalEmail = global.getEmailAddress();
+
+        if(!StringUtils.isSet(globalName) && !StringUtils.isSet(globalEmail)) {
+            GraficoUtils.saveGitConfigUserDetails(name, email);
+        }
+        else {
+            fRepository.saveUserDetails(name, email);
+        }
+    }
 }

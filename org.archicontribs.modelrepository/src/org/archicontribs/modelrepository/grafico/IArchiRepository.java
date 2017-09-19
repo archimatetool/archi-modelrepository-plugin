@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.FetchResult;
@@ -182,4 +183,18 @@ public interface IArchiRepository {
      * @throws IOException
      */
     boolean saveChecksum() throws IOException;
+    
+    /**
+     * @return User name and email from config. This is either local or global
+     * @throws IOException
+     */
+    PersonIdent getUserDetails() throws IOException;
+    
+    /**
+     * Save user name and email
+     * @param name
+     * @param email
+     * @throws IOException
+     */
+    public void saveUserDetails(String name, String email) throws IOException;
 }

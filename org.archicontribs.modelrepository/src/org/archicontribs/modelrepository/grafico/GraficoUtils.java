@@ -12,8 +12,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
+import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.util.SystemReader;
 
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -90,6 +97,38 @@ public class GraficoUtils {
         return parent.getParentFile();
     }
     
+    /**
+     * @return The global user name and email as set in .gitconfig file
+     * @throws IOException
+     * @throws ConfigInvalidException
+     */
+    public static PersonIdent getGitConfigUserDetails() throws IOException, ConfigInvalidException {
+        StoredConfig config = SystemReader.getInstance().openUserConfig(null, FS.detect());
+        config.load();
+
+        String name = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME));
+        String email = StringUtils.safeString(config.getString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL));
+
+        return new PersonIdent(name, email);
+    }
+    
+    /**
+     * Save the gloable user name and email as set in .gitconfig file
+     * @param name
+     * @param email
+     * @throws IOException
+     * @throws ConfigInvalidException
+     */
+    public static void saveGitConfigUserDetails(String name, String email) throws IOException, ConfigInvalidException {
+        StoredConfig config = SystemReader.getInstance().openUserConfig(null, FS.detect());
+        config.load(); // It seems we have to load before save
+
+        config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_NAME, name);
+        config.setString(ConfigConstants.CONFIG_USER_SECTION, null, ConfigConstants.CONFIG_KEY_EMAIL, email);
+
+        config.save();
+    }
+
     /**
      * Write an object from an ObjectLoader to file using system file endings
      * On Windows when a file is restored from the ObjectLoader it has CR line endings.

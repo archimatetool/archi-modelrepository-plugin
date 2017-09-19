@@ -283,7 +283,7 @@
       <page
             class="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
             id="org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage"
-            name="%repository">
+            name="%collaboration">
       </page>
    </extension>
    <extension
@@ -295,7 +295,8 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
       <propertyContributor
-            contributorId="org.archicontribs.modelrepository">
+            contributorId="org.archicontribs.modelrepository"
+            labelProvider="org.archicontribs.modelrepository.propertysections.LabelProvider">
          <propertyCategory
                category="main.category"></propertyCategory>
       </propertyContributor>
@@ -307,7 +308,12 @@
          <propertyTab
                category="main.category"
                id="info.tab"
-               label="%repository">
+               label="%infoTab">
+         </propertyTab>
+         <propertyTab
+               category="main.category"
+               id="user.tab"
+               label="%userTab">
          </propertyTab>
       </propertyTabs>
    </extension>
@@ -320,6 +326,12 @@
                filter="org.archicontribs.modelrepository.propertysections.RepoInfoSection$Filter"
                id="infoSection"
                tab="info.tab">
+         </propertySection>
+         <propertySection
+               class="org.archicontribs.modelrepository.propertysections.UserDetailsSection"
+               filter="org.archicontribs.modelrepository.propertysections.UserDetailsSection$Filter"
+               id="userSection"
+               tab="user.tab">
          </propertySection>
       </propertySections>
    </extension>

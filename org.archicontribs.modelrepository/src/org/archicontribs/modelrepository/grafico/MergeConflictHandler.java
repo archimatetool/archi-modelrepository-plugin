@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.ConflictsDialog;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -22,6 +20,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.swt.widgets.Shell;
 
 /**
@@ -108,9 +107,8 @@ public class MergeConflictHandler {
             
             // Commit
             CommitCommand commitCommand = git.commit();
-            String userName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_NAME);
-            String userEmail = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_COMMIT_USER_EMAIL);
-            commitCommand.setAuthor(userName, userEmail);
+            PersonIdent userDetails = fArchiRepo.getUserDetails();
+            commitCommand.setAuthor(userDetails);
             commitCommand.setMessage(commitMessage);
             commitCommand.setAmend(amend);
             commitCommand.call();
