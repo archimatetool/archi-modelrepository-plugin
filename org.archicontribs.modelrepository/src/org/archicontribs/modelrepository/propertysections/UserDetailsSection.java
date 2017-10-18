@@ -132,7 +132,8 @@ public class UserDetailsSection extends AbstractArchimatePropertySection {
         fTextEmail = new UserText(parent, ConfigConstants.CONFIG_KEY_EMAIL);
         
         // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
-        addHiddenTextFieldToForm(parent);
+        // But causes ModelRepositoryView to lose focus when selecting
+        //addHiddenTextFieldToForm(parent);
     }
     
     @Override

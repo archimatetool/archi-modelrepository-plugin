@@ -46,7 +46,8 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
         fTextURL = createSingleTextControl(parent, SWT.READ_ONLY);
         
         // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
-        addHiddenTextFieldToForm(parent);
+        // But causes ModelRepositoryView to lose focus when selecting
+        // addHiddenTextFieldToForm(parent);
     }
 
     @Override
