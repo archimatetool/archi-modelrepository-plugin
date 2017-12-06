@@ -6,7 +6,7 @@
 This is an extension to Archi that allows collaborative work on Archi through sharing and versioning of models in a Repository. It's a work in progress. It is based on the [Grafico format](https://github.com/archi-contribs/archi-grafico-plugin/wiki/GRAFICO-explained) but hides all the Git complexity.
 
 ## How to use it
-Just go to the [releases page](https://github.com/archi-contribs/archi-modelrepository-plugin/releases) and follow instructions.
+You can download the latest binary release on the Archi Plug-ins page [here](https://www.archimatetool.com/plugins). Follow the instructions there on how to install it and get started.
 
 ## Roadmap
 There is no formal roadmap for the moment, development is done through sprints that try to gradually improve the overall value of this plugin. Focus if currently on user experience and more features (like branches managemnet) will come after.
