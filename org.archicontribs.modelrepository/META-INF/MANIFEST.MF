@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Model Repository
 Bundle-SymbolicName: org.archicontribs.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.3.1.qualifier
+Bundle-Version: 0.3.2.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.1.0"
@@ -55,7 +55,7 @@ Export-Package: org.archicontribs.modelrepository,
  org.eclipse.jgit.util.sha1,
  org.eclipse.jgit.util.time
 Bundle-ClassPath: org.archicontribs.modelrepository.jar,
- lib/org.eclipse.jgit_4.8.0.201706111038-r.jar,
+ lib/org.eclipse.jgit-4.10.0.201712302008-r.jar,
  lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,
  lib/slf4j-api-1.7.25.jar,
  lib/slf4j-simple-1.7.25.jar
