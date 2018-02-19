@@ -15,7 +15,7 @@ import org.eclipse.jgit.transport.PushResult;
 
 import com.archimatetool.model.IArchimateModel;
 
-public interface IArchiRepository {
+public interface IArchiRepository extends IGraficoConstants {
 
     /**
      * @return The local repository folder
@@ -170,6 +170,13 @@ public interface IArchiRepository {
      * @throws IOException
      */
     boolean isHeadAndRemoteSame() throws IOException;
+    
+    /**
+     * @param refName The name of the ref to lookup
+     * @return true if ref exists
+     * @throws IOException
+     */
+    boolean hasRef(String refName) throws IOException;
 
     /**
      * Export the model to Grafico files

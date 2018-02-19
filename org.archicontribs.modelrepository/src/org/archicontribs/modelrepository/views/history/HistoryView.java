@@ -97,6 +97,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         fRepoLabel = new CLabel(parent, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fRepoLabel.setText(Messages.HistoryView_0);
         
         SashForm sash = new SashForm(parent, SWT.VERTICAL);
         GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -256,6 +257,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionRevertUptoCommit.setCommit(commit);
         fActionRestoreCommit.setCommit(commit);
         
+        fActionUndoLastCommit.update();
+        fActionResetToRemoteCommit.update();
+        
         fCommentViewer.setCommit(commit);
     }
     
@@ -347,9 +351,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         if(repository.equals(fSelectedRepository)) {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
-                case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
                     getViewer().setInput(repository);
+                    break;
+                    
+                case IRepositoryListener.REPOSITORY_DELETED:
+                    fRepoLabel.setText(Messages.HistoryView_0);
+                    getViewer().setInput(repository);
+                    fSelectedRepository = null; // Reset this
                     break;
                     
                 case IRepositoryListener.REPOSITORY_CHANGED:

@@ -25,6 +25,11 @@ public interface IGraficoModelAction extends IAction {
      * @return The repository
      */
     IArchiRepository getRepository();
+    
+    /**
+     * Update enabled state
+     */
+    void update();
 
     /**
      * Dispose of action

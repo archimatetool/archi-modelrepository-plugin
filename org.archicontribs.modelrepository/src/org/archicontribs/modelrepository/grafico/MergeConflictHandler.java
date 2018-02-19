@@ -128,11 +128,11 @@ public class MergeConflictHandler {
     }
     
     public void resetToRemoteState() throws IOException, GitAPIException {
-        resetToState("origin/master"); //$NON-NLS-1$
+        resetToState(IGraficoConstants.ORIGIN_MASTER);
     }
     
     public void resetToLocalState() throws IOException, GitAPIException {
-        resetToState("refs/heads/master"); //$NON-NLS-1$
+        resetToState(IGraficoConstants.REFS_HEADS_MASTER);
     }
     
     private void resetToState(String ref) throws IOException, GitAPIException {

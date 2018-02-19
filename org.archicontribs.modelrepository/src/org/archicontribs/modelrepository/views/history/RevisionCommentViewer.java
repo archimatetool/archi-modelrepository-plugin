@@ -42,5 +42,8 @@ public class RevisionCommentViewer {
             style.fontStyle = SWT.BOLD;
             fText.setStyleRange(style);
         }
+        else {
+            fText.setText(""); //$NON-NLS-1$
+        }
     }
 }

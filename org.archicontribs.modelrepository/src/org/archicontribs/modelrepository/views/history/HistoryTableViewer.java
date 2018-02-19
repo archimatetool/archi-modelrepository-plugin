@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
@@ -91,13 +92,13 @@ public class HistoryTableViewer extends TableViewer {
         List<RevCommit> commits = new ArrayList<RevCommit>();
         
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+            commits = new ArrayList<RevCommit>();
+            
             if(!(newInput instanceof IArchiRepository)) {
                 return;
             }
             
             IArchiRepository repo = (IArchiRepository)newInput;
-            
-            commits = new ArrayList<RevCommit>();
             
             // Local Repo was deleted
             if(!repo.getLocalRepositoryFolder().exists()) {
@@ -116,13 +117,13 @@ public class HistoryTableViewer extends TableViewer {
 //                    }
                     
                     // We are interested in the local master branch and origin master branch
-                    ObjectId objectID = repository.resolve("refs/heads/master"); //$NON-NLS-1$
+                    ObjectId objectID = repository.resolve(IGraficoConstants.REFS_HEADS_MASTER);
                     if(objectID != null) {
                         localMasterCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(localMasterCommit); 
                     }
                     
-                    objectID = repository.resolve("origin/master"); //$NON-NLS-1$
+                    objectID = repository.resolve(IGraficoConstants.ORIGIN_MASTER);
                     if(objectID != null) {
                         originMasterCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(originMasterCommit);

@@ -119,7 +119,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public String getOnlineRepositoryURL() throws IOException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            return git.getRepository().getConfig().getString("remote", "origin", "url"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            return git.getRepository().getConfig().getString("remote", IGraficoConstants.ORIGIN, "url"); //$NON-NLS-1$ //$NON-NLS-2$
         }
     }
     
@@ -235,7 +235,7 @@ public class ArchiRepository implements IArchiRepository {
         Git git = initCommand.call();
         
         RemoteAddCommand remoteAddCommand = git.remoteAdd();
-        remoteAddCommand.setName("origin"); //$NON-NLS-1$
+        remoteAddCommand.setName(IGraficoConstants.ORIGIN);
         remoteAddCommand.setUri(new URIish(URL));
         remoteAddCommand.call();
         
@@ -317,15 +317,27 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public boolean isHeadAndRemoteSame() throws IOException {
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
-            Ref online = repository.findRef("origin/master"); //$NON-NLS-1$
-            Ref local = repository.findRef("HEAD"); //$NON-NLS-1$
+            Ref onlineRef = repository.findRef(ORIGIN_MASTER);
+            Ref localRef = repository.findRef(HEAD);
+            
+            // In case of missing ref return false
+            if(onlineRef == null || localRef == null) {
+                return false;
+            }
             
             try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit onlineCommit = revWalk.parseCommit(online.getObjectId());
-                RevCommit localLatestCommit = revWalk.parseCommit(local.getObjectId());
+                RevCommit onlineCommit = revWalk.parseCommit(onlineRef.getObjectId());
+                RevCommit localLatestCommit = revWalk.parseCommit(localRef.getObjectId());
                 revWalk.dispose();
                 return onlineCommit.equals(localLatestCommit);
             }
+        }
+    }
+    
+    @Override
+    public boolean hasRef(String refName) throws IOException {
+        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            return repository.findRef(refName) != null;
         }
     }
     
@@ -438,8 +450,8 @@ public class ArchiRepository implements IArchiRepository {
      */
     private void setTrackedMasterBranch(Git git) throws IOException {
         StoredConfig config = git.getRepository().getConfig();
-        String branchName = "master"; //$NON-NLS-1$
-        String remoteName = "origin"; //$NON-NLS-1$
+        String branchName = IGraficoConstants.MASTER;
+        String remoteName = IGraficoConstants.ORIGIN;
         
         if(!remoteName.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);

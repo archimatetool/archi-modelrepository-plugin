@@ -52,12 +52,17 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	public IArchiRepository getRepository() {
 	    return fRepository;
 	}
+	
+    @Override
+	public void update() {
+        setEnabled(shouldBeEnabled());
+	}
 	 
 	/**
 	 * @return true if this action should be enabled
 	 */
 	protected boolean shouldBeEnabled() {
-	    return getRepository() != null;
+	    return getRepository() != null && getRepository().getLocalRepositoryFolder().exists();
 	}
 	
     /**

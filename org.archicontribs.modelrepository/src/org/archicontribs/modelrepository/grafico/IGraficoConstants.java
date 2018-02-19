@@ -42,4 +42,29 @@ public interface IGraficoConstants {
      * File name of user name/password for Proxy Server
      */
     String PROXY_CREDENTIALS_FILE = "proxy_credentials"; //$NON-NLS-1$
+    
+    /**
+     * Remote git name, assumed that the repo is called "origin"
+     */
+    String ORIGIN = "origin"; //$NON-NLS-1$
+
+    /**
+     * Master branch
+     */
+    String MASTER = "master"; //$NON-NLS-1$
+
+    /**
+     * Remote master branch, assumed that the repo is called "origin"
+     */
+    String ORIGIN_MASTER = "origin/master"; //$NON-NLS-1$
+    
+    /**
+     * Head
+     */
+    String HEAD = "HEAD"; //$NON-NLS-1$
+    
+    /**
+     * Local master
+     */
+    String REFS_HEADS_MASTER = "refs/heads/master"; //$NON-NLS-1$
 }

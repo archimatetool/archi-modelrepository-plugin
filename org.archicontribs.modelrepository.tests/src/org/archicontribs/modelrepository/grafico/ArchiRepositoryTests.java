@@ -148,7 +148,7 @@ public class ArchiRepositoryTests {
             commitCommand.setMessage("Message");
             commitCommand.call();
 
-            assertEquals(contents, repo.getFileContents("test.txt", "HEAD"));
+            assertEquals(contents, repo.getFileContents("test.txt", IGraficoConstants.HEAD));
         }
     }
     

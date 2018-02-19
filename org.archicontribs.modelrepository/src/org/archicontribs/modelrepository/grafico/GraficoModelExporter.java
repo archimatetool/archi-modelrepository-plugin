@@ -54,7 +54,7 @@ import com.archimatetool.model.IIdentifier;
  * @author Quentin Varquet
  * @author Phillip Beauvoir
  */
-public class GraficoModelExporter implements IGraficoConstants {
+public class GraficoModelExporter {
 	
     // Use a ProgressMonitor to cancel running Jobs and track Exception
     static class ExceptionProgressMonitor extends NullProgressMonitor {
@@ -104,11 +104,11 @@ public class GraficoModelExporter implements IGraficoConstants {
     public void exportModel() throws IOException {
         // Define target folders for model and images
         // Delete them and re-create them (remark: FileUtils.deleteFolder() does sanity checks)
-        File modelFolder = new File(fLocalRepoFolder, MODEL_FOLDER);
+        File modelFolder = new File(fLocalRepoFolder, IGraficoConstants.MODEL_FOLDER);
         FileUtils.deleteFolder(modelFolder);
         modelFolder.mkdirs();
 
-        File imagesFolder = new File(fLocalRepoFolder, IMAGES_FOLDER);
+        File imagesFolder = new File(fLocalRepoFolder, IGraficoConstants.IMAGES_FOLDER);
         FileUtils.deleteFolder(imagesFolder);
         imagesFolder.mkdirs();
 
@@ -184,7 +184,7 @@ public class GraficoModelExporter implements IGraficoConstants {
         for(IFolder tmpFolder : allFolders) {
             File tmpFolderFile = new File(folder, getNameFor(tmpFolder));
             tmpFolderFile.mkdirs();
-            createAndSaveResource(new File(tmpFolderFile, FOLDER_XML), tmpFolder);
+            createAndSaveResource(new File(tmpFolderFile, IGraficoConstants.FOLDER_XML), tmpFolder);
             createAndSaveResourceForFolder(tmpFolder, tmpFolderFile);
         }
         
@@ -200,7 +200,7 @@ public class GraficoModelExporter implements IGraficoConstants {
             }
         }
         if(folderContainer instanceof IArchimateModel) {
-            createAndSaveResource(new File(folder, FOLDER_XML), folderContainer);
+            createAndSaveResource(new File(folder, IGraficoConstants.FOLDER_XML), folderContainer);
         }
     }
     
@@ -224,7 +224,7 @@ public class GraficoModelExporter implements IGraficoConstants {
     private void createAndSaveResource(File file, EObject object) throws IOException {
     	// Update the URIConverter
         // Map the logical name (filename) to the physical name (path+filename)
-        URI key = file.getName().equals(FOLDER_XML) ? URI.createFileURI(file.getAbsolutePath()) : URI.createFileURI(file.getName());
+        URI key = file.getName().equals(IGraficoConstants.FOLDER_XML) ? URI.createFileURI(file.getAbsolutePath()) : URI.createFileURI(file.getName());
         URI value = URI.createFileURI(file.getAbsolutePath());
         fResourceSet.getURIConverter().getURIMap().put(key, value);
 

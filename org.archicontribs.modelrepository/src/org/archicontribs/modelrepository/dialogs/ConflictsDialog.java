@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -23,7 +24,6 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
@@ -140,8 +140,8 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
                 
                 try {
-                    fFileViewerOurs.setText(fHandler.getArchiRepository().getFileContents(path, Constants.HEAD));
-                    fFileViewerTheirs.setText(fHandler.getArchiRepository().getFileContents(path, "origin/master")); //$NON-NLS-1$
+                    fFileViewerOurs.setText(fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.HEAD));
+                    fFileViewerTheirs.setText(fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.ORIGIN_MASTER));
                     fFileViewerDiff.setText(fHandler.getArchiRepository().getWorkingTreeFileContents(path));
                 }
                 catch(IOException ex) {

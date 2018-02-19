@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -36,20 +37,6 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
 
     @Override
     public void run() {
-        // If the latest local commit == remote commit nothing to do
-        
-        try {
-            if(getRepository().isHeadAndRemoteSame()) {
-                MessageDialog.openInformation(fWindow.getShell(),
-                        Messages.ResetToRemoteCommitAction_0,
-                        Messages.ResetToRemoteCommitAction_1);
-                return;
-            }
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
-        }
-        
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -95,7 +82,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         
         // Do it!
         try {
-            getRepository().resetToRef("origin/master"); //$NON-NLS-1$
+            getRepository().resetToRef(IGraficoConstants.ORIGIN_MASTER);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
@@ -113,5 +100,19 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         }
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+    }
+    
+    @Override
+    protected boolean shouldBeEnabled() {
+        try {
+            return getRepository() != null && getRepository().getLocalRepositoryFolder().exists() &&
+                    getRepository().hasRef(IGraficoConstants.ORIGIN_MASTER) &&
+                    !getRepository().isHeadAndRemoteSame();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return false;
     }
 }

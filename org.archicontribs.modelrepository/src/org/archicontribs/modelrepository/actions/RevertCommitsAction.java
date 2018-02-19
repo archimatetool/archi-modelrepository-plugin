@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RevertCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -38,7 +39,7 @@ public class RevertCommitsAction extends RevertCommitAction {
         
         try(RevWalk revWalk = new RevWalk(git.getRepository())) {
             // We are interested in the HEAD
-            revWalk.markStart(revWalk.parseCommit(git.getRepository().resolve("HEAD"))); //$NON-NLS-1$
+            revWalk.markStart(revWalk.parseCommit(git.getRepository().resolve(IGraficoConstants.HEAD)));
             
             for(RevCommit c : revWalk ) {
                 if(c.getParentCount() > 1) {

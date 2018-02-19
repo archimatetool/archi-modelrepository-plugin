@@ -46,7 +46,7 @@ import com.archimatetool.model.IIdentifier;
  * @author Quentin Varquet
  * @author Phillip Beauvoir
  */
-public class GraficoModelImporter implements IGraficoConstants {
+public class GraficoModelImporter {
     
     /**
      * Unresolved missing object class
@@ -103,14 +103,14 @@ public class GraficoModelImporter implements IGraficoConstants {
      */
     public IArchimateModel importAsModel() throws IOException {
     	// Create folders for model and images
-    	File modelFolder = new File(fLocalRepoFolder, MODEL_FOLDER);
+    	File modelFolder = new File(fLocalRepoFolder, IGraficoConstants.MODEL_FOLDER);
         modelFolder.mkdirs();
 
-        File imagesFolder = new File(fLocalRepoFolder, IMAGES_FOLDER);
+        File imagesFolder = new File(fLocalRepoFolder, IGraficoConstants.IMAGES_FOLDER);
     	imagesFolder.mkdirs();
     	
     	// If the top folder.xml does not exist then there is nothing to import, so return null
-    	if(!(new File(modelFolder, FOLDER_XML)).isFile()) {
+    	if(!(new File(modelFolder, IGraficoConstants.FOLDER_XML)).isFile()) {
     	    return null;
     	}
     	
@@ -125,7 +125,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     	fModel = loadModel(modelFolder);
     	
     	// Remove model from its resource (needed to save it back to a .archimate file)
-    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
+    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, IGraficoConstants.FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
     	
     	// Resolve proxies
     	fUnresolvedObjects = null;
@@ -229,7 +229,7 @@ public class GraficoModelImporter implements IGraficoConstants {
     }
     
 	private IArchimateModel loadModel(File folder) throws IOException {
-		IArchimateModel model = (IArchimateModel)loadElement(new File(folder, FOLDER_XML));
+		IArchimateModel model = (IArchimateModel)loadElement(new File(folder, IGraficoConstants.FOLDER_XML));
 		IFolder tmpFolder;
 		
 		List<FolderType> folderList = new ArrayList<FolderType>();
@@ -261,16 +261,16 @@ public class GraficoModelImporter implements IGraficoConstants {
 	 * @throws IOException 
 	 */
     private IFolder loadFolder(File folder) throws IOException {
-        if(!folder.isDirectory() || !(new File(folder, FOLDER_XML)).isFile()) {
+        if(!folder.isDirectory() || !(new File(folder, IGraficoConstants.FOLDER_XML)).isFile()) {
             throw new IOException("File is not directory or folder.xml does not exist."); //$NON-NLS-1$
         }
 
         // Load folder object itself
-        IFolder currentFolder = (IFolder)loadElement(new File(folder, FOLDER_XML));
+        IFolder currentFolder = (IFolder)loadElement(new File(folder, IGraficoConstants.FOLDER_XML));
 
         // Load each elements (except folder.xml) and add them to folder
         for(File fileOrFolder : folder.listFiles()) {
-            if(!fileOrFolder.getName().equals(FOLDER_XML)) {
+            if(!fileOrFolder.getName().equals(IGraficoConstants.FOLDER_XML)) {
                 if(fileOrFolder.isFile()) {
                     currentFolder.getElements().add(loadElement(fileOrFolder));
                 }

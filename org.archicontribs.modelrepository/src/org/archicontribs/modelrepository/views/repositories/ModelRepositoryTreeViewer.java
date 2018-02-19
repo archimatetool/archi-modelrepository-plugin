@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -186,7 +187,20 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 
     @Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
-        refresh(repository);
+        switch(eventName) {
+            case IRepositoryListener.REPOSITORY_ADDED:
+                refresh();
+                setSelection(new StructuredSelection(repository));
+                break;
+                
+            case IRepositoryListener.REPOSITORY_DELETED:
+                refresh();
+                break;
+
+            default:
+                refresh(repository);
+                break;
+        }
     }
     
     /**
@@ -333,10 +347,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             if(cell.getElement() instanceof IArchiRepository) {
                 IArchiRepository repo = (IArchiRepository)cell.getElement();
                 
+                // Local repo was perhaps deleted
+                if(!repo.getLocalRepositoryFolder().exists()) {
+                    return;
+                }
+                
                 // Image
                 try {
-                    boolean hasUnpushedCommits = repo.hasUnpushedCommits("refs/heads/master"); //$NON-NLS-1$
-                    boolean hasRemoteCommits = repo.hasRemoteCommits("refs/heads/master"); //$NON-NLS-1$
+                    boolean hasUnpushedCommits = repo.hasUnpushedCommits(IGraficoConstants.REFS_HEADS_MASTER);
+                    boolean hasRemoteCommits = repo.hasRemoteCommits(IGraficoConstants.REFS_HEADS_MASTER);
                     boolean hasLocalChanges = repo.hasLocalChanges();
                     
                     StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);

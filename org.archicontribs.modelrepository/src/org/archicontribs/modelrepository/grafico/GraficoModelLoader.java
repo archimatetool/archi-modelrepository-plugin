@@ -144,7 +144,7 @@ public class GraficoModelLoader {
                     
                     // Reset RevWalk
                     revWalk.reset();
-                    ObjectId id = repository.resolve("refs/heads/master"); //$NON-NLS-1$
+                    ObjectId id = repository.resolve(IGraficoConstants.REFS_HEADS_MASTER);
                     if(id != null) {
                         revWalk.markStart(revWalk.parseCommit(id)); 
                     }

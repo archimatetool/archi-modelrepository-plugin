@@ -108,7 +108,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             // If this is null then it failed because of no model in this commit
             if(graficoModel == null) {
                 // Reset
-                getRepository().resetToRef("refs/heads/master"); //$NON-NLS-1$
+                getRepository().resetToRef(IGraficoConstants.REFS_HEADS_MASTER);
                 MessageDialog.openError(fWindow.getShell(), Messages.RestoreCommitAction_0, Messages.RestoreCommitAction_2);
                 return;
             }
@@ -151,7 +151,7 @@ public class RestoreCommitAction extends AbstractModelAction {
         }
         
         try(Repository repo = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
-            ObjectId headID = repo.resolve("refs/heads/master"); //$NON-NLS-1$
+            ObjectId headID = repo.resolve(IGraficoConstants.REFS_HEADS_MASTER);
             ObjectId commitID = fCommit.getId();
             return commitID.equals(headID);
         }

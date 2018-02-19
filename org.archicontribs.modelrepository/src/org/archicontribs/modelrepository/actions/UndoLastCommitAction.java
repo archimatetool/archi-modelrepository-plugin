@@ -9,9 +9,14 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -31,19 +36,6 @@ public class UndoLastCommitAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        // If the latest commit (i.e. local and remote head are the same) has already been pushed we can't roll back to the previous commit
-        try {
-            if(getRepository().isHeadAndRemoteSame()) {
-                MessageDialog.openError(fWindow.getShell(),
-                        Messages.UndoLastCommitAction_0,
-                        Messages.UndoLastCommitAction_3);
-                return;
-            }
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
-        }
-        
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -77,4 +69,47 @@ public class UndoLastCommitAction extends AbstractModelAction {
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
+    
+    @Override
+    protected boolean shouldBeEnabled() {
+        if(!super.shouldBeEnabled()) {
+            return false;
+        }
+        
+        // If HEAD commit count is 1 then there's nothing to undo
+        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                // We are interested in the HEAD
+                revWalk.markStart(revWalk.parseCommit(repository.resolve(IGraficoConstants.HEAD)));
+                
+                int count = 0;
+                for(@SuppressWarnings("unused") RevCommit c : revWalk) {
+                    count++;
+                    if(count > 1) {
+                        break;
+                    }
+                }
+                
+                revWalk.dispose();
+                
+                if(count == 1) {
+                    return false;
+                }
+            }
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        // Otherwise...
+        try {
+            return !getRepository().isHeadAndRemoteSame();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        return false;
+    }
+
 }
