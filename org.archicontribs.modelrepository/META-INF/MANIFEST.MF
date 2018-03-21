@@ -59,3 +59,4 @@ Bundle-ClassPath: org.archicontribs.modelrepository.jar,
  lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,
  lib/slf4j-api-1.7.25.jar,
  lib/slf4j-simple-1.7.25.jar
+Automatic-Module-Name: org.archicontribs.modelrepository
