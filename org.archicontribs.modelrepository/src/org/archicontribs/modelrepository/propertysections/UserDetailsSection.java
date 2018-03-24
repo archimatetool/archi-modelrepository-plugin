@@ -9,9 +9,8 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.eclipse.emf.common.notify.Adapter;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
@@ -24,7 +23,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.archimatetool.editor.propertysections.AbstractArchimatePropertySection;
+import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.utils.StringUtils;
 
@@ -34,7 +33,7 @@ import com.archimatetool.editor.utils.StringUtils;
  * 
  * @author Phillip Beauvoir
  */
-public class UserDetailsSection extends AbstractArchimatePropertySection {
+public class UserDetailsSection extends AbstractArchiPropertySection {
     
     public static class Filter implements IFilter {
         public boolean select(Object object) {
@@ -137,19 +136,9 @@ public class UserDetailsSection extends AbstractArchimatePropertySection {
     }
     
     @Override
-    protected Adapter getECoreAdapter() {
-        return null;
-    }
-
-    @Override
-    protected EObject getEObject() {
-        return null;
-    }
-
-    @Override
-    protected void setElement(Object element) {
-        if(element instanceof IArchiRepository) {
-            fRepository = (IArchiRepository)element;
+    protected void handleSelection(IStructuredSelection selection) {
+        if(selection.getFirstElement() instanceof IArchiRepository) {
+            fRepository = (IArchiRepository)selection.getFirstElement();
             
             String globalName = "", globalEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
             String localName = "", localEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
@@ -178,7 +167,7 @@ public class UserDetailsSection extends AbstractArchimatePropertySection {
             fTextEmail.setText(globalEmail, localEmail);
         }
         else {
-            System.err.println(getClass() + " failed to get element for " + element); //$NON-NLS-1$
+            System.err.println(getClass() + " failed to get element for " + selection.getFirstElement()); //$NON-NLS-1$
         }
     }
     
