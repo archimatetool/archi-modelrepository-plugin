@@ -7,6 +7,8 @@ package org.archicontribs.modelrepository.commandline;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -34,7 +36,7 @@ import com.archimatetool.model.IArchimateModel;
    --modelrepository.cloneModel "url"
    --modelrepository.loadModel "cloneFolder"
    --modelrepository.userName "userName"
-   --modelrepository.password "password"
+   --modelrepository.passFile "/pathtoPasswordFile"
  * 
  * This will clone an online Archi model repository into clonefolder.
  * 
@@ -47,7 +49,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
     static final String OPTION_CLONE_MODEL = "modelrepository.cloneModel"; //$NON-NLS-1$
     static final String OPTION_LOAD_MODEL = "modelrepository.loadModel"; //$NON-NLS-1$
     static final String OPTION_USERNAME = "modelrepository.userName"; //$NON-NLS-1$
-    static final String OPTION_PASSWORD = "modelrepository.password"; //$NON-NLS-1$
+    static final String OPTION_PASSFILE = "modelrepository.passFile"; //$NON-NLS-1$
     
     public LoadModelFromRepositoryProvider() {
     }
@@ -74,7 +76,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         if(commandLine.hasOption(OPTION_CLONE_MODEL)) {
             String url = commandLine.getOptionValue(OPTION_CLONE_MODEL);
             String userName = commandLine.getOptionValue(OPTION_USERNAME);
-            String password = commandLine.getOptionValue(OPTION_PASSWORD);
+            String password = getPasswordFromFile(commandLine);
             
             if(!StringUtils.isSet(url)) {
                 logError(Messages.LoadModelFromRepositoryProvider_2);
@@ -83,6 +85,11 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             
             if(!StringUtils.isSet(userName)) {
                 logError(Messages.LoadModelFromRepositoryProvider_3);
+                return;
+            }
+            
+            if(!StringUtils.isSet(password)) {
+                logError(Messages.LoadModelFromRepositoryProvider_17);
                 return;
             }
 
@@ -128,6 +135,21 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         }
     }
 
+    private String getPasswordFromFile(CommandLine commandLine) throws IOException {
+        String password = null;
+        
+        String path = commandLine.getOptionValue(OPTION_PASSFILE);
+        if(StringUtils.isSet(path)) {
+            File file = new File(path);
+            if(file.exists() && file.canRead()) {
+                password = new String(Files.readAllBytes(Paths.get(file.getPath())));
+                password = password.trim();
+            }
+        }
+
+        return password;
+    }
+    
     @Override
     public Options getOptions() {
         Options options = new Options();
@@ -157,7 +179,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         options.addOption(option);
         
         option = Option.builder()
-                .longOpt(OPTION_PASSWORD)
+                .longOpt(OPTION_PASSFILE)
                 .hasArg()
                 .argName(Messages.LoadModelFromRepositoryProvider_15)
                 .desc(NLS.bind(Messages.LoadModelFromRepositoryProvider_16, OPTION_CLONE_MODEL))
