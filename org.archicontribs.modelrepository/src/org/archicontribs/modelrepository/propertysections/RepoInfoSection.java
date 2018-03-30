@@ -8,14 +8,13 @@ package org.archicontribs.modelrepository.propertysections;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.eclipse.emf.common.notify.Adapter;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import com.archimatetool.editor.propertysections.AbstractArchimatePropertySection;
+import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 
 
 /**
@@ -23,7 +22,7 @@ import com.archimatetool.editor.propertysections.AbstractArchimatePropertySectio
  * 
  * @author Phillip Beauvoir
  */
-public class RepoInfoSection extends AbstractArchimatePropertySection {
+public class RepoInfoSection extends AbstractArchiPropertySection {
     
     public static class Filter implements IFilter {
         public boolean select(Object object) {
@@ -51,19 +50,9 @@ public class RepoInfoSection extends AbstractArchimatePropertySection {
     }
 
     @Override
-    protected Adapter getECoreAdapter() {
-        return null;
-    }
-
-    @Override
-    protected EObject getEObject() {
-        return null;
-    }
-
-    @Override
-    protected void setElement(Object element) {
-        if(element instanceof IArchiRepository) {
-            IArchiRepository repo = (IArchiRepository)element;
+    protected void handleSelection(IStructuredSelection selection) {
+        if(selection.getFirstElement() instanceof IArchiRepository) {
+            IArchiRepository repo = (IArchiRepository)selection.getFirstElement();
             
             fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
             
