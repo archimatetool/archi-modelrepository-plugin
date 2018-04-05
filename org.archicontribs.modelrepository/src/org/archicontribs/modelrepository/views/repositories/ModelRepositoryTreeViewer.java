@@ -85,6 +85,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             
             @Override
             public IStatus run(IProgressMonitor monitor) {
+                // Check first thing on entry
                 if(getControl().isDisposed()) {
                     return Status.OK_STATUS;
                 }
@@ -112,9 +113,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         Job fetchJob = new Job("Fetch Job") { //$NON-NLS-1$
             @Override
             public IStatus run(IProgressMonitor monitor) {
+                // Check first thing on entry
+                if(getControl().isDisposed()) {
+                    return Status.OK_STATUS;
+                }
+                
                 boolean needsRefresh = false;
 
                 for(IArchiRepository repo : getRepositories(getRootFolder())) {
+                    // Check also in for loop
                     if(getControl().isDisposed()) {
                         return Status.OK_STATUS;
                     }
@@ -139,7 +146,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
 
                 if(!getControl().isDisposed()) {
-                    schedule(20000); // Schedule again in 20 seconds
+                    schedule(20000); // Schedule again in 20 seconds if not disposed
                 }
                 
                 return Status.OK_STATUS;
