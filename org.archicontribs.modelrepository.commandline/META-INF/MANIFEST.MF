@@ -5,8 +5,7 @@ Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=tr
 Bundle-Localization: plugin
 Bundle-Version: 0.3.3.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
-Require-Bundle: com.archimatetool.reports,
- com.archimatetool.commandline,
+Require-Bundle: com.archimatetool.commandline,
  org.archicontribs.modelrepository
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
