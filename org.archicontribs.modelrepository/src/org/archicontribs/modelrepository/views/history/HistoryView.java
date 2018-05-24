@@ -291,7 +291,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == this) {
+        if(part == this || selection == null) {
             return;
         }
         
