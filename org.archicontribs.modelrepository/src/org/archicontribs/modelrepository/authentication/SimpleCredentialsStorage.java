@@ -14,9 +14,10 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  * Simple Credentials Storage for user name and password
@@ -73,15 +74,15 @@ public class SimpleCredentialsStorage {
     }
     
     private String encrypt(String str) throws NoSuchAlgorithmException {
-        BASE64Encoder encoder = new BASE64Encoder();
-        return encoder.encode(generateSalt()) + encoder.encode(str.getBytes());
+        Encoder encoder = Base64.getEncoder();
+        return encoder.encodeToString(generateSalt()) + encoder.encodeToString(str.getBytes());
     }
     
-    public static String decrypt(String encstr) throws IOException {
+    public static String decrypt(String encstr) {
         if(encstr.length() > 12) {
             String cipher = encstr.substring(12);
-            BASE64Decoder decoder = new BASE64Decoder();
-            return new String(decoder.decodeBuffer(cipher));
+            Decoder decoder = Base64.getDecoder();
+            return new String(decoder.decode(cipher));
         }
 
         return null;
