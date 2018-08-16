@@ -177,6 +177,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         };
         
         fetchJob.schedule(1000);
+        
+        // Explicitly cancel running jobs on control dispose
+        getTree().addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+                refreshFileSystemJob.cancel();
+                fetchJob.cancel();
+            }
+        });
     }
     
     protected void refreshInBackground() {
