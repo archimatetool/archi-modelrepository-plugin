@@ -66,6 +66,11 @@ public class SimpleCredentialsStorage {
     }
     
     public boolean hasCredentialsFile() {
+        // Check for zero length file
+        if(getCredentialsFile().exists() && getCredentialsFile().length() == 0) {
+            deleteCredentialsFile();
+        }
+        
         return getCredentialsFile().exists();
     }
     
@@ -78,8 +83,8 @@ public class SimpleCredentialsStorage {
         return encoder.encodeToString(generateSalt()) + encoder.encodeToString(str.getBytes());
     }
     
-    public static String decrypt(String encstr) {
-        if(encstr.length() > 12) {
+    private String decrypt(String encstr) {
+        if(encstr != null && encstr.length() > 12) {
             String cipher = encstr.substring(12);
             Decoder decoder = Base64.getDecoder();
             return new String(decoder.decode(cipher));
