@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Model Repository
 Bundle-SymbolicName: org.archicontribs.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.3.3.qualifier
+Bundle-Version: 0.3.4.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.1.0"
