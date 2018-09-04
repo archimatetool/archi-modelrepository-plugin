@@ -58,5 +58,6 @@ Bundle-ClassPath: org.archicontribs.modelrepository.jar,
  lib/org.eclipse.jgit-4.10.0.201712302008-r.jar,
  lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,
  lib/slf4j-api-1.7.25.jar,
- lib/slf4j-simple-1.7.25.jar
+ lib/slf4j-simple-1.7.25.jar,
+ lib/javaewah_1.1.6.v20160919-1400.jar
 Automatic-Module-Name: org.archicontribs.modelrepository

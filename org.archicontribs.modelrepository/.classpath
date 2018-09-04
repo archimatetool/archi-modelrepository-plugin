@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/javaewah_1.1.6.v20160919-1400.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit-4.10.0.201712302008-r.jar" sourcepath="lib/org.eclipse.jgit.source_4.10.0.201712302008-r.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
