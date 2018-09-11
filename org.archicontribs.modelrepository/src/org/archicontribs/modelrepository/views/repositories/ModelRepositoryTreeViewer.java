@@ -183,7 +183,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             @Override
             public void widgetDisposed(DisposeEvent e) {
                 refreshFileSystemJob.cancel();
-                fetchJob.cancel();
+                // Don't explicitly cancel the fetchjob because our canceling() method causes a big delay
             }
         });
     }
