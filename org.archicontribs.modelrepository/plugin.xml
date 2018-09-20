@@ -110,13 +110,13 @@
                   visible="true">
             </separator>
             <command
-                  commandId="org.archicontribs.modelrepository.command.showInHistoryView"
-                  icon="img/history_view.png"
+                  commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
+                  icon="img/plugin.png"
                   style="push">
             </command>
             <command
-                  commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
-                  icon="img/plugin.png"
+                  commandId="org.archicontribs.modelrepository.command.showInHistoryView"
+                  icon="img/history_view.png"
                   style="push">
             </command>
             <separator
