@@ -40,6 +40,8 @@ public class Messages extends NLS {
 
     public static String ConflictsDialog_5;
 
+    public static String ConflictsDialog_6;
+
     public static String NewModelRepoDialog_0;
 
     public static String NewModelRepoDialog_1;

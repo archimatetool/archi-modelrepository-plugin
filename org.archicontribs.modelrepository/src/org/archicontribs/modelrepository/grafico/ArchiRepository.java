@@ -265,8 +265,9 @@ public class ArchiRepository implements IArchiRepository {
                     treeWalk.setRecursive(true);
                     treeWalk.setFilter(PathFilter.create(path));
 
+                    // Not found, return null
                     if(!treeWalk.next()) {
-                        return Messages.GraficoUtils_0;
+                        return null;
                     }
 
                     ObjectId objectId = treeWalk.getObjectId(0);

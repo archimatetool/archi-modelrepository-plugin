@@ -138,10 +138,15 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 String path = (String)((StructuredSelection)event.getSelection()).getFirstElement();
+                String fileNotFoundText = Messages.ConflictsDialog_6;
                 
                 try {
-                    fFileViewerOurs.setText(fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.HEAD));
-                    fFileViewerTheirs.setText(fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.ORIGIN_MASTER));
+                    String ourContents = fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.HEAD);
+                    fFileViewerOurs.setText(ourContents == null ? fileNotFoundText : ourContents);
+                    
+                    String theirContents = fHandler.getArchiRepository().getFileContents(path, IGraficoConstants.ORIGIN_MASTER);
+                    fFileViewerTheirs.setText(theirContents == null ? fileNotFoundText : theirContents);
+                    
                     fFileViewerDiff.setText(fHandler.getArchiRepository().getWorkingTreeFileContents(path));
                 }
                 catch(IOException ex) {
@@ -205,5 +210,4 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     protected boolean isResizable() {
         return true;
     }
-
 }

@@ -130,7 +130,7 @@ public interface IArchiRepository extends IGraficoConstants {
      * Ref could be "HEAD" or "origin/master" for example
      * @param path
      * @param ref
-     * @return
+     * @return The file contents or null if not found
      * @throws IOException
      */
     String getFileContents(String path, String ref) throws IOException;
