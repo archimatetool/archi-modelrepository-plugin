@@ -34,7 +34,12 @@ public class DeleteModelHandler extends AbstractModelSelectionHandler {
     
     @Override
     public void updateState() {
-        setBaseEnabled(GraficoUtils.isModelInLocalRepository(getActiveArchimateModel()));
+        // Do nothing
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return GraficoUtils.isModelInLocalRepository(getActiveArchimateModel());
     }
     
 }
