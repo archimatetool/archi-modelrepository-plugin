@@ -38,5 +38,7 @@ implements IPreferenceConstants {
 		store.setDefault(PREFS_PROXY_HOST, "localhost"); //$NON-NLS-1$
 		
 		store.setDefault(PREFS_EXPORT_MAX_THREADS, 10);
+		
+		store.setDefault(PREFS_FETCH_IN_BACKGROUND, true);
     }
 }

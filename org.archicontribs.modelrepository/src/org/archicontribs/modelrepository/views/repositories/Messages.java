@@ -15,6 +15,8 @@ public class Messages extends NLS {
     public static String ModelRepositoryTreeViewer_3;
 
     public static String ModelRepositoryView_0;
+
+    public static String ModelRepositoryView_1;
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

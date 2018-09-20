@@ -59,6 +59,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     private Button fStoreCredentialsButton;
     
+    private Button fFetchInBackgroundButton;
+    
     private Button fUseProxyButton, fRequiresProxyAuthenticationButton;
     private Text fProxyHostTextField;
     private Text fProxyPortTextField;
@@ -77,18 +79,13 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         Composite client = new Composite(parent, SWT.NULL);
         client.setLayout(new GridLayout());
         
-        Label label = new Label(client, SWT.NULL);
-        label.setText(Messages.ModelRepositoryPreferencePage_0);
-        
-        new Label(client, SWT.NULL);
-        
         // User details
         Group userDetailsGroup = new Group(client, SWT.NULL);
         userDetailsGroup.setText(Messages.ModelRepositoryPreferencePage_1);
         userDetailsGroup.setLayout(new GridLayout(2, false));
         userDetailsGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        label = new Label(userDetailsGroup, SWT.NULL);
+        Label label = new Label(userDetailsGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_2);
         
         fUserNameTextField = new Text(userDetailsGroup, SWT.BORDER | SWT.SINGLE);
@@ -104,6 +101,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Single text control so strip CRLFs
         UIUtils.conformSingleTextControl(fUserEmailTextField);
         
+        // Settings Group
         Group settingsGroup = new Group(client, SWT.NULL);
         settingsGroup.setText(Messages.ModelRepositoryPreferencePage_4);
         settingsGroup.setLayout(new GridLayout(3, false));
@@ -132,22 +130,38 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             }
         });
         
-        Group otherGroup = new Group(client, SWT.NULL);
-        otherGroup.setText(Messages.ModelRepositoryPreferencePage_7);
-        otherGroup.setLayout(new GridLayout(3, false));
-        otherGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        // Repository Group
+        Group repositoryGroup = new Group(client, SWT.NULL);
+        repositoryGroup.setText(Messages.ModelRepositoryPreferencePage_7);
+        repositoryGroup.setLayout(new GridLayout(3, false));
+        repositoryGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
         // Store Credentials
-        fStoreCredentialsButton = new Button(otherGroup, SWT.CHECK);
+        fStoreCredentialsButton = new Button(repositoryGroup, SWT.CHECK);
         fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         fStoreCredentialsButton.setLayoutData(gd);
-        label = new Label(otherGroup, SWT.NULL);
+        
+        label = new Label(repositoryGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_9);
         label.setLayoutData(gd);
         
-        // Proxy
+        label = new Label(repositoryGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_0);
+        label.setLayoutData(gd);
+        
+        label = new Label(repositoryGroup, SWT.NULL);
+        label.setLayoutData(gd);
+        
+        // Fetch in background
+        fFetchInBackgroundButton = new Button(repositoryGroup, SWT.CHECK);
+        fFetchInBackgroundButton.setText(Messages.ModelRepositoryPreferencePage_19);
+        fFetchInBackgroundButton.setLayoutData(gd);
+
+        
+        // Proxy Group
         Group proxyGroup = new Group(client, SWT.NULL);
         proxyGroup.setText(Messages.ModelRepositoryPreferencePage_10);
         proxyGroup.setLayout(new GridLayout(4, false));
@@ -250,6 +264,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserEmailTextField.setText(result.getEmailAddress());
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
+        fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
+        
         fStoreCredentialsButton.setSelection(getPreferenceStore().getBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
         fUseProxyButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_USE));
@@ -283,6 +299,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
+        getPreferenceStore().setValue(PREFS_FETCH_IN_BACKGROUND, fFetchInBackgroundButton.getSelection());
+        
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
         
         getPreferenceStore().setValue(PREFS_PROXY_USE, fUseProxyButton.getSelection());
@@ -309,6 +327,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserEmailTextField.setText(result.getEmailAddress());
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
+        fFetchInBackgroundButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_FETCH_IN_BACKGROUND));
+        
         fStoreCredentialsButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
         fUseProxyButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_PROXY_USE));

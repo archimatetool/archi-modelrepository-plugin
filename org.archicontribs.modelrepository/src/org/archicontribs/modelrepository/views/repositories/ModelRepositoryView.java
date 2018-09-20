@@ -21,11 +21,14 @@ import org.archicontribs.modelrepository.views.repositories.ModelRepositoryTreeV
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -43,6 +46,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
@@ -83,6 +87,8 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     private IGraficoModelAction fActionShowInHistory;
     
     private IGraficoModelAction fActionProperties;
+    
+    private IAction fActionShowPreferences;
     
 
     @Override
@@ -159,6 +165,20 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         
         fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
         fActionProperties.setEnabled(false);
+        
+        fActionShowPreferences = new Action(Messages.ModelRepositoryView_1) {
+            @Override
+            public void run() {
+                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(),
+                        "org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage", null, null); //$NON-NLS-1$
+                dialog.open();
+            }
+            
+            @Override
+            public String getToolTipText() {
+                return getText();
+            }
+        };
         
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
@@ -237,6 +257,9 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
 //        manager.add(new Separator());
 //        
 //        manager.add(fActionShowInHistory);
+        
+        IMenuManager menuManager = bars.getMenuManager();
+        menuManager.add(fActionShowPreferences); 
     }
     
     /**

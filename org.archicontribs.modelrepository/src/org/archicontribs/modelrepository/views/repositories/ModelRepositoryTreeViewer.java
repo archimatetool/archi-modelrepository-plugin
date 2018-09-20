@@ -14,17 +14,12 @@ import java.util.Map;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IDecoration;
@@ -33,7 +28,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -72,122 +66,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         setInput(""); //$NON-NLS-1$
         
-        startBackgroundJobs();
-    }
-
-    /**
-     * Set up and start background jobs
-     */
-    protected void startBackgroundJobs() {
-        // Refresh file system job
-        Job refreshFileSystemJob = new Job("Refresh File System Job") { //$NON-NLS-1$
-            long lastModified = 0L; // last modified
-            
-            @Override
-            public IStatus run(IProgressMonitor monitor) {
-                // Check first thing on entry
-                if(getControl().isDisposed()) {
-                    return Status.OK_STATUS;
-                }
-                
-                // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
-                File rootFolder = getRootFolder();
-                
-                if(lastModified != 0L && rootFolder.lastModified() != lastModified) {
-                    refreshInBackground();
-                }
-
-                lastModified = rootFolder.lastModified();
-
-                if(!getControl().isDisposed()) {
-                    schedule(5000);// Schedule again in 5 seconds
-                }
-                
-                return Status.OK_STATUS;
-            }
-        };
-        
-        refreshFileSystemJob.schedule(5000);
+        // Refresh File System Job
+        new RefreshFilesJob(this);
         
         // Fetch Job
-        Job fetchJob = new Job("Fetch Job") { //$NON-NLS-1$
-            @Override
-            public IStatus run(IProgressMonitor monitor) {
-                // Check first thing on entry
-                if(getControl().isDisposed()) {
-                    return Status.OK_STATUS;
-                }
-                
-                boolean needsRefresh = false;
-
-                for(IArchiRepository repo : getRepositories(getRootFolder())) {
-                    // Check also in for loop
-                    if(getControl().isDisposed()) {
-                        return Status.OK_STATUS;
-                    }
-
-                    // If the user name and password are stored
-                    SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                    try {
-                        String userName = scs.getUsername();
-                        String userPassword = scs.getPassword();
-                        if(userName != null && userPassword != null) {
-                            repo.fetchFromRemote(userName, userPassword, null, false);
-                            needsRefresh = true;
-                        }
-                    }
-                    catch(IOException | GitAPIException ex) {
-                        // silence is golden
-                    }
-                }
-
-                if(needsRefresh) {
-                    refreshInBackground();
-                }
-
-                if(!getControl().isDisposed()) {
-                    schedule(20000); // Schedule again in 20 seconds if not disposed
-                }
-                
-                return Status.OK_STATUS;
-            }
-            
-            @Override
-            protected void canceling() {
-                /*
-                 * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
-                 * So, if the user closes the app this job might be running. So we will wait for this job to finish
-                 */
-                int timeout = 0;
-                final int delay = 100;
-                
-                try {
-                    while(getState() == Job.RUNNING) {
-                        Thread.sleep(delay);
-                        timeout += delay;
-                        if(timeout > 30000) { // don't wait longer than this
-                            break;
-                        }
-                    }
-                }
-                catch(InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-        
-        fetchJob.schedule(1000);
-        
-        // Explicitly cancel running jobs on control dispose
-        getTree().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                refreshFileSystemJob.cancel();
-                // Don't explicitly cancel the fetchjob because our canceling() method causes a big delay
-            }
-        });
+        new FetchJob(this);
     }
-    
+
     protected void refreshInBackground() {
         if(!getControl().isDisposed()) {
             getControl().getDisplay().asyncExec(new Runnable() {
