@@ -28,6 +28,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -63,6 +64,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         });
         
         ColumnViewerToolTipSupport.enableFor(this);
+        
+        setComparator(new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                IArchiRepository r1 = (IArchiRepository)e1;
+                IArchiRepository r2 = (IArchiRepository)e2;
+                return r1.getName().compareToIgnoreCase(r2.getName());
+            }
+        });
         
         setInput(""); //$NON-NLS-1$
         
