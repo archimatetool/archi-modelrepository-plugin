@@ -7,9 +7,6 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -22,12 +19,13 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
@@ -63,10 +61,6 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         final String userName = dialog.getUsername();
         final String userPassword = dialog.getPassword();
         
-//        final String repoURL = "https://localhost:8443/r/modelName.git";
-//        final String userName = "admin";
-//        final String userPassword = "admin";
-        
         if(!StringUtils.isSet(repoURL) && !StringUtils.isSet(userName) && !StringUtils.isSet(userPassword)) {
             return;
         }
@@ -85,77 +79,59 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         }
         
         setRepository(new ArchiRepository(localRepoFolder));
-
-        /**
-         * Wrapper class to handle progress monitor
-         */
-        class CreateRepoProgressHandler extends ProgressHandler {
-            
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-                super.run(monitor);
-                
-                try {
-                    monitor.beginTask(Messages.CreateRepoFromModelAction_3, IProgressMonitor.UNKNOWN);
-                    
-                    // Proxy check
-                    ProxyAuthenticater.update(repoURL);
-                    
-                    // Create a new repo
-                    try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
-                    }
-                    
-                    // TODO: If the model has not been saved yet this is fine but if the model already exists
-                    // We should tell the user this is the case
-                    
-                    // Set new file location
-                    fModel.setFile(getRepository().getTempModelFile());
-                    
-                    // And Save it
-                    IEditorModelManager.INSTANCE.saveModel(fModel);
-                    
-                    // Export to Grafico
-                    getRepository().exportModelToGraficoFiles();
-                    
-                    monitor.subTask(Messages.CreateRepoFromModelAction_4);
-
-                    // Commit changes
-                    getRepository().commitChanges(Messages.CreateRepoFromModelAction_5, false);
-                    
-                    monitor.subTask(Messages.CreateRepoFromModelAction_6);
-                    
-                    // Push
-                    getRepository().pushToRemote(userName, userPassword, null);
-                    
-                    // Store repo credentials if option is set
-                    if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                        sc.store(userName, userPassword);
-                    }
-                    
-                    // Save the checksum
-                    getRepository().saveChecksum();
-                }
-                catch(GitAPIException | IOException | NoSuchAlgorithmException | URISyntaxException ex) {
-                    displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
-                }
-                finally {
-                    monitor.done();
-                }
-            }
-        }
         
-        Display.getCurrent().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, new CreateRepoProgressHandler());
-                }
-                catch(InvocationTargetException | InterruptedException ex) {
-                    ex.printStackTrace();
-                }
+        try {
+            // Proxy check
+            ProxyAuthenticater.update(repoURL);
+            
+            // Create a new repo
+            try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
             }
-        });
+            
+            // TODO: If the model has not been saved yet this is fine but if the model already exists
+            // We should tell the user this is the case
+            
+            // Set new file location
+            fModel.setFile(getRepository().getTempModelFile());
+            
+            // And Save it
+            IEditorModelManager.INSTANCE.saveModel(fModel);
+            
+            // Export to Grafico
+            getRepository().exportModelToGraficoFiles();
+            
+            // Commit changes
+            getRepository().commitChanges(Messages.CreateRepoFromModelAction_5, false);
+            
+            // Push
+            Exception[] exception = new Exception[1];
+            IProgressService ps = PlatformUI.getWorkbench().getProgressService();
+            ps.busyCursorWhile(new IRunnableWithProgress() {
+                public void run(IProgressMonitor pm) {
+                    try {
+                        getRepository().pushToRemote(userName, userPassword, new ProgressMonitorWrapper(pm));
+                    }
+                    catch(GitAPIException | IOException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+
+            if(exception[0] != null) {
+                throw exception[0];
+            }
+
+            // Store repo credentials if option is set
+            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
+                SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                sc.store(userName, userPassword);
+            }
+            
+            // Save the checksum
+            getRepository().saveChecksum();
+        }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
+        }
     }
 }

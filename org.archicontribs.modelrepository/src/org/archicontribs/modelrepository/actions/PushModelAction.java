@@ -15,19 +15,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.model.IArchimateModel;
 
 /**
  * Push Model Action ("Publish")
  * 
- * 1. Offer to save the model
- * 2. If there are changes offer to Commit
- * 3. Get credentials for Push
- * 4. Check Proxy
- * 5. Pull from Remote
- * 6. Handle Merge conflicts
- * 7. Push to Remote
+ * 1. Do actions in Refresh Model Action
+ * 2. If OK then Push to Remote
  * 
  * @author Phillip Beauvoir
  */
@@ -37,7 +34,7 @@ public class PushModelAction extends RefreshModelAction {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_PUSH));
         setText(Messages.PushModelAction_0);
-        setToolTipText(Messages.PushModelAction_1);
+        setToolTipText(Messages.PushModelAction_0);
     }
 
     public PushModelAction(IWorkbenchWindow window, IArchimateModel model) {
@@ -45,32 +42,38 @@ public class PushModelAction extends RefreshModelAction {
     }
 
     @Override
-    protected IRunnableWithProgress getHandler(UsernamePassword up) {
-        return new PushHandler(up);
-    }
-    
-    protected class PushHandler extends RefreshHandler {
-        PushHandler(UsernamePassword up) {
-            super(up);
-        }
-        
-        @Override
-        public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-            this.monitor = monitor;
-            
-            try {
-                if(doPull()) {
-                    monitor.beginTask(Messages.PushModelAction_3, IProgressMonitor.UNKNOWN);
-                    getRepository().pushToRemote(up.getUsername(), up.getPassword(), this);
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+    public void run() {
+        try {
+            // Init
+            UsernamePassword up = init();
+            if(up != null) {
+                // Pull
+                int status = pull(up);
+                if(status == PULL_STATUS_OK || status == PULL_STATUS_UP_TO_DATE) {
+                    // Push
+                    push(up);
                 }
             }
-            catch(GitAPIException | IOException ex) {
-                displayErrorDialog(Messages.PushModelAction_0, ex);
-            }
-            finally {
-                monitor.done();
-            }
         }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.PushModelAction_0, ex);
+        }
+    }
+    
+    private void push(UsernamePassword up) throws InvocationTargetException, InterruptedException {
+        IProgressService ps = PlatformUI.getWorkbench().getProgressService();
+        ps.busyCursorWhile(new IRunnableWithProgress() {
+            public void run(IProgressMonitor pm) {
+                try {
+                    getRepository().pushToRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
+                }
+                catch(GitAPIException | IOException ex) {
+                    displayErrorDialog(Messages.PushModelAction_0, ex);
+                }
+            }
+        });
+
+        // Don't do this in the progress service as it will cause an Invalid thread access
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
 }

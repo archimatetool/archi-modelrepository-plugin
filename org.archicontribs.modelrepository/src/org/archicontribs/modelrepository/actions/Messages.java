@@ -38,12 +38,6 @@ public class Messages extends NLS {
 
     public static String CloneModelAction_3;
 
-    public static String CloneModelAction_4;
-
-    public static String CloneModelAction_5;
-
-    public static String CloneModelAction_6;
-
     public static String CommitModelAction_0;
 
     public static String CommitModelAction_2;
@@ -54,13 +48,7 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_2;
 
-    public static String CreateRepoFromModelAction_3;
-
-    public static String CreateRepoFromModelAction_4;
-
     public static String CreateRepoFromModelAction_5;
-
-    public static String CreateRepoFromModelAction_6;
 
     public static String CreateRepoFromModelAction_7;
 
@@ -84,41 +72,13 @@ public class Messages extends NLS {
 
     public static String PushModelAction_0;
 
-    public static String PushModelAction_1;
-
-    public static String PushModelAction_2;
-
-    public static String PushModelAction_3;
-
-    public static String PushModelAction_4;
-
-    public static String PushModelAction_5;
-
-    public static String PushModelAction_6;
-
-    public static String PushModelAction_7;
-
-    public static String PushModelAction_8;
-
     public static String RefreshModelAction_0;
 
     public static String RefreshModelAction_1;
 
     public static String RefreshModelAction_2;
 
-    public static String RefreshModelAction_3;
-
-    public static String RefreshModelAction_4;
-
-    public static String RefreshModelAction_5;
-
-    public static String RefreshModelAction_6;
-
-    public static String RefreshModelAction_7;
-
     public static String ResetToRemoteCommitAction_0;
-
-    public static String ResetToRemoteCommitAction_1;
 
     public static String ResetToRemoteCommitAction_2;
 
@@ -155,10 +115,6 @@ public class Messages extends NLS {
     public static String UndoLastCommitAction_0;
 
     public static String UndoLastCommitAction_1;
-
-    public static String UndoLastCommitAction_3;
-
-    public static String UndoLastCommitAction_4;
 
     static {
         // initialize resource bundle

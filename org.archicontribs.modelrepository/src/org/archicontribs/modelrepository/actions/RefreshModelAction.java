@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
@@ -18,14 +17,14 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -46,6 +45,11 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class RefreshModelAction extends AbstractModelAction {
     
+    protected int PULL_STATUS_ERROR = -1;
+    protected int PULL_STATUS_OK = 0;
+    protected int PULL_STATUS_UP_TO_DATE = 1;
+    protected int PULL_STATUS_MERGE_CANCEL = 2;
+    
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
@@ -62,160 +66,117 @@ public class RefreshModelAction extends AbstractModelAction {
     
     @Override
     public void run() {
+        try {
+            UsernamePassword up = init();
+            if(up != null) {
+                int status = pull(up);
+                if(status == PULL_STATUS_UP_TO_DATE) {
+                    MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
+                }
+            }
+        }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.RefreshModelAction_0, ex);
+        }
+    }
+    
+    protected UsernamePassword init() throws IOException, GitAPIException {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
-                return;
+                return null;
             }
         }
         
         // Do the Grafico Export first
-        try {
-            getRepository().exportModelToGraficoFiles();
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_0, ex);
-            return;
-        }
+        getRepository().exportModelToGraficoFiles();
         
         // Then offer to Commit
-        try {
-            if(getRepository().hasChangesToCommit()) {
-                if(!offerToCommitChanges()) {
-                    return;
-                }
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        if(getRepository().hasChangesToCommit()) {
+            if(!offerToCommitChanges()) {
+                return null;
             }
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_3, ex);
-            return;
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
         
         // Get User Credentials first
         UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
         if(up == null) {
-            return;
+            return null;
         }
         
         // Proxy update
-        try {
-            ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
-        }
-        catch(IOException ex) {
-            displayErrorDialog(Messages.RefreshModelAction_0, ex);
-            return;
-        }
+        ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
+
+        return up;
+    }
+    
+    protected int pull(UsernamePassword up) throws Exception {
+        PullResult[] pullResult = new PullResult[1];
+        Exception[] exception = new Exception[1];
         
-        // Do main action with PM dialog
-        Display.getCurrent().asyncExec(new Runnable() {
-            @Override
-            public void run() {
+        IProgressService ps = PlatformUI.getWorkbench().getProgressService();
+        ps.busyCursorWhile(new IRunnableWithProgress() {
+            public void run(IProgressMonitor pm) {
                 try {
-                    ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, getHandler(up));
+                    pullResult[0] = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
                 }
-                catch(InvocationTargetException | InterruptedException ex) {
-                    ex.printStackTrace();
+                catch(GitAPIException | IOException ex) {
+                    exception[0] = ex;
                 }
             }
         });
-    }
-    
-    protected IRunnableWithProgress getHandler(UsernamePassword up) {
-        return new RefreshHandler(up);
-    }
-    
-    protected class RefreshHandler extends ProgressHandler {
-        protected UsernamePassword up;
         
-        RefreshHandler(UsernamePassword up) {
-            this.up = up;
+        // If this excpetion is thrown then the remote is empty with no master ref, so quietly absorb this and return
+        if(exception[0] instanceof RefNotAdvertisedException) {
+            return PULL_STATUS_OK;
+        }
+        else if(exception[0] != null) {
+            throw exception[0];
+        }
+
+        // Nothing more to do
+        if(pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
+            return PULL_STATUS_UP_TO_DATE;
+        }
+
+        // Merge failure
+        if(!pullResult[0].isSuccessful()) {
+            // Try to handle the merge conflict
+            MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), getRepository(), fWindow.getShell());
+            boolean result = handler.checkForMergeConflicts();
+            if(result) {
+                handler.merge();
+            }
+            // User cancelled - we assume they committed all changes so we can reset
+            else {
+                handler.resetToLocalState();
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                return PULL_STATUS_MERGE_CANCEL;
+            }
         }
         
-        @Override
-        public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-            super.run(monitor);
+        // Reload the model from the Grafico XML files
+        GraficoModelLoader loader = new GraficoModelLoader(getRepository());
+        loader.loadModel();
         
-            try {
-                doPull();
+        // Do a commit if needed
+        if(getRepository().hasChangesToCommit()) {
+            String message = Messages.RefreshModelAction_1;
+            String restored = loader.getRestoredObjectsAsString();
+            if(restored != null) {
+                message += "\n\n" + restored; //$NON-NLS-1$
             }
-            catch(GitAPIException | IOException ex) {
-                displayErrorDialog(Messages.RefreshModelAction_0, ex);
-            }
-            finally {
-                monitor.done();
-            }
+
+            getRepository().commitChanges(message, true);
+
+            MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, restored);
         }
         
-        protected boolean doPull() throws GitAPIException, IOException {
-            monitor.beginTask(Messages.RefreshModelAction_6, IProgressMonitor.UNKNOWN);
-            
-            PullResult pullResult = null;
-            
-            try {
-                pullResult = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), this);
-            }
-            catch(GitAPIException ex) {
-                // Remote is blank with no master ref, so quietly absorb this and return
-                if(ex instanceof RefNotAdvertisedException) {
-                    return true;
-                }
-                else {
-                    throw ex;
-                }
-            }
-            
-            // Nothing more to do
-            if(pullResult.getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
-                return true;
-            }
-            
-            // Merge failure
-            if(!pullResult.isSuccessful()) {
-                // Try to handle the merge conflict
-                MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), getRepository(), fWindow.getShell());
-                boolean result = handler.checkForMergeConflicts();
-                if(result) {
-                    handler.merge();
-                }
-                // User cancelled - we assume they committed all changes so we can reset
-                else {
-                    handler.resetToLocalState();
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                    return false;
-                }
-            }
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
 
-            // Reload the model from the Grafico XML files
-            monitor.beginTask(Messages.RefreshModelAction_1, IProgressMonitor.UNKNOWN);
-            GraficoModelLoader loader = new GraficoModelLoader(getRepository());
-            loader.loadModel();
-            
-            // Do a commit if needed
-            if(getRepository().hasChangesToCommit()) {
-                String message = Messages.RefreshModelAction_2;
-                String restored = loader.getRestoredObjectsAsString();
-                if(restored != null) {
-                    message += "\n\n" + restored; //$NON-NLS-1$
-                }
-
-                monitor.beginTask(Messages.RefreshModelAction_5, IProgressMonitor.UNKNOWN);
-                getRepository().commitChanges(message, true);
-
-                Display.getCurrent().asyncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, restored);
-                    }
-                });
-            }
-            
-            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-            
-            return true;
-        }
+        return PULL_STATUS_OK;
     }
 }

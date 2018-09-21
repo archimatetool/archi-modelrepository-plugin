@@ -7,8 +7,6 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -23,11 +21,12 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
@@ -81,78 +80,62 @@ public class CloneModelAction extends AbstractModelAction {
         
         setRepository(new ArchiRepository(localRepoFolder));
         
-        /**
-         * Wrapper class to handle progress monitor
-         */
-        class CloneProgressHandler extends ProgressHandler {
+        try {
+            // Proxy check
+            ProxyAuthenticater.update(repoURL);
             
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-                super.run(monitor);
+            // Clone
+            Exception[] exception = new Exception[1];
+            IProgressService ps = PlatformUI.getWorkbench().getProgressService();
+            ps.busyCursorWhile(new IRunnableWithProgress() {
+                public void run(IProgressMonitor pm) {
+                    try {
+                        getRepository().cloneModel(repoURL, userName, userPassword, new ProgressMonitorWrapper(pm));
+                    }
+                    catch(GitAPIException | IOException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+
+            if(exception[0] != null) {
+                throw exception[0];
+            }
+            
+            // Load it from the Grafico files if we can
+            IArchimateModel graficoModel = new GraficoModelLoader(getRepository()).loadModel();
+            
+            // We couldn't load it from Grafico so create a new blank model
+            if(graficoModel == null) {
+                // New one. This will open in the tree
+                IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
+                model.setFile(getRepository().getTempModelFile());
                 
-                try {
-                    monitor.beginTask(Messages.CloneModelAction_4, IProgressMonitor.UNKNOWN);
-                    
-                    // Proxy check
-                    ProxyAuthenticater.update(repoURL);
-                    
-                    // Clone
-                    getRepository().cloneModel(repoURL, userName, userPassword, this);
-                    
-                    monitor.subTask(Messages.CloneModelAction_5);
-                    
-                    // Load it from the Grafico files if we can
-                    IArchimateModel graficoModel = new GraficoModelLoader(getRepository()).loadModel();
-                    
-                    // We couldn't load it from Grafico so create a new blank model
-                    if(graficoModel == null) {
-                        // New one. This will open in the tree
-                        IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
-                        model.setFile(getRepository().getTempModelFile());
-                        
-                        // And Save it
-                        IEditorModelManager.INSTANCE.saveModel(model);
-                        
-                        // Export to Grafico
-                        getRepository().exportModelToGraficoFiles();
-                        
-                        // And do a first commit
-                        getRepository().commitChanges(Messages.CloneModelAction_6, false);
-                        
-                        // Save the checksum
-                        getRepository().saveChecksum();
-                    }
-                    
-                    // Store repo credentials if option is set
-                    if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                        scs.store(userName, userPassword);
-                    }
-                    
-                    // Notify listeners
-                    notifyChangeListeners(IRepositoryListener.REPOSITORY_ADDED);
-                }
-                catch(GitAPIException | IOException | NoSuchAlgorithmException ex) {
-                    displayErrorDialog(Messages.CloneModelAction_0, ex);
-                }
-                finally {
-                    monitor.done();
-                }
+                // And Save it
+                IEditorModelManager.INSTANCE.saveModel(model);
+                
+                // Export to Grafico
+                getRepository().exportModelToGraficoFiles();
+                
+                // And do a first commit
+                getRepository().commitChanges(Messages.CloneModelAction_3, false);
+                
+                // Save the checksum
+                getRepository().saveChecksum();
             }
+            
+            // Store repo credentials if option is set
+            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
+                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                scs.store(userName, userPassword);
+            }
+            
+            // Notify listeners
+            notifyChangeListeners(IRepositoryListener.REPOSITORY_ADDED);
         }
-        
-        Display.getCurrent().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
-                    pmDialog.run(false, true, new CloneProgressHandler());
-                }
-                catch(InvocationTargetException | InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
+        catch(Exception ex) {
+            displayErrorDialog(Messages.CloneModelAction_0, ex);
+        }
     }
     
     @Override
