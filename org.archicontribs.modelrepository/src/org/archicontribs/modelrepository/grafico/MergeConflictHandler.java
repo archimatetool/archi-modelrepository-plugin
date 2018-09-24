@@ -6,10 +6,12 @@
 package org.archicontribs.modelrepository.grafico;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.archicontribs.modelrepository.dialogs.ConflictsDialog;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -36,6 +38,8 @@ public class MergeConflictHandler {
     
     private List<String> fOurs;
     private List<String> fTheirs;
+    
+    private List<MergeObjectInfo> fMergeObjectInfos;
 
     public MergeConflictHandler(MergeResult mergeResult, IArchiRepository repo, Shell shell) {
         fMergeResult = mergeResult;
@@ -49,12 +53,23 @@ public class MergeConflictHandler {
             throw new IOException("MergeResult was null"); //$NON-NLS-1$
         }
         
-        ConflictsDialog dialog = new ConflictsDialog(fShell, this);
+        Dialog dialog = new ConflictsDialog(fShell, this);
         return dialog.open() == Window.OK ? true : false;
     }
     
     public MergeResult getMergeResult() {
         return fMergeResult;
+    }
+    
+    public List<MergeObjectInfo> getMergeObjectInfos() throws IOException {
+        if(fMergeObjectInfos == null) {
+            fMergeObjectInfos = new ArrayList<MergeObjectInfo>();
+            for(String xmlPath : fMergeResult.getConflicts().keySet()) {
+                fMergeObjectInfos.add(new MergeObjectInfo(xmlPath, fArchiRepo));
+            }
+        }
+        
+        return fMergeObjectInfos;
     }
     
     public String getConflictsAsString() {
