@@ -30,7 +30,7 @@ public class MergeObjectInfo {
     public static int OURS = 0;
     public static int THEIRS = 1;
     
-    private int choice = 0;
+    private int choice = OURS;
 
     public MergeObjectInfo(String xmlPath, IArchiRepository archiRepo) throws IOException {
         this.archiRepo = archiRepo;

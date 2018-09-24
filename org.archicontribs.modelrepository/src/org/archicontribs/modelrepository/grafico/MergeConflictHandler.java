@@ -36,9 +36,6 @@ public class MergeConflictHandler {
     private MergeResult fMergeResult;
     private Shell fShell;
     
-    private List<String> fOurs;
-    private List<String> fTheirs;
-    
     private List<MergeObjectInfo> fMergeObjectInfos;
 
     public MergeConflictHandler(MergeResult mergeResult, IArchiRepository repo, Shell shell) {
@@ -100,14 +97,36 @@ public class MergeConflictHandler {
     }
     
     public void merge() throws IOException, GitAPIException {
-        try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
-            if(fOurs != null && !fOurs.isEmpty()) {
-                checkout(git, Stage.OURS, fOurs);
+        List<String> ours = new ArrayList<>();
+        List<String> theirs = new ArrayList<>();
+        
+        for(MergeObjectInfo info : getMergeObjectInfos()) {
+            // Ours
+            if(info.getChoice() == MergeObjectInfo.OURS) {
+                ours.add(info.getXMLPath());
             }
-            if(fTheirs != null  && !fTheirs.isEmpty()) {
-                checkout(git, Stage.THEIRS, fTheirs);
+            // Theirs
+            else {
+                theirs.add(info.getXMLPath());
             }
         }
+        
+        try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
+            if(!ours.isEmpty()) {
+                checkout(git, Stage.OURS, ours);
+            }
+            if(!theirs.isEmpty()) {
+                checkout(git, Stage.THEIRS, theirs);
+            }
+        }
+    }
+    
+    // Check out conflicting files either from us or them
+    private void checkout(Git git, Stage stage, List<String> paths) throws GitAPIException {
+        CheckoutCommand checkoutCommand = git.checkout();
+        checkoutCommand.setStage(stage);
+        checkoutCommand.addPaths(paths);
+        checkoutCommand.call();
     }
     
     public void mergeAndCommit(String commitMessage, boolean amend) throws IOException, GitAPIException {
@@ -130,14 +149,6 @@ public class MergeConflictHandler {
         }
     }
     
-    // Check out conflicting files either from us or them
-    private void checkout(Git git, Stage stage, List<String> paths) throws GitAPIException {
-        CheckoutCommand checkoutCommand = git.checkout();
-        checkoutCommand.setStage(stage);
-        checkoutCommand.addPaths(paths);
-        checkoutCommand.call();
-    }
-    
     public IArchiRepository getArchiRepository() {
         return fArchiRepo;
     }
@@ -158,10 +169,5 @@ public class MergeConflictHandler {
             resetCommand.setMode(ResetType.HARD);
             resetCommand.call();
         }
-    }
-
-    public void setOursAndTheirs(List<String> ours, List<String> theirs) {
-        fOurs = ours;
-        fTheirs = theirs;
     }
 }

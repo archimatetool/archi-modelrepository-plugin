@@ -38,13 +38,16 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.ArchiLabelProvider;
-import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
+import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.INameable;
 
 /**
  * Conflicts Dialog
@@ -181,26 +184,6 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     }
     
     @Override
-    protected void okPressed() {
-//        List<String> ours = new ArrayList<String>();
-//        List<String> theirs = new ArrayList<String>();
-        
-//        for(Object checked : fTableViewer.getCheckedElements()) {
-//            theirs.add((String)checked);
-//        }
-//        
-//        for(String s : fHandler.getMergeResult().getConflicts().keySet()) {
-//            if(!theirs.contains(s)) {
-//                ours.add(s);
-//            }
-//        }
-        
-//        fHandler.setOursAndTheirs(ours, theirs);
-        
-        super.okPressed();
-    }
-    
-    @Override
     protected Point getDefaultDialogSize() {
         return new Point(700, 550);
     }
@@ -219,7 +202,10 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         private int choice;
         
         private Button button;
-        private Text text;
+        private Composite fieldsComposite;
+        
+        private Label labelDocumentation;
+        private Text textType, textName, textDocumentation;
         
         ObjectViewer(Composite parent, int choice) {
             this.choice = choice;
@@ -228,11 +214,13 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
             sash.setLayoutData(gd);
             
-            Composite client = new Composite(sash, SWT.NONE);
-            client.setLayoutData(new GridData(GridData.FILL_BOTH));
-            client.setLayout(new GridLayout());
+            Composite mainComposite = new Composite(sash, SWT.BORDER);
+            mainComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+            mainComposite.setLayout(new GridLayout());
+            mainComposite.setBackground(fTableViewer.getControl().getBackground());
+            mainComposite.setBackgroundMode(SWT.INHERIT_FORCE);
             
-            button = new Button(client, SWT.PUSH);
+            button = new Button(mainComposite, SWT.PUSH);
             button.setText(choices[choice]);
             gd = new GridData(SWT.FILL, SWT.FILL, true, false);
             button.setLayoutData(gd);
@@ -247,23 +235,73 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 }
             });
             
-            text = new Text(client, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-            text.setLayoutData(new GridData(GridData.FILL_BOTH));
-            text.setBackground(fTableViewer.getControl().getBackground());
+            fieldsComposite = new Composite(mainComposite, SWT.NONE);
+            fieldsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+            fieldsComposite.setLayout(new GridLayout(2, false));
+            
+            // Type
+            Label label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Type:");
+            textType = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            
+            // Name
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Name:");
+            textName = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+            // Documentation / Purpose
+            labelDocumentation = new Label(fieldsComposite, SWT.NONE);
+            labelDocumentation.setText("Documentation:");
+            labelDocumentation.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
+            textDocumentation = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+            textDocumentation.setLayoutData(new GridData(GridData.FILL_BOTH));
         }
 
         void setMergeInfo(MergeObjectInfo info) {
             mergeInfo = info;
             EObject eObject = mergeInfo.getEObject(choice);
             
-            text.setText(eObject == null ? "Deleted" : eObject.toString());
+            // If object has been deleted hide fields
+            fieldsComposite.setVisible(eObject != null);
+            
+            // Object was deleted
+            if(eObject == null) {
+                return;
+            }
+            
+            // Type
+            textType.setText(ArchiLabelProvider.INSTANCE.getDefaultName(eObject.eClass()));
+            
+            // Name
+            if(eObject instanceof INameable) {
+                textName.setText(((INameable)eObject).getName());
+            }
+            else {
+                textName.setText(""); //$NON-NLS-1$
+            }
+            
+            // Documentation / Purpose
+            if(eObject instanceof IDocumentable) {
+                labelDocumentation.setText("Documentation:");
+                textDocumentation.setText(((IDocumentable)eObject).getDocumentation());
+            }
+            else if(eObject instanceof IArchimateModel) {
+                labelDocumentation.setText("Purpose:");
+                textDocumentation.setText(((IArchimateModel)eObject).getPurpose());
+            }
+            else {
+                textDocumentation.setText(""); //$NON-NLS-1$
+            }
+            
             update();
         }
         
         void update() {
             String text = choices[choice];
             if(choice == mergeInfo.getChoice()) {
-                text += " (selected)";
+                text += " " + "(selected)"; //$NON-NLS-1$
             }
             button.setText(text);
         }
