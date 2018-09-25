@@ -48,6 +48,8 @@ import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProperties;
+import com.archimatetool.model.IProperty;
 
 /**
  * Conflicts Dialog
@@ -206,6 +208,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         private Label labelDocumentation;
         private Text textType, textName, textDocumentation;
+        private TableViewer propertiesTableViewer;
         
         ObjectViewer(Composite parent, int choice) {
             this.choice = choice;
@@ -257,6 +260,68 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             labelDocumentation.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
             textDocumentation = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
             textDocumentation.setLayoutData(new GridData(GridData.FILL_BOTH));
+            
+            // Properties Table
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Properties:");
+            label.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
+            Composite tableComp = new Composite(fieldsComposite, SWT.BORDER);
+            TableColumnLayout tableLayout = new TableColumnLayout();
+            tableComp.setLayout(tableLayout);
+            tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+            propertiesTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.FULL_SELECTION);
+            propertiesTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+            propertiesTableViewer.getTable().setHeaderVisible(true);
+            propertiesTableViewer.getTable().setLinesVisible(true);
+            propertiesTableViewer.setComparator(new ViewerComparator());
+            
+            TableViewerColumn columnKey = new TableViewerColumn(propertiesTableViewer, SWT.NONE, 0);
+            columnKey.getColumn().setText("Name");
+            tableLayout.setColumnData(columnKey.getColumn(), new ColumnWeightData(25, true));
+
+            TableViewerColumn columnValue = new TableViewerColumn(propertiesTableViewer, SWT.NONE, 1);
+            columnValue.getColumn().setText("Value");
+            tableLayout.setColumnData(columnValue.getColumn(), new ColumnWeightData(75, true));
+
+            // Properties Table Content Provider
+            propertiesTableViewer.setContentProvider(new IStructuredContentProvider() {
+                public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+                }
+
+                public void dispose() {
+                }
+
+                public Object[] getElements(Object inputElement) {
+                    if(inputElement instanceof IProperties) {
+                        return ((IProperties)inputElement).getProperties().toArray();
+                    }
+                    return new Object[0];
+                }
+            });
+
+            // Properties Table Label Provider
+            class PropertiesLabelCellProvider extends LabelProvider implements ITableLabelProvider {
+                public Image getColumnImage(Object element, int columnIndex) {
+                    return null;
+                }
+
+                @Override
+                public String getColumnText(Object element, int columnIndex) {
+                    switch(columnIndex) {
+                        case 0:
+                            return ((IProperty)element).getKey();
+
+                        case 1:
+                            return ((IProperty)element).getValue();
+
+                        default:
+                            return null;
+                    }
+                }
+            }
+
+            propertiesTableViewer.setLabelProvider(new PropertiesLabelCellProvider());
         }
 
         void setMergeInfo(MergeObjectInfo info) {
@@ -293,6 +358,14 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
             else {
                 textDocumentation.setText(""); //$NON-NLS-1$
+            }
+            
+            // Properties
+            if(eObject instanceof IProperties) {
+                propertiesTableViewer.setInput(eObject);
+            }
+            else {
+                propertiesTableViewer.setInput(""); //$NON-NLS-1$
             }
             
             update();
