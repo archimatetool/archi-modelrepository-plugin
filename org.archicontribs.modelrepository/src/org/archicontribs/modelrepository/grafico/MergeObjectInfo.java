@@ -72,7 +72,6 @@ public class MergeObjectInfo {
         return choice;
     }
 
-    // TODO - Do we need to put this in IArchiRepository?
     private EObject loadEObject(String ref) throws IOException {
         ResourceSet resourceSet = new ResourceSetImpl();
         resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("*", new XMLResourceFactoryImpl()); //$NON-NLS-1$

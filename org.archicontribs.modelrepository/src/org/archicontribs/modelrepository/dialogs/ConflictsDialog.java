@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -42,14 +43,17 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
  * Conflicts Dialog
@@ -210,8 +214,16 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         private Text textType, textName, textDocumentation;
         private TableViewer propertiesTableViewer;
         
+        private Image viewImage;
+        private Label viewLabel;
+        
         ObjectViewer(Composite parent, int choice) {
             this.choice = choice;
+            
+            // Dispose of image when done
+            parent.addDisposeListener((e) -> {
+                disposeImage();
+            });
             
             SashForm sash = new SashForm(parent, SWT.HORIZONTAL);
             GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -322,9 +334,20 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
 
             propertiesTableViewer.setLabelProvider(new PropertiesLabelCellProvider());
+            
+            // View image previewer
+            ScrolledComposite sc = new ScrolledComposite(fieldsComposite, SWT.H_SCROLL | SWT.V_SCROLL );
+            gd = new GridData(GridData.FILL_BOTH);
+            gd.heightHint = 120;
+            gd.horizontalSpan = 2;
+            sc.setLayoutData(gd);
+            viewLabel = new Label(sc, SWT.NONE);
+            sc.setContent(viewLabel);
         }
 
         void setMergeInfo(MergeObjectInfo info) {
+            disposeImage();
+            
             mergeInfo = info;
             EObject eObject = mergeInfo.getEObject(choice);
             
@@ -368,6 +391,29 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 propertiesTableViewer.setInput(""); //$NON-NLS-1$
             }
             
+            // View
+            if(eObject instanceof IDiagramModel) {
+                try {
+                    IArchimateModel model = null;
+                    if(choice == MergeObjectInfo.OURS) {
+                        model = fHandler.getOurModel();
+                    }
+                    else {
+                        model = fHandler.getTheirModel();
+                    }
+                    IDiagramModel view = (IDiagramModel)ArchimateModelUtils.getObjectByID(model, ((IDiagramModel)eObject).getId());
+                    viewImage = DiagramUtils.createImage(view, 1, 0);
+                    viewLabel.setImage(viewImage);
+                    viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            else {
+                viewLabel.setImage(null);
+            }
+            
             update();
         }
         
@@ -377,6 +423,13 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                 text += " " + "(selected)"; //$NON-NLS-1$
             }
             button.setText(text);
+        }
+        
+        private void disposeImage() {
+            if(viewImage != null && !viewImage.isDisposed()) {
+                viewImage.dispose();
+                viewImage = null;
+            }
         }
     }
     
