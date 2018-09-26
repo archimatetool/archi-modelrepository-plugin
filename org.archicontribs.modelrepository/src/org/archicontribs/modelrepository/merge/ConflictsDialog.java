@@ -44,6 +44,7 @@ import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.INameable;
@@ -202,6 +203,8 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         private Text textType, textName, textDocumentation;
         private TableViewer propertiesTableViewer;
         
+        private Text textSource, textTarget;
+        
         private Image viewImage;
         private Label viewLabel;
         
@@ -323,6 +326,17 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             propertiesTableViewer.setLabelProvider(new PropertiesLabelCellProvider());
             
+            // Relationship source/target
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Source:");
+            textSource = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textSource.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Target:");
+            textTarget = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textTarget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
             // View image previewer
             ScrolledComposite sc = new ScrolledComposite(fieldsComposite, SWT.H_SCROLL | SWT.V_SCROLL );
             gd = new GridData(GridData.FILL_BOTH);
@@ -379,6 +393,16 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 propertiesTableViewer.setInput(""); //$NON-NLS-1$
             }
             
+            // Relationship
+            if(eObject instanceof IArchimateRelationship) {
+                textSource.setText(((IArchimateRelationship)eObject).getSource().getName());
+                textTarget.setText(((IArchimateRelationship)eObject).getTarget().getName());
+            }
+            else {
+                textSource.setText(""); //$NON-NLS-1$
+                textTarget.setText(""); //$NON-NLS-1$
+            }
+
             // View
             if(eObject instanceof IDiagramModel) {
                 viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 0);
