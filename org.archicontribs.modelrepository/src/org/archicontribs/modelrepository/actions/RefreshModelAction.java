@@ -14,7 +14,7 @@ import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
+import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -146,7 +146,7 @@ public class RefreshModelAction extends AbstractModelAction {
         if(!pullResult[0].isSuccessful()) {
             // Try to handle the merge conflict
             MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), getRepository(), fWindow.getShell());
-            boolean result = handler.checkForMergeConflicts();
+            boolean result = handler.openConflictsDialog();
             if(result) {
                 handler.merge();
             }

@@ -10,7 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
+import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RevertCommand;
@@ -80,7 +80,7 @@ public class RevertCommitAction extends AbstractModelAction {
             MergeResult failingResult = revertCommand.getFailingResult();
             if(failingResult != null) {
                 MergeConflictHandler handler = new MergeConflictHandler(failingResult, getRepository(), fWindow.getShell());
-                boolean result = handler.checkForMergeConflicts();
+                boolean result = handler.openConflictsDialog();
                 if(result) {
                     handler.mergeAndCommit(Messages.RevertCommitAction_4, false);
                 }

@@ -3,12 +3,8 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.dialogs;
+package org.archicontribs.modelrepository.merge;
 
-import java.io.IOException;
-
-import org.archicontribs.modelrepository.grafico.MergeConflictHandler;
-import org.archicontribs.modelrepository.grafico.MergeObjectInfo;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -53,14 +49,13 @@ import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
-import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
  * Conflicts Dialog
  * 
  * @author Phil Beauvoir
  */
-public class ConflictsDialog extends ExtendedTitleAreaDialog {
+class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     private static String DIALOG_ID = "ConflictsDialog"; //$NON-NLS-1$
 
@@ -75,9 +70,9 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             "Theirs"
     };
     
-    public ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
+    ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
-        setTitle(Messages.ConflictsDialog_0);
+        setTitle("Merge Conflicts");
         
         fHandler = handler;
     }
@@ -85,7 +80,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText(Messages.ConflictsDialog_0);
+        shell.setText("Merge Conflicts");
     }
 
     @Override
@@ -161,14 +156,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
 
             public Object[] getElements(Object inputElement) {
-                try {
-                    return fHandler.getMergeObjectInfos().toArray();
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
-                
-                return new Object[0];
+                return fHandler.getMergeObjectInfos().toArray();
             }
         });
 
@@ -243,7 +231,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             button.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
-                    mergeInfo.setChoice(choice);
+                    mergeInfo.setUserChoice(choice);
                     fTableViewer.update(mergeInfo, null);
                     fViewerOurs.update();
                     fViewerTheirs.update();
@@ -393,22 +381,9 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
             
             // View
             if(eObject instanceof IDiagramModel) {
-                try {
-                    IArchimateModel model = null;
-                    if(choice == MergeObjectInfo.OURS) {
-                        model = fHandler.getOurModel();
-                    }
-                    else {
-                        model = fHandler.getTheirModel();
-                    }
-                    IDiagramModel view = (IDiagramModel)ArchimateModelUtils.getObjectByID(model, ((IDiagramModel)eObject).getId());
-                    viewImage = DiagramUtils.createImage(view, 1, 0);
-                    viewLabel.setImage(viewImage);
-                    viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
-                }
+                viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 0);
+                viewLabel.setImage(viewImage);
+                viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
             }
             else {
                 viewLabel.setImage(null);
@@ -419,7 +394,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         void update() {
             String text = choices[choice];
-            if(choice == mergeInfo.getChoice()) {
+            if(choice == mergeInfo.getUserChoice()) {
                 text += " " + "(selected)"; //$NON-NLS-1$
             }
             button.setText(text);
@@ -443,7 +418,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         public Image getColumnImage(Object element, int columnIndex) {
             if(columnIndex == 0) {
                 MergeObjectInfo info = (MergeObjectInfo)element;
-                return ArchiLabelProvider.INSTANCE.getImage(info.getDefault());
+                return ArchiLabelProvider.INSTANCE.getImage(info.getDefaultEObject());
             }
             
             return null;
@@ -451,7 +426,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         public String getColumnText(Object element, int columnIndex) {
             MergeObjectInfo info = (MergeObjectInfo)element;
-            EObject eObject = info.getDefault();
+            EObject eObject = info.getDefaultEObject();
             
             if(eObject == null) {
                 return "(missing)";
@@ -468,7 +443,7 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
                     return info.getStatus();
 
                 case 3:
-                    return choices[info.getChoice()];
+                    return choices[info.getUserChoice()];
 
                 default:
                     return "";
@@ -500,12 +475,12 @@ public class ConflictsDialog extends ExtendedTitleAreaDialog {
         @Override
         protected Object getValue(Object element) {
             MergeObjectInfo info = (MergeObjectInfo)element;
-            return info.getChoice();
+            return info.getUserChoice();
         }
 
         @Override
         protected void setValue(Object element, Object value) {
-            ((MergeObjectInfo)element).setChoice((int)value);
+            ((MergeObjectInfo)element).setUserChoice((int)value);
             fTableViewer.update(element, null);
             fViewerOurs.update();
             fViewerTheirs.update();
