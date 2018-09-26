@@ -137,11 +137,11 @@ public class MergeConflictHandler {
         }
     }
     
-    public void resetToRemoteState() throws IOException, GitAPIException {
-        resetToState(MergeObjectInfo.REF_THEIRS);
+    public void resetToLocalState() throws IOException, GitAPIException {
+        resetToState(MergeObjectInfo.REF_OURS);
     }
     
-    public void resetToLocalState() throws IOException, GitAPIException {
+    public void resetToRemoteState() throws IOException, GitAPIException {
         resetToState(MergeObjectInfo.REF_THEIRS);
     }
     
