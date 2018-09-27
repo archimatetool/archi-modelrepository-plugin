@@ -107,7 +107,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         fViewerOurs = new ObjectViewer(sash2, MergeObjectInfo.OURS);
         fViewerTheirs = new ObjectViewer(sash2, MergeObjectInfo.THEIRS);
         
-        sash.setWeights(new int[] { 30, 70 });
+        sash.setWeights(new int[] { 20, 80 });
         
         // Select first object in table
         Object first = fTableViewer.getElementAt(0);
@@ -124,7 +124,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         tableComp.setLayout(tableLayout);
         tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        fTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.FULL_SELECTION);
+        fTableViewer = new TableViewer(tableComp, SWT.FULL_SELECTION);
         fTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         fTableViewer.getTable().setHeaderVisible(true);
         fTableViewer.getTable().setLinesVisible(true);
@@ -200,7 +200,8 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         private Composite fieldsComposite;
         
         private Label labelDocumentation;
-        private Text textType, textName, textDocumentation;
+        //private Text textType;
+        private Text textName, textDocumentation;
         private TableViewer propertiesTableViewer;
         
         private Text textSource, textTarget;
@@ -216,11 +217,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 disposeImage();
             });
             
-            SashForm sash = new SashForm(parent, SWT.HORIZONTAL);
-            GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-            sash.setLayoutData(gd);
-            
-            Composite mainComposite = new Composite(sash, SWT.BORDER);
+            Composite mainComposite = new Composite(parent, SWT.BORDER);
             mainComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
             mainComposite.setLayout(new GridLayout());
             mainComposite.setBackground(fTableViewer.getControl().getBackground());
@@ -228,7 +225,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             
             button = new Button(mainComposite, SWT.PUSH);
             button.setText(choices[choice]);
-            gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+            GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
             button.setLayoutData(gd);
             
             button.addSelectionListener(new SelectionAdapter() {
@@ -246,35 +243,48 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             fieldsComposite.setLayout(new GridLayout(2, false));
             
             // Type
-            Label label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Type:");
-            textType = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            //Label label = new Label(fieldsComposite, SWT.NONE);
+            //label.setText("Type:");
+            //textType = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            //textType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
             
             // Name
-            label = new Label(fieldsComposite, SWT.NONE);
+            Label label = new Label(fieldsComposite, SWT.NONE);
             label.setText("Name:");
             textName = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
             textName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+            // Relationship source/target
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Source:");
+            textSource = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textSource.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            
+            label = new Label(fieldsComposite, SWT.NONE);
+            label.setText("Target:");
+            textTarget = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
+            textTarget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
             // Documentation / Purpose
             labelDocumentation = new Label(fieldsComposite, SWT.NONE);
             labelDocumentation.setText("Documentation:");
             labelDocumentation.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
             textDocumentation = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-            textDocumentation.setLayoutData(new GridData(GridData.FILL_BOTH));
-            
+            gd = new GridData(GridData.FILL_BOTH);
+            gd.heightHint = 120;
+            textDocumentation.setLayoutData(gd);
+
             // Properties Table
             label = new Label(fieldsComposite, SWT.NONE);
             label.setText("Properties:");
             label.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
+            
             Composite tableComp = new Composite(fieldsComposite, SWT.BORDER);
             TableColumnLayout tableLayout = new TableColumnLayout();
             tableComp.setLayout(tableLayout);
-            tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+            tableComp.setLayoutData(gd);
 
             propertiesTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.FULL_SELECTION);
-            propertiesTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
             propertiesTableViewer.getTable().setHeaderVisible(true);
             propertiesTableViewer.getTable().setLinesVisible(true);
             propertiesTableViewer.setComparator(new ViewerComparator());
@@ -326,29 +336,24 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             propertiesTableViewer.setLabelProvider(new PropertiesLabelCellProvider());
             
-            // Relationship source/target
-            label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Source:");
-            textSource = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textSource.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            
-            label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Target:");
-            textTarget = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textTarget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
             // View image previewer
-            ScrolledComposite sc = new ScrolledComposite(fieldsComposite, SWT.H_SCROLL | SWT.V_SCROLL );
+            ScrolledComposite scImage = new ScrolledComposite(fieldsComposite, SWT.H_SCROLL | SWT.V_SCROLL );
+            scImage.setBackground(mainComposite.getBackground());
             gd = new GridData(GridData.FILL_BOTH);
-            gd.heightHint = 120;
             gd.horizontalSpan = 2;
-            sc.setLayoutData(gd);
-            viewLabel = new Label(sc, SWT.NONE);
-            sc.setContent(viewLabel);
+            gd.heightHint = 120;
+            scImage.setLayoutData(gd);
+            viewLabel = new Label(scImage, SWT.NONE);
+            scImage.setContent(viewLabel);
         }
 
         void setMergeInfo(MergeObjectInfo info) {
             disposeImage();
+            viewLabel.setImage(null);
+            
+            if(info == null) {
+                return;
+            }
             
             mergeInfo = info;
             EObject eObject = mergeInfo.getEObject(choice);
@@ -362,7 +367,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
             
             // Type
-            textType.setText(ArchiLabelProvider.INSTANCE.getDefaultName(eObject.eClass()));
+            //textType.setText(ArchiLabelProvider.INSTANCE.getDefaultName(eObject.eClass()));
             
             // Name
             if(eObject instanceof INameable) {
@@ -405,13 +410,10 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             // View
             if(eObject instanceof IDiagramModel) {
-                viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 0);
+                viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 5);
                 viewLabel.setImage(viewImage);
-                viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
             }
-            else {
-                viewLabel.setImage(null);
-            }
+            viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
             
             update();
         }
