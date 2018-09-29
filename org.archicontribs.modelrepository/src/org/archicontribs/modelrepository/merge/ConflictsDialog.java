@@ -48,6 +48,7 @@ import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
+import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
@@ -55,6 +56,7 @@ import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.viewpoints.ViewpointManager;
 
 /**
  * Conflicts Dialog
@@ -197,7 +199,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         private Label labelDocumentation;
         private Text textName, textDocumentation;
         
-        private Text textSource, textTarget;
+        private Text textSource, textTarget, textViewpoint;
         
         MainComposite(Composite parent, int choice) {
             super(parent, choice);
@@ -207,27 +209,20 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             fieldsComposite.setLayout(new GridLayout(2, false));
 
             // Name
-            Label label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Name:");
-            textName = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            createLabel(fieldsComposite, "Name:", null);
+            textName = createSingleText(fieldsComposite, null);
             
-            // Relationship Source/Target
-            label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Source:");
-            label.setLayoutData(new GridData());
-            label.setData(IArchimateRelationship.class);
-            textSource = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textSource.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            textSource.setData(IArchimateRelationship.class);
+            // Relationship Source
+            createLabel(fieldsComposite, "Source:", IArchimateRelationship.class);
+            textSource = createSingleText(fieldsComposite, IArchimateRelationship.class);
             
-            label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Target:");
-            label.setLayoutData(new GridData());
-            label.setData(IArchimateRelationship.class);
-            textTarget = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            textTarget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            textTarget.setData(IArchimateRelationship.class);
+            // Relationship Target
+            createLabel(fieldsComposite, "Target:", IArchimateRelationship.class);
+            textTarget = createSingleText(fieldsComposite, IArchimateRelationship.class);
+            
+            // Viewpoint
+            createLabel(fieldsComposite, "Viewpoint:", IArchimateDiagramModel.class);
+            textViewpoint = createSingleText(fieldsComposite, IArchimateDiagramModel.class);
 
             // Documentation / Purpose
             labelDocumentation = new Label(fieldsComposite, SWT.NONE);
@@ -284,10 +279,31 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 textDocumentation.setText(""); //$NON-NLS-1$
             }
             
+            // Viewpoint
+            if(eObject instanceof IArchimateDiagramModel) {
+                String name = ViewpointManager.INSTANCE.getViewpoint(((IArchimateDiagramModel)eObject).getViewpoint()).getName();
+                textViewpoint.setText(name);
+            }
+            
             fieldsComposite.layout();
         }
     }
     
+    private Label createLabel(Composite parent, String text, Class<?> c) {
+        Label label = new Label(parent, SWT.NONE);
+        label.setText(text);
+        label.setLayoutData(new GridData());
+        label.setData(c);
+        return label;
+    }
+    
+    private Text createSingleText(Composite parent, Class<?> c) {
+        Text text = new Text(parent, SWT.READ_ONLY | SWT.BORDER);
+        text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        text.setData(c);
+        return text;
+    }
+
     // =====================================
     // Properties Composite
     // =====================================
