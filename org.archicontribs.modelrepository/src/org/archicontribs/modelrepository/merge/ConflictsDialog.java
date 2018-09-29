@@ -5,6 +5,9 @@
  */
 package org.archicontribs.modelrepository.merge;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -37,6 +40,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.diagram.util.DiagramUtils;
@@ -60,11 +65,34 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     private static String DIALOG_ID = "ConflictsDialog"; //$NON-NLS-1$
 
+    // Tab Composite
+    private abstract class TabComposite extends Composite {
+        protected int choice;
+        
+        TabComposite(Composite parent, int choice) {
+            super(parent, SWT.NONE);
+            
+            this.choice = choice;
+            setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+            setBackgroundMode(SWT.INHERIT_FORCE);
+            setLayout(new GridLayout());
+        }
+        
+        abstract void setMergeInfo(MergeObjectInfo mergeInfo);
+    }
+    
     private MergeConflictHandler fHandler;
+    
+    private MergeObjectInfo currentSelectedMergeInfo;
     
     private TableViewer fTableViewer;
     
-    private ObjectViewer fViewerOurs, fViewerTheirs;
+    private Button[] buttons = new Button[2];
+    
+    private TabFolder tabFolder;
+    private TabItem itemView;
+    
+    private List<TabComposite> fTabComposites = new ArrayList<TabComposite>();
     
     private String[] choices = {
             "Mine",
@@ -74,7 +102,6 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
         setTitle("Merge Conflicts");
-        
         fHandler = handler;
     }
     
@@ -91,23 +118,16 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);
-        container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        GridLayout layout = new GridLayout(1, false);
-        container.setLayout(layout);
+        container.setLayoutData(new GridData(GridData.FILL_BOTH));
+        container.setLayout(new GridLayout());
         
         SashForm sash = new SashForm(container, SWT.VERTICAL);
-        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        sash.setLayoutData(gd);
+        sash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         createTableControl(sash);
+        createTabPane(sash);
         
-        SashForm sash2 = new SashForm(sash, SWT.HORIZONTAL);
-        sash2.setLayoutData(gd);
-        
-        fViewerOurs = new ObjectViewer(sash2, MergeObjectInfo.OURS);
-        fViewerTheirs = new ObjectViewer(sash2, MergeObjectInfo.THEIRS);
-        
-        sash.setWeights(new int[] { 20, 80 });
+        sash.setWeights(new int[] { 25, 75 });
         
         // Select first object in table
         Object first = fTableViewer.getElementAt(0);
@@ -118,171 +138,184 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         return area;
     }
     
-    private void createTableControl(Composite parent) {
-        Composite tableComp = new Composite(parent, SWT.BORDER);
-        TableColumnLayout tableLayout = new TableColumnLayout();
-        tableComp.setLayout(tableLayout);
-        tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-        fTableViewer = new TableViewer(tableComp, SWT.FULL_SELECTION);
-        fTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-        fTableViewer.getTable().setHeaderVisible(true);
-        fTableViewer.getTable().setLinesVisible(true);
-        fTableViewer.setComparator(new ViewerComparator());
-
-        // Columns
-        TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
-        column1.getColumn().setText("Type");
-        tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(30, true));
-
-        TableViewerColumn column2 = new TableViewerColumn(fTableViewer, SWT.NONE, 1);
-        column2.getColumn().setText("Name");
-        tableLayout.setColumnData(column2.getColumn(), new ColumnWeightData(40, true));
-
-        TableViewerColumn column3 = new TableViewerColumn(fTableViewer, SWT.NONE, 2);
-        column3.getColumn().setText("Status");
-        tableLayout.setColumnData(column3.getColumn(), new ColumnWeightData(15, true));
-
-        TableViewerColumn column4 = new TableViewerColumn(fTableViewer, SWT.NONE, 3);
-        column4.getColumn().setText("Choice");
-        tableLayout.setColumnData(column4.getColumn(), new ColumnWeightData(15, true));
-        column4.setEditingSupport(new ComboChoiceEditingSupport(fTableViewer));
-
-        // Content Provider
-        fTableViewer.setContentProvider(new IStructuredContentProvider() {
-            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-            }
-
-            public void dispose() {
-            }
-
-            public Object[] getElements(Object inputElement) {
-                return fHandler.getMergeObjectInfos().toArray();
-            }
-        });
-
-        // Table Selection Listener
-        fTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                MergeObjectInfo info = (MergeObjectInfo)((StructuredSelection)event.getSelection()).getFirstElement();
-                fViewerOurs.setMergeInfo(info);
-                fViewerTheirs.setMergeInfo(info);
-            }
-        });
+    /**
+     * Create the tab pane
+     */
+    private void createTabPane(Composite parent) {
+        Composite mainComposite = new Composite(parent, SWT.BORDER);
+        mainComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+        mainComposite.setLayout(new GridLayout(2, true));
         
-        // Table Label Provider
-        fTableViewer.setLabelProvider(new TableLabelProvider());
+        // Ours /Theirs buttons
+        for(int i = 0; i < buttons.length; i++) {
+            buttons[i] = new Button(mainComposite, SWT.PUSH);
+            GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+            buttons[i].setLayoutData(gd);
+            buttons[i].setData(i);
+            
+            buttons[i].addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    if(currentSelectedMergeInfo != null) {
+                        currentSelectedMergeInfo.setUserChoice((int)e.widget.getData());
+                        fTableViewer.update(currentSelectedMergeInfo, null);
+                        updateButtons(currentSelectedMergeInfo);
+                    }
+                }
+            });
+        }
         
-        // Start the table
-        fTableViewer.setInput(""); // anything will do //$NON-NLS-1$
+        tabFolder = new TabFolder(mainComposite, SWT.NONE);
+        tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+        ((GridData)tabFolder.getLayoutData()).horizontalSpan = 2;
+        
+        createMainTabItem();
+        createPropertiesTabItem();
+        // (we will create the View TabItem on demand)
     }
     
-    @Override
-    protected Point getDefaultDialogSize() {
-        return new Point(700, 550);
-    }
+    // =====================================
+    // Main Composite
+    // =====================================
     
-    @Override
-    protected boolean isResizable() {
-        return true;
-    }
-
-
-    // Object Viewer Control
-    // ===========================================================
-    
-    private class ObjectViewer {
-        private MergeObjectInfo mergeInfo;
-        private int choice;
+    private TabItem createMainTabItem() {
+        SashForm sash = new SashForm(tabFolder, SWT.HORIZONTAL);
+        sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
         
-        private Button button;
+        fTabComposites.add(new MainComposite(sash, MergeObjectInfo.OURS));
+        fTabComposites.add(new MainComposite(sash, MergeObjectInfo.THEIRS));
+        
+        TabItem item = new TabItem(tabFolder, SWT.NONE);
+        item.setText("Main");
+        item.setControl(sash);
+        
+        return item;
+    }
+    
+    private class MainComposite extends TabComposite {
         private Composite fieldsComposite;
-        
         private Label labelDocumentation;
-        //private Text textType;
         private Text textName, textDocumentation;
-        private TableViewer propertiesTableViewer;
         
         private Text textSource, textTarget;
         
-        private Image viewImage;
-        private Label viewLabel;
-        
-        ObjectViewer(Composite parent, int choice) {
-            this.choice = choice;
+        MainComposite(Composite parent, int choice) {
+            super(parent, choice);
             
-            // Dispose of image when done
-            parent.addDisposeListener((e) -> {
-                disposeImage();
-            });
-            
-            Composite mainComposite = new Composite(parent, SWT.BORDER);
-            mainComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-            mainComposite.setLayout(new GridLayout());
-            mainComposite.setBackground(fTableViewer.getControl().getBackground());
-            mainComposite.setBackgroundMode(SWT.INHERIT_FORCE);
-            
-            button = new Button(mainComposite, SWT.PUSH);
-            button.setText(choices[choice]);
-            GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-            button.setLayoutData(gd);
-            
-            button.addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    mergeInfo.setUserChoice(choice);
-                    fTableViewer.update(mergeInfo, null);
-                    fViewerOurs.update();
-                    fViewerTheirs.update();
-                }
-            });
-            
-            fieldsComposite = new Composite(mainComposite, SWT.NONE);
+            fieldsComposite = new Composite(this, SWT.NONE);
             fieldsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
             fieldsComposite.setLayout(new GridLayout(2, false));
-            
-            // Type
-            //Label label = new Label(fieldsComposite, SWT.NONE);
-            //label.setText("Type:");
-            //textType = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
-            //textType.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            
+
             // Name
             Label label = new Label(fieldsComposite, SWT.NONE);
             label.setText("Name:");
             textName = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
             textName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-            // Relationship source/target
+            
+            // Relationship Source/Target
             label = new Label(fieldsComposite, SWT.NONE);
             label.setText("Source:");
+            label.setLayoutData(new GridData());
+            label.setData(IArchimateRelationship.class);
             textSource = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
             textSource.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            textSource.setData(IArchimateRelationship.class);
             
             label = new Label(fieldsComposite, SWT.NONE);
             label.setText("Target:");
+            label.setLayoutData(new GridData());
+            label.setData(IArchimateRelationship.class);
             textTarget = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER);
             textTarget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+            textTarget.setData(IArchimateRelationship.class);
 
             // Documentation / Purpose
             labelDocumentation = new Label(fieldsComposite, SWT.NONE);
-            labelDocumentation.setText("Documentation:");
             labelDocumentation.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
-            textDocumentation = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-            gd = new GridData(GridData.FILL_BOTH);
-            gd.heightHint = 120;
-            textDocumentation.setLayoutData(gd);
-
-            // Properties Table
-            label = new Label(fieldsComposite, SWT.NONE);
-            label.setText("Properties:");
-            label.setLayoutData(new GridData(SWT.TOP, SWT.TOP, false, false));
+            textDocumentation = new Text(fieldsComposite, SWT.READ_ONLY | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
+            textDocumentation.setLayoutData(new GridData(GridData.FILL_BOTH));
+        }
+        
+        @Override
+        void setMergeInfo(MergeObjectInfo mergeInfo) {
+            EObject eObject = mergeInfo.getEObject(choice);
             
-            Composite tableComp = new Composite(fieldsComposite, SWT.BORDER);
+            // If object has been deleted hide fields
+            fieldsComposite.setVisible(eObject != null);
+            
+            // Object was deleted
+            if(eObject == null) {
+                return;
+            }
+            
+            // Show/Hide controls depending on object class
+            for(Control control : fieldsComposite.getChildren()) {
+                if(control.getData() instanceof Class) {
+                    boolean isVisible = ((Class<?>)control.getData()).isInstance(eObject);
+                    control.setVisible(isVisible);
+                    ((GridData)control.getLayoutData()).exclude = !isVisible;
+                }
+            }
+            
+            // Name
+            if(eObject instanceof INameable) {
+                textName.setText(((INameable)eObject).getName());
+            }
+            else {
+                textName.setText(""); //$NON-NLS-1$
+            }
+
+            // Relationship controls
+            if(eObject instanceof IArchimateRelationship) {
+                textSource.setText(((IArchimateRelationship)eObject).getSource().getName());
+                textTarget.setText(((IArchimateRelationship)eObject).getTarget().getName());
+            }
+
+            // Documentation / Purpose
+            if(eObject instanceof IDocumentable) {
+                labelDocumentation.setText("Documentation:");
+                textDocumentation.setText(((IDocumentable)eObject).getDocumentation());
+            }
+            else if(eObject instanceof IArchimateModel) {
+                labelDocumentation.setText("Purpose:");
+                textDocumentation.setText(((IArchimateModel)eObject).getPurpose());
+            }
+            else {
+                textDocumentation.setText(""); //$NON-NLS-1$
+            }
+            
+            fieldsComposite.layout();
+        }
+    }
+    
+    // =====================================
+    // Properties Composite
+    // =====================================
+    
+    private TabItem createPropertiesTabItem() {
+        SashForm sash = new SashForm(tabFolder, SWT.HORIZONTAL);
+        sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+        
+        fTabComposites.add(new PropertiesComposite(sash, MergeObjectInfo.OURS));
+        fTabComposites.add(new PropertiesComposite(sash, MergeObjectInfo.THEIRS));
+        
+        TabItem item = new TabItem(tabFolder, SWT.NONE);
+        item.setText("Properties");
+        item.setControl(sash);
+        
+        return item;
+    }
+    
+    private class PropertiesComposite extends TabComposite {
+        private TableViewer propertiesTableViewer;
+
+        PropertiesComposite(Composite parent, int choice) {
+            super(parent, choice);
+            
+            Composite tableComp = new Composite(this, SWT.BORDER);
             TableColumnLayout tableLayout = new TableColumnLayout();
             tableComp.setLayout(tableLayout);
-            tableComp.setLayoutData(gd);
+            tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
             propertiesTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.FULL_SELECTION);
             propertiesTableViewer.getTable().setHeaderVisible(true);
@@ -335,60 +368,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
 
             propertiesTableViewer.setLabelProvider(new PropertiesLabelCellProvider());
-            
-            // View image previewer
-            ScrolledComposite scImage = new ScrolledComposite(fieldsComposite, SWT.H_SCROLL | SWT.V_SCROLL );
-            scImage.setBackground(mainComposite.getBackground());
-            gd = new GridData(GridData.FILL_BOTH);
-            gd.horizontalSpan = 2;
-            gd.heightHint = 120;
-            scImage.setLayoutData(gd);
-            viewLabel = new Label(scImage, SWT.NONE);
-            scImage.setContent(viewLabel);
         }
 
-        void setMergeInfo(MergeObjectInfo info) {
-            disposeImage();
-            viewLabel.setImage(null);
-            
-            if(info == null) {
-                return;
-            }
-            
-            mergeInfo = info;
+        @Override
+        void setMergeInfo(MergeObjectInfo mergeInfo) {
             EObject eObject = mergeInfo.getEObject(choice);
             
             // If object has been deleted hide fields
-            fieldsComposite.setVisible(eObject != null);
-            
-            // Object was deleted
-            if(eObject == null) {
-                return;
-            }
-            
-            // Type
-            //textType.setText(ArchiLabelProvider.INSTANCE.getDefaultName(eObject.eClass()));
-            
-            // Name
-            if(eObject instanceof INameable) {
-                textName.setText(((INameable)eObject).getName());
-            }
-            else {
-                textName.setText(""); //$NON-NLS-1$
-            }
-            
-            // Documentation / Purpose
-            if(eObject instanceof IDocumentable) {
-                labelDocumentation.setText("Documentation:");
-                textDocumentation.setText(((IDocumentable)eObject).getDocumentation());
-            }
-            else if(eObject instanceof IArchimateModel) {
-                labelDocumentation.setText("Purpose:");
-                textDocumentation.setText(((IArchimateModel)eObject).getPurpose());
-            }
-            else {
-                textDocumentation.setText(""); //$NON-NLS-1$
-            }
+            propertiesTableViewer.getControl().setVisible(eObject != null);
             
             // Properties
             if(eObject instanceof IProperties) {
@@ -397,47 +384,194 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             else {
                 propertiesTableViewer.setInput(""); //$NON-NLS-1$
             }
+        }
+    }
+    
+    // =====================================
+    // View Composite
+    // =====================================
+    
+    private TabItem createViewTabItem() {
+        SashForm sash = new SashForm(tabFolder, SWT.HORIZONTAL);
+        sash.setBackground(sash.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+        
+        ViewComposite c1 = new ViewComposite(sash, MergeObjectInfo.OURS);
+        fTabComposites.add(c1);
+        ViewComposite c2 = new ViewComposite(sash, MergeObjectInfo.THEIRS);
+        fTabComposites.add(c2);
+        
+        TabItem item = new TabItem(tabFolder, SWT.NONE);
+        item.setText("View");
+        item.setControl(sash);
+        
+        // TabItem child controls are not disposed when a TabItem is disposed
+        item.addDisposeListener((event) -> {
+            // Remove composites from the update list
+            fTabComposites.remove(c1);
+            fTabComposites.remove(c2);
+            sash.dispose(); // Dispose of top parent, will cause dispose of children and image
+        });
+        
+        return item;
+    }
+    
+    private class ViewComposite extends TabComposite {
+        private Image viewImage;
+        private Label viewLabel;
+        
+        ViewComposite(Composite parent, int choice) {
+            super(parent, choice);
             
-            // Relationship
-            if(eObject instanceof IArchimateRelationship) {
-                textSource.setText(((IArchimateRelationship)eObject).getSource().getName());
-                textTarget.setText(((IArchimateRelationship)eObject).getTarget().getName());
-            }
-            else {
-                textSource.setText(""); //$NON-NLS-1$
-                textTarget.setText(""); //$NON-NLS-1$
-            }
+            // Dispose of image when done
+            parent.addDisposeListener((e) -> {
+                disposeImage();
+            });
 
+            ScrolledComposite scImage = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL );
+            scImage.setLayoutData(new GridData(GridData.FILL_BOTH));
+            viewLabel = new Label(scImage, SWT.NONE);
+            scImage.setContent(viewLabel);
+        }
+
+        @Override
+        void setMergeInfo(MergeObjectInfo mergeInfo) {
+            disposeImage();
+            viewLabel.setImage(null);
+            
+            EObject eObject = mergeInfo.getEObject(choice);
+            
+            // Object was deleted
+            if(eObject == null) {
+                return;
+            }
+            
             // View
             if(eObject instanceof IDiagramModel) {
                 viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 5);
                 viewLabel.setImage(viewImage);
             }
-            viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
             
-            update();
+            viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
         }
         
-        void update() {
-            String text = choices[choice];
-            if(choice == mergeInfo.getUserChoice()) {
-                text += " " + "(selected)"; //$NON-NLS-1$
-            }
-            button.setText(text);
-        }
-        
-        private void disposeImage() {
+        void disposeImage() {
             if(viewImage != null && !viewImage.isDisposed()) {
                 viewImage.dispose();
                 viewImage = null;
             }
         }
     }
+
+    // =====================================
+    // Other
+    // =====================================
     
+    private void updateTabs(MergeObjectInfo mergeInfo) {
+        if(currentSelectedMergeInfo == mergeInfo) {
+            return;
+        }
+        
+        currentSelectedMergeInfo = mergeInfo;
+        
+        updateButtons(mergeInfo);
+        
+        // If the eObject is a View add the View TabItem, else remove it
+        EObject eObject = mergeInfo.getDefaultEObject();
+        if(eObject instanceof IDiagramModel) {
+            if(itemView == null) {
+                itemView = createViewTabItem();
+            }
+        }
+        else if(itemView != null && !itemView.isDisposed()) {
+            itemView.dispose();
+            itemView = null;
+        }
+        
+        // Update tab composites
+        for(TabComposite c : fTabComposites) {
+            c.setMergeInfo(mergeInfo);
+        }
+    }
+
+    private void updateButtons(MergeObjectInfo mergeInfo) {
+        int choice = mergeInfo.getUserChoice();
+        for(int i = 0; i < buttons.length; i++) {
+            buttons[i].setText(choices[i] + (choice == i ? " (selected)" : ""));
+        }
+    }
     
-    // Table
+    @Override
+    protected Point getDefaultDialogSize() {
+        return new Point(700, 550);
+    }
+    
+    @Override
+    protected boolean isResizable() {
+        return true;
+    }
+
+    // ===========================================================
+    // Top Table Control
     // ===========================================================
     
+    private void createTableControl(Composite parent) {
+        Composite tableComp = new Composite(parent, SWT.BORDER);
+        TableColumnLayout tableLayout = new TableColumnLayout();
+        tableComp.setLayout(tableLayout);
+        tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+        fTableViewer = new TableViewer(tableComp, SWT.FULL_SELECTION);
+        fTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+        fTableViewer.getTable().setHeaderVisible(true);
+        fTableViewer.getTable().setLinesVisible(true);
+        fTableViewer.setComparator(new ViewerComparator());
+
+        // Columns
+        TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
+        column1.getColumn().setText("Type");
+        tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(30, true));
+
+        TableViewerColumn column2 = new TableViewerColumn(fTableViewer, SWT.NONE, 1);
+        column2.getColumn().setText("Name");
+        tableLayout.setColumnData(column2.getColumn(), new ColumnWeightData(40, true));
+
+        TableViewerColumn column3 = new TableViewerColumn(fTableViewer, SWT.NONE, 2);
+        column3.getColumn().setText("Status");
+        tableLayout.setColumnData(column3.getColumn(), new ColumnWeightData(15, true));
+
+        TableViewerColumn column4 = new TableViewerColumn(fTableViewer, SWT.NONE, 3);
+        column4.getColumn().setText("Choice");
+        tableLayout.setColumnData(column4.getColumn(), new ColumnWeightData(15, true));
+        column4.setEditingSupport(new ComboChoiceEditingSupport(fTableViewer));
+
+        // Content Provider
+        fTableViewer.setContentProvider(new IStructuredContentProvider() {
+            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+            }
+
+            public void dispose() {
+            }
+
+            public Object[] getElements(Object inputElement) {
+                return fHandler.getMergeObjectInfos().toArray();
+            }
+        });
+
+        // Table Selection Listener
+        fTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                MergeObjectInfo info = (MergeObjectInfo)((StructuredSelection)event.getSelection()).getFirstElement();
+                updateTabs(info);
+            }
+        });
+        
+        // Table Label Provider
+        fTableViewer.setLabelProvider(new TableLabelProvider());
+        
+        // Start the table
+        fTableViewer.setInput(""); // anything will do //$NON-NLS-1$
+    }
     // Label Provider
     private class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         
@@ -472,7 +606,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                     return choices[info.getUserChoice()];
 
                 default:
-                    return "";
+                    return ""; //$NON-NLS-1$
             }
         }
     }
@@ -506,11 +640,12 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         @Override
         protected void setValue(Object element, Object value) {
-            ((MergeObjectInfo)element).setUserChoice((int)value);
+            MergeObjectInfo info = (MergeObjectInfo)element;
+            info.setUserChoice((int)value);
             fTableViewer.update(element, null);
-            fViewerOurs.update();
-            fViewerTheirs.update();
+            updateButtons(info);
         }
     }
+
 
 }
