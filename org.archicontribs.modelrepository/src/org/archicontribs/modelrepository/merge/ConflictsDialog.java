@@ -6,7 +6,9 @@
 package org.archicontribs.modelrepository.merge;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -39,6 +41,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -457,15 +460,33 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     }
     
     private class ViewComposite extends TabComposite {
-        private Image viewImage;
         private Label viewLabel;
+        private Scale scale;
+        
+        private IDiagramModel diagramModel;
+        
+        private Map<Integer, Image> scaledImages = new HashMap<Integer, Image>();
+        
+        private final int SCALES = 6;
         
         ViewComposite(Composite parent, int choice) {
             super(parent, choice);
             
             // Dispose of image when done
             parent.addDisposeListener((e) -> {
-                disposeImage();
+                disposeImages();
+            });
+            
+            scale = new Scale(this, SWT.HORIZONTAL);
+            scale.setMinimum(1);
+            scale.setMaximum(SCALES);
+            scale.setSelection(SCALES);
+            
+            scale.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent e) {
+                    setScaledImage(scale.getSelection());
+                }
             });
 
             ScrolledComposite scImage = new ScrolledComposite(this, SWT.H_SCROLL | SWT.V_SCROLL );
@@ -476,29 +497,34 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         @Override
         void setMergeInfo(MergeObjectInfo mergeInfo) {
-            disposeImage();
-            viewLabel.setImage(null);
+            disposeImages();
             
-            EObject eObject = mergeInfo.getEObject(choice);
+            diagramModel = (IDiagramModel)mergeInfo.getEObject(choice);
             
-            // Object was deleted
-            if(eObject == null) {
-                return;
+            scale.setVisible(diagramModel != null);
+            setScaledImage(diagramModel != null ? SCALES : 0);
+        }
+        
+        void setScaledImage(int scale) {
+            Image image = null;
+            
+            if(scale > 0) {
+                image = scaledImages.get(scale);
+                if(image == null) {
+                    image = DiagramUtils.createImage(diagramModel, (double)scale / SCALES, 5);
+                    scaledImages.put(scale, image);
+                }
             }
             
-            // View
-            if(eObject instanceof IDiagramModel) {
-                viewImage = DiagramUtils.createImage((IDiagramModel)eObject, 1, 5);
-                viewLabel.setImage(viewImage);
-            }
-            
+            viewLabel.setImage(image);
             viewLabel.setSize(viewLabel.computeSize( SWT.DEFAULT, SWT.DEFAULT));
         }
         
-        void disposeImage() {
-            if(viewImage != null && !viewImage.isDisposed()) {
-                viewImage.dispose();
-                viewImage = null;
+        void disposeImages() {
+            for(Image image : scaledImages.values()) {
+                if(!image.isDisposed()) {
+                    image.dispose();
+                }
             }
         }
     }
