@@ -148,6 +148,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         mainComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         mainComposite.setLayout(new GridLayout(2, true));
         
+        tabFolder = new TabFolder(mainComposite, SWT.NONE);
+        tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
+        ((GridData)tabFolder.getLayoutData()).horizontalSpan = 2;
+        
+        createMainTabItem();
+        createPropertiesTabItem();
+        // (we will create the View TabItem on demand)
+        
         // Ours /Theirs buttons
         for(int i = 0; i < buttons.length; i++) {
             buttons[i] = new Button(mainComposite, SWT.PUSH);
@@ -166,14 +174,6 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 }
             });
         }
-        
-        tabFolder = new TabFolder(mainComposite, SWT.NONE);
-        tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
-        ((GridData)tabFolder.getLayoutData()).horizontalSpan = 2;
-        
-        createMainTabItem();
-        createPropertiesTabItem();
-        // (we will create the View TabItem on demand)
     }
     
     // =====================================
@@ -551,7 +551,6 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             }
         });
 
-
         // Columns
         TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
         column1.getColumn().setText("Type");
@@ -672,6 +671,5 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             updateButtons(info);
         }
     }
-
 
 }
