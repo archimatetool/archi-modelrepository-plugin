@@ -48,11 +48,13 @@ import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
+import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.IInfluenceRelationship;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
@@ -199,7 +201,9 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         private Label labelDocumentation;
         private Text textName, textDocumentation;
         
-        private Text textSource, textTarget, textViewpoint;
+        private Text textSource, textTarget;
+        private Text textViewpoint;
+        private Text textAccessType, textInfluenceStrength;
         
         MainComposite(Composite parent, int choice) {
             super(parent, choice);
@@ -220,6 +224,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             createLabel(fieldsComposite, "Target:", IArchimateRelationship.class);
             textTarget = createSingleText(fieldsComposite, IArchimateRelationship.class);
             
+            // Access Relationship Type
+            createLabel(fieldsComposite, "Type:", IAccessRelationship.class);
+            textAccessType = createSingleText(fieldsComposite, IAccessRelationship.class);
+
+            // Influence Relationship Strength
+            createLabel(fieldsComposite, "Strength:", IInfluenceRelationship.class);
+            textInfluenceStrength = createSingleText(fieldsComposite, IInfluenceRelationship.class);
+
             // Viewpoint
             createLabel(fieldsComposite, "Viewpoint:", IArchimateDiagramModel.class);
             textViewpoint = createSingleText(fieldsComposite, IArchimateDiagramModel.class);
@@ -264,6 +276,19 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             if(eObject instanceof IArchimateRelationship) {
                 textSource.setText(((IArchimateRelationship)eObject).getSource().getName());
                 textTarget.setText(((IArchimateRelationship)eObject).getTarget().getName());
+                
+                if(eObject instanceof IAccessRelationship) {
+                    int type = ((IAccessRelationship)eObject).getAccessType();
+                    if(type < IAccessRelationship.WRITE_ACCESS || type > IAccessRelationship.READ_WRITE_ACCESS) {
+                        type = IAccessRelationship.WRITE_ACCESS;
+                    }
+                    final String[] types = { "Write", "Read", "Access", "ReadWrite" };
+                    textAccessType.setText(types[type]);
+                }
+                else if(eObject instanceof IInfluenceRelationship) {
+                    String strength = ((IInfluenceRelationship)eObject).getStrength();
+                    textInfluenceStrength.setText(strength);
+                }
             }
 
             // Documentation / Purpose
