@@ -465,7 +465,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         private IDiagramModel diagramModel;
         
-        private Map<Integer, Image> scaledImages = new HashMap<Integer, Image>();
+        private Map<Integer, Image> scaledImages;
         
         private final int SCALES = 6;
         
@@ -521,11 +521,15 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         }
         
         void disposeImages() {
-            for(Image image : scaledImages.values()) {
-                if(!image.isDisposed()) {
-                    image.dispose();
+            if(scaledImages != null) {
+                for(Image image : scaledImages.values()) {
+                    if(!image.isDisposed()) {
+                        image.dispose();
+                    }
                 }
             }
+            
+            scaledImages = new HashMap<Integer, Image>();
         }
     }
 
