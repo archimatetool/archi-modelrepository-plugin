@@ -20,6 +20,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -129,11 +130,12 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         });
         
-        // If this excpetion is thrown then the remote is empty with no master ref, so quietly absorb this and return
-        if(exception[0] instanceof RefNotAdvertisedException) {
-            return PULL_STATUS_OK;
-        }
-        else if(exception[0] != null) {
+        if(exception[0] != null) {
+            // If this exception is thrown then the remote is empty with no master ref, so quietly absorb this and return
+            if(exception[0] instanceof RefNotAdvertisedException) {
+                return PULL_STATUS_OK;
+            }
+            
             throw exception[0];
         }
 
@@ -146,6 +148,28 @@ public class RefreshModelAction extends AbstractModelAction {
         if(!pullResult[0].isSuccessful()) {
             // Try to handle the merge conflict
             MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), getRepository(), fWindow.getShell());
+            
+            ps.busyCursorWhile(new IRunnableWithProgress() {
+                public void run(IProgressMonitor pm) {
+                    try {
+                        handler.init(pm);
+                    }
+                    catch(IOException | CanceledException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+            
+            if(exception[0] != null) {
+                handler.resetToLocalState(); // Clean up
+
+                if(exception[0] instanceof CanceledException) {
+                    return PULL_STATUS_MERGE_CANCEL;
+                }
+                
+                throw exception[0];
+            }
+            
             boolean result = handler.openConflictsDialog();
             if(result) {
                 handler.merge();

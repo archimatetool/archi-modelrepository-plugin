@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.AddCommand;
@@ -23,6 +24,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -50,24 +52,33 @@ public class MergeConflictHandler {
     private List<MergeObjectInfo> fMergeObjectInfos;
     
     private IArchimateModel fOurModel, fTheirModel;
+    
+    private IProgressMonitor fProgressMonitor;
 
-    public MergeConflictHandler(MergeResult mergeResult, IArchiRepository repo, Shell shell) throws IOException {
-        // This could be null if Rebase is the default behaviour on the repo rather than merge when a Pull is done
-        if(mergeResult == null) {
-            throw new IOException("MergeResult was null"); //$NON-NLS-1$
-        }
-        
+    public MergeConflictHandler(MergeResult mergeResult, IArchiRepository repo, Shell shell) {
         fMergeResult = mergeResult;
         fArchiRepo = repo;
         fShell = shell;
+    }
+    
+    public void init(IProgressMonitor pm) throws IOException, CanceledException {
+        // This could be null if Rebase is the default behaviour on the repo rather than merge when a Pull is done
+        if(fMergeResult == null) {
+            throw new IOException("MergeResult was null"); //$NON-NLS-1$
+        }
         
-        // Initialise stuff now
+        fProgressMonitor = pm;
 
-        // Our and Theirs Models
-        fOurModel = extractModel(MergeObjectInfo.REF_OURS);
+        // Our model is the current loaded one
+        fOurModel = fArchiRepo.locateModel();
+        if(fOurModel == null) {
+            throw new IOException("Could not load local model!");
+        }
+        
+        // Their model needs to be extracted
         fTheirModel = extractModel(MergeObjectInfo.REF_THEIRS);
         
-        // Merge Infos
+        // Create Merge Infos
         fMergeObjectInfos = new ArrayList<MergeObjectInfo>();
         for(String xmlPath : fMergeResult.getConflicts().keySet()) {
             fMergeObjectInfos.add(new MergeObjectInfo(xmlPath, this));
@@ -182,8 +193,9 @@ public class MergeConflictHandler {
     /**
      * Extract a model from either our latest commit or their latest online commit
      * ref = "refs/head/master" or "origin/master"
+     * @throws CanceledException 
      */
-    private IArchimateModel extractModel(String ref) throws IOException {
+    private IArchimateModel extractModel(String ref) throws IOException, CanceledException {
         File tmpFolder = new File(System.getProperty("java.io.tmpdir"), "org.archicontribs.modelrepository.tmp"); //$NON-NLS-1$ //$NON-NLS-2$
         FileUtils.deleteFolder(tmpFolder);
         tmpFolder.mkdirs();
@@ -204,7 +216,7 @@ public class MergeConflictHandler {
             }
             
             if(commit == null) {
-                throw new IOException("Could not get commit."); //$NON-NLS-1$
+                throw new IOException("Could not get commit.");
             }
             
             // Walk the tree and get the contents of the commit
@@ -213,6 +225,10 @@ public class MergeConflictHandler {
                 treeWalk.setRecursive(true);
 
                 while(treeWalk.next()) {
+                    if(fProgressMonitor != null && fProgressMonitor.isCanceled()) {
+                        throw new CanceledException("User Cancelled.");
+                    }
+                    
                     ObjectId objectId = treeWalk.getObjectId(0);
                     ObjectLoader loader = repository.open(objectId);
                     
