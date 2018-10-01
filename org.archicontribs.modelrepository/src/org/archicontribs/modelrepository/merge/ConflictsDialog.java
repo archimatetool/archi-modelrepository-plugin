@@ -502,7 +502,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             diagramModel = (IDiagramModel)mergeInfo.getEObject(choice);
             
             scale.setVisible(diagramModel != null);
-            setScaledImage(diagramModel != null ? SCALES : 0);
+            setScaledImage(diagramModel != null ? scale.getSelection() : 0);
         }
         
         void setScaledImage(int scale) {
