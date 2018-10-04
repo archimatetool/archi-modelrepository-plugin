@@ -96,18 +96,6 @@ public class Messages extends NLS {
 
     public static String RestoreCommitAction_4;
 
-    public static String RevertCommitAction_0;
-
-    public static String RevertCommitAction_1;
-
-    public static String RevertCommitAction_3;
-
-    public static String RevertCommitAction_4;
-
-    public static String RevertCommitsAction_0;
-
-    public static String RevertCommitsAction_1;
-
     public static String ShowInHistoryAction_0;
 
     public static String ShowInHistoryAction_1;

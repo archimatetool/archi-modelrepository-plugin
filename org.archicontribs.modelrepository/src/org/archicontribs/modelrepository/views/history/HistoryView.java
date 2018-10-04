@@ -9,7 +9,6 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
 import org.archicontribs.modelrepository.actions.RestoreCommitAction;
-import org.archicontribs.modelrepository.actions.RevertCommitsAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -73,10 +72,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Actions
      */
     private ExtractModelFromCommitAction fActionExtractCommit;
-    //private RevertCommitAction fActionRevertSingleCommit;
-    private RevertCommitsAction fActionRevertUptoCommit;
     private RestoreCommitAction fActionRestoreCommit;
-    
     private UndoLastCommitAction fActionUndoLastCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
     
@@ -169,12 +165,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionExtractCommit = new ExtractModelFromCommitAction(getViewSite().getWorkbenchWindow());
         fActionExtractCommit.setEnabled(false);
         
-        //fActionRevertSingleCommit = new RevertCommitAction(getViewSite().getWorkbenchWindow());
-        //fActionRevertSingleCommit.setEnabled(false);
-        
-        fActionRevertUptoCommit = new RevertCommitsAction(getViewSite().getWorkbenchWindow());
-        fActionRevertUptoCommit.setEnabled(false);
-        
         fActionRestoreCommit = new RestoreCommitAction(getViewSite().getWorkbenchWindow());
         fActionRestoreCommit.setEnabled(false);
         
@@ -235,8 +225,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         
         manager.add(fActionExtractCommit);
-        //manager.add(fActionRevertSingleCommit);
-        manager.add(fActionRevertUptoCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
@@ -253,8 +241,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         RevCommit commit = (RevCommit)((IStructuredSelection)selection).getFirstElement();
         
         fActionExtractCommit.setCommit(commit);
-        //fActionRevertSingleCommit.setCommit(commit);
-        fActionRevertUptoCommit.setCommit(commit);
         fActionRestoreCommit.setCommit(commit);
         
         fActionUndoLastCommit.update();
@@ -267,8 +253,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // boolean isEmpty = getViewer().getSelection().isEmpty();
 
         manager.add(fActionExtractCommit);
-        //manager.add(fActionRevertSingleCommit);
-        manager.add(fActionRevertUptoCommit);
         manager.add(fActionRestoreCommit);
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
@@ -322,8 +306,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
-            //fActionRevertSingleCommit.setRepository(selectedRepository);
-            fActionRevertUptoCommit.setRepository(selectedRepository);
             fActionRestoreCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
