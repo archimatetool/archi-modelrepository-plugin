@@ -10,8 +10,6 @@ public class Messages extends NLS {
 
     public static String GraficoModelLoader_0;
 
-    public static String GraficoResolutionHandler_0;
-
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
