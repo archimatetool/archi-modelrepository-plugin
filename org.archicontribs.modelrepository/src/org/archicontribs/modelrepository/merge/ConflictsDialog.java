@@ -102,25 +102,25 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     private List<TabComposite> fTabComposites = new ArrayList<TabComposite>();
     
     private String[] choices = {
-            "Mine",
-            "Theirs"
+            Messages.ConflictsDialog_0,
+            Messages.ConflictsDialog_1
     };
     
     ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
         super(parentShell, DIALOG_ID);
-        setTitle("Merge Conflicts");
+        setTitle(Messages.ConflictsDialog_2);
         fHandler = handler;
     }
     
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Merge Conflicts");
+        shell.setText(Messages.ConflictsDialog_2);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("There are conflicts between your version and the online version. Please resolve the conflicts.", IMessageProvider.WARNING);
+        setMessage(Messages.ConflictsDialog_4, IMessageProvider.WARNING);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_IMPORT_PREF_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -193,7 +193,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         fTabComposites.add(new MainComposite(sash, MergeObjectInfo.THEIRS));
         
         TabItem item = new TabItem(tabFolder, SWT.NONE);
-        item.setText("Main");
+        item.setText(Messages.ConflictsDialog_5);
         item.setControl(sash);
         
         return item;
@@ -216,27 +216,27 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             fieldsComposite.setLayout(new GridLayout(2, false));
 
             // Name
-            createLabel(fieldsComposite, "Name:", null);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_6, null);
             textName = createSingleText(fieldsComposite, null);
             
             // Relationship Source
-            createLabel(fieldsComposite, "Source:", IArchimateRelationship.class);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_7, IArchimateRelationship.class);
             textSource = createSingleText(fieldsComposite, IArchimateRelationship.class);
             
             // Relationship Target
-            createLabel(fieldsComposite, "Target:", IArchimateRelationship.class);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_8, IArchimateRelationship.class);
             textTarget = createSingleText(fieldsComposite, IArchimateRelationship.class);
             
             // Access Relationship Type
-            createLabel(fieldsComposite, "Type:", IAccessRelationship.class);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_9, IAccessRelationship.class);
             textAccessType = createSingleText(fieldsComposite, IAccessRelationship.class);
 
             // Influence Relationship Strength
-            createLabel(fieldsComposite, "Strength:", IInfluenceRelationship.class);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_10, IInfluenceRelationship.class);
             textInfluenceStrength = createSingleText(fieldsComposite, IInfluenceRelationship.class);
 
             // Viewpoint
-            createLabel(fieldsComposite, "Viewpoint:", IArchimateDiagramModel.class);
+            createLabel(fieldsComposite, Messages.ConflictsDialog_11, IArchimateDiagramModel.class);
             textViewpoint = createSingleText(fieldsComposite, IArchimateDiagramModel.class);
 
             // Documentation / Purpose
@@ -285,7 +285,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                     if(type < IAccessRelationship.WRITE_ACCESS || type > IAccessRelationship.READ_WRITE_ACCESS) {
                         type = IAccessRelationship.WRITE_ACCESS;
                     }
-                    final String[] types = { "Write", "Read", "Access", "ReadWrite" };
+                    final String[] types = { Messages.ConflictsDialog_12, Messages.ConflictsDialog_13, Messages.ConflictsDialog_14, Messages.ConflictsDialog_15 };
                     textAccessType.setText(types[type]);
                 }
                 else if(eObject instanceof IInfluenceRelationship) {
@@ -296,11 +296,11 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             // Documentation / Purpose
             if(eObject instanceof IDocumentable) {
-                labelDocumentation.setText("Documentation:");
+                labelDocumentation.setText(Messages.ConflictsDialog_16);
                 textDocumentation.setText(((IDocumentable)eObject).getDocumentation());
             }
             else if(eObject instanceof IArchimateModel) {
-                labelDocumentation.setText("Purpose:");
+                labelDocumentation.setText(Messages.ConflictsDialog_17);
                 textDocumentation.setText(((IArchimateModel)eObject).getPurpose());
             }
             else {
@@ -344,7 +344,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         fTabComposites.add(new PropertiesComposite(sash, MergeObjectInfo.THEIRS));
         
         TabItem item = new TabItem(tabFolder, SWT.NONE);
-        item.setText("Properties");
+        item.setText(Messages.ConflictsDialog_18);
         item.setControl(sash);
         
         return item;
@@ -367,11 +367,11 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             propertiesTableViewer.setComparator(new ViewerComparator());
             
             TableViewerColumn columnKey = new TableViewerColumn(propertiesTableViewer, SWT.NONE, 0);
-            columnKey.getColumn().setText("Name");
+            columnKey.getColumn().setText(Messages.ConflictsDialog_19);
             tableLayout.setColumnData(columnKey.getColumn(), new ColumnWeightData(25, true));
 
             TableViewerColumn columnValue = new TableViewerColumn(propertiesTableViewer, SWT.NONE, 1);
-            columnValue.getColumn().setText("Value");
+            columnValue.getColumn().setText(Messages.ConflictsDialog_20);
             tableLayout.setColumnData(columnValue.getColumn(), new ColumnWeightData(75, true));
 
             // Properties Table Content Provider
@@ -445,7 +445,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         fTabComposites.add(c2);
         
         TabItem item = new TabItem(tabFolder, SWT.NONE);
-        item.setText("View");
+        item.setText(Messages.ConflictsDialog_21);
         item.setControl(sash);
         
         // TabItem child controls are not disposed when a TabItem is disposed
@@ -567,7 +567,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     private void updateButtons(MergeObjectInfo mergeInfo) {
         int choice = mergeInfo.getUserChoice();
         for(int i = 0; i < buttons.length; i++) {
-            buttons[i].setText(choices[i] + (choice == i ? " (selected)" : ""));
+            buttons[i].setText(choices[i] + (choice == i ? Messages.ConflictsDialog_22 : "")); //$NON-NLS-1$
         }
     }
     
@@ -608,19 +608,19 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         // Columns
         TableViewerColumn column1 = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
-        column1.getColumn().setText("Type");
+        column1.getColumn().setText(Messages.ConflictsDialog_24);
         tableLayout.setColumnData(column1.getColumn(), new ColumnWeightData(30, true));
 
         TableViewerColumn column2 = new TableViewerColumn(fTableViewer, SWT.NONE, 1);
-        column2.getColumn().setText("Name");
+        column2.getColumn().setText(Messages.ConflictsDialog_25);
         tableLayout.setColumnData(column2.getColumn(), new ColumnWeightData(40, true));
 
         TableViewerColumn column3 = new TableViewerColumn(fTableViewer, SWT.NONE, 2);
-        column3.getColumn().setText("Status");
+        column3.getColumn().setText(Messages.ConflictsDialog_26);
         tableLayout.setColumnData(column3.getColumn(), new ColumnWeightData(15, true));
 
         TableViewerColumn column4 = new TableViewerColumn(fTableViewer, SWT.NONE, 3);
-        column4.getColumn().setText("Choice");
+        column4.getColumn().setText(Messages.ConflictsDialog_27);
         tableLayout.setColumnData(column4.getColumn(), new ColumnWeightData(15, true));
         column4.setEditingSupport(new ComboChoiceEditingSupport(fTableViewer));
 
@@ -669,7 +669,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             EObject eObject = info.getDefaultEObject();
             
             if(eObject == null) {
-                return "(missing)";
+                return Messages.ConflictsDialog_28;
             }
             
             switch(columnIndex) {

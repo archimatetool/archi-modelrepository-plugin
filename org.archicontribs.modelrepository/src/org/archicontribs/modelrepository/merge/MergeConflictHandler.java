@@ -72,7 +72,7 @@ public class MergeConflictHandler {
         // Our model is the current loaded one
         fOurModel = fArchiRepo.locateModel();
         if(fOurModel == null) {
-            throw new IOException("Could not load local model!");
+            throw new IOException(Messages.MergeConflictHandler_0);
         }
         
         // Their model needs to be extracted
@@ -216,7 +216,7 @@ public class MergeConflictHandler {
             }
             
             if(commit == null) {
-                throw new IOException("Could not get commit.");
+                throw new IOException(Messages.MergeConflictHandler_1);
             }
             
             // Walk the tree and get the contents of the commit
@@ -226,7 +226,7 @@ public class MergeConflictHandler {
 
                 while(treeWalk.next()) {
                     if(fProgressMonitor != null && fProgressMonitor.isCanceled()) {
-                        throw new CanceledException("User Cancelled.");
+                        throw new CanceledException(Messages.MergeConflictHandler_2);
                     }
                     
                     ObjectId objectId = treeWalk.getObjectId(0);

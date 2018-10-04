@@ -66,13 +66,13 @@ class MergeObjectInfo {
     
     String getStatus() {
         if(objects[OURS] == null) {
-            return "Deleted by us";
+            return Messages.MergeObjectInfo_0;
         }
         if(objects[THEIRS] == null) {
-            return "Deleted by them";
+            return Messages.MergeObjectInfo_1;
         }
         
-        return "Modified";
+        return Messages.MergeObjectInfo_2;
     }
     
     void setUserChoice(int choice) {
