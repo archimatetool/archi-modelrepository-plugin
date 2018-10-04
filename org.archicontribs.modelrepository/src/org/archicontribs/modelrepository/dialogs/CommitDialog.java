@@ -10,9 +10,15 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -117,7 +123,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         fAmendLastCommitCheckbox.setLayoutData(gd);
         
         try {
-            fAmendLastCommitCheckbox.setEnabled(!fRepository.isHeadAndRemoteSame());
+            fAmendLastCommitCheckbox.setEnabled(isAmendAllowed());
         }
         catch(IOException ex) {
             fAmendLastCommitCheckbox.setEnabled(false);
@@ -181,6 +187,30 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
 
         if(!globalName.equals(name) || !globalEmail.equals(email)) {
             fRepository.saveUserDetails(name, email);
+        }
+    }
+    
+    /**
+     * An amend of last commit is allowed
+     * If HEAD and remote are not the same AND
+     * The latest local commit does not have more than one parent (i.e last commit was a merge)
+     */
+    private boolean isAmendAllowed() throws IOException {
+        return !fRepository.isHeadAndRemoteSame() && getLatestLocalCommitParentCount() < 2;
+    }
+    
+    private int getLatestLocalCommitParentCount() throws IOException {
+        try(Repository repository = Git.open(fRepository.getLocalRepositoryFolder()).getRepository()) {
+            Ref head = repository.exactRef(IGraficoConstants.HEAD);
+            if(head == null) {
+                return 0;
+            }
+            
+            try(RevWalk revWalk = new RevWalk(repository)) {
+                RevCommit commit = revWalk.parseCommit(head.getObjectId());
+                revWalk.dispose();
+                return commit.getParentCount();
+            }
         }
     }
 }
