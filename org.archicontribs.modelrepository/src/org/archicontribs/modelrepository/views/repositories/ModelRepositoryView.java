@@ -17,6 +17,7 @@ import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
@@ -28,7 +29,9 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -38,6 +41,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -46,7 +51,6 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
@@ -85,10 +89,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     private IGraficoModelAction fActionPush;
     
     private IGraficoModelAction fActionShowInHistory;
-    
     private IGraficoModelAction fActionProperties;
-    
-    private IAction fActionShowPreferences;
     
 
     @Override
@@ -99,7 +100,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         makeActions();
         registerGlobalActions();
         hookContextMenu();
-        //makeLocalMenuActions();
+        makeLocalMenuActions();
         makeLocalToolBarActions();
         
         // Register us as a selection provider so that Actions can pick us up
@@ -139,7 +140,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /**
      * Make local actions
      */
-    protected void makeActions() {
+    private void makeActions() {
         fActionClone = new CloneModelAction(getViewSite().getWorkbenchWindow());
         
         fActionOpen = new OpenModelAction(getViewSite().getWorkbenchWindow());
@@ -166,20 +167,6 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
         fActionProperties.setEnabled(false);
         
-        fActionShowPreferences = new Action(Messages.ModelRepositoryView_1) {
-            @Override
-            public void run() {
-                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getSite().getShell(),
-                        "org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage", null, null); //$NON-NLS-1$
-                dialog.open();
-            }
-            
-            @Override
-            public String getToolTipText() {
-                return getText();
-            }
-        };
-        
         // Register the Keybinding for actions
 //        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
 //        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
@@ -198,7 +185,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /**
      * Hook into a right-click menu
      */
-    protected void hookContextMenu() {
+    private void hookContextMenu() {
         MenuManager menuMgr = new MenuManager("#RepoViewerPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
@@ -217,56 +204,58 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     /**
      * Make Any Local Bar Menu Actions
      */
-//    protected void makeLocalMenuActions() {
-//        IActionBars actionBars = getViewSite().getActionBars();
-//
-//        // Local menu items go here
-//        IMenuManager manager = actionBars.getMenuManager();
-//        manager.add(new Action("&View Management...") {
-//            public void run() {
-//                MessageDialog.openInformation(getViewSite().getShell(),
-//                        "View Management",
-//                        "This is a placeholder for the View Management Dialog");
-//            }
-//        });
-//    }
+    private void makeLocalMenuActions() {
+        IActionBars actionBars = getViewSite().getActionBars();
+
+        // Local menu items go here
+        IMenuManager manager = actionBars.getMenuManager();
+        
+        // Fetch in Background preference
+        IPreferenceStore store = ModelRepositoryPlugin.INSTANCE.getPreferenceStore();
+        
+        IAction fetchAction = new Action(Messages.ModelRepositoryView_1, IAction.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                store.setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, isChecked());
+            }
+        };
+        
+        manager.add(fetchAction);
+        fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
+        
+        IPropertyChangeListener listener = new IPropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent event) {
+                fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
+            }
+        };
+        
+        store.addPropertyChangeListener(listener);
+        
+        getViewer().getControl().addDisposeListener(new DisposeListener() {
+            public void widgetDisposed(DisposeEvent e) {
+                store.removePropertyChangeListener(listener);
+            }
+        });
+    }
 
     /**
      * Make Local Toolbar items
      */
-    protected void makeLocalToolBarActions() {
+    private void makeLocalToolBarActions() {
         IActionBars bars = getViewSite().getActionBars();
         IToolBarManager manager = bars.getToolBarManager();
 
         manager.add(new Separator(IWorkbenchActionConstants.NEW_GROUP));
         
         manager.add(fActionClone);
-        
-//        manager.add(new Separator());
-//        
-//        manager.add(fActionRefresh);
-//        manager.add(fActionOpen);
-//        manager.add(fActionCommit);
-//        manager.add(fActionPush);
-//
-//        manager.add(new Separator());
-        
         manager.add(fActionDelete);
-//        manager.add(fActionAbortChanges);
-//        
-//        manager.add(new Separator());
-//        
-//        manager.add(fActionShowInHistory);
-        
-        IMenuManager menuManager = bars.getMenuManager();
-        menuManager.add(fActionShowPreferences); 
     }
     
     /**
      * Update the Local Actions depending on the selection 
      * @param selection
      */
-    protected void updateActions(ISelection selection) {
+    private void updateActions(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
         if(obj instanceof IArchiRepository) {
@@ -286,7 +275,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         }
     }
     
-    protected void updateStatusBar(ISelection selection) {
+    private void updateStatusBar(ISelection selection) {
         Object obj = ((IStructuredSelection)selection).getFirstElement();
         
         if(obj instanceof IArchiRepository) {
@@ -301,35 +290,19 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         }
     }
     
-    protected void fillContextMenu(IMenuManager manager) {
+    private void fillContextMenu(IMenuManager manager) {
         boolean isEmpty = getViewer().getSelection().isEmpty();
 
         if(isEmpty) {
             manager.add(fActionClone);
         }
         else {
-//            manager.add(new Separator());
-//            
-//            manager.add(fActionRefresh);
             manager.add(fActionOpen);
             manager.add(fActionShowInHistory);
             manager.add(new Separator());
             manager.add(fActionDelete);
-//            manager.add(fActionCommit);
-//            manager.add(fActionPush);
-//
             manager.add(new Separator());
-
             manager.add(fActionProperties);
-//            manager.add(fActionAbortChanges);
-            
-//            manager.add(new Separator());
-            
-//            manager.add(fActionShowInHistory);
-            
-//            manager.add(new Separator());
-            
-//            manager.add(fActionProperties);
         }
     }
 
