@@ -145,7 +145,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
 
         // Merge failure
-        if(!pullResult[0].isSuccessful()) {
+        if(!pullResult[0].isSuccessful() && pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
             // Try to handle the merge conflict
             MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), getRepository(), fWindow.getShell());
             
