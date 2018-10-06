@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -49,6 +50,9 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
     public void start(BundleContext context) throws Exception {
         super.start(context);
         IEditorModelManager.INSTANCE.addPropertyChangeListener(this);
+        
+        // Set this first
+        ProxyAuthenticater.init();
     }
     
     @Override

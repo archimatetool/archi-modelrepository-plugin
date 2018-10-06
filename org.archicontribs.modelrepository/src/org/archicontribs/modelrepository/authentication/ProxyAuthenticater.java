@@ -34,8 +34,15 @@ import com.archimatetool.editor.utils.StringUtils;
  */
 public class ProxyAuthenticater {
     
-    // Store the default
+    // Store the default before we set ours
     static final ProxySelector DEFAULT_PROXY_SELECTOR = ProxySelector.getDefault();
+    
+    public static void init() {
+        // This needs to be set in order to avoid this exception when using a Proxy:
+        // "Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""
+        // It needs to be set before any JGit operations, because it can't be set again
+        System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    }
     
     /**
      * Update the Proxy Authenticater
@@ -58,8 +65,6 @@ public class ProxyAuthenticater {
         boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
 
         if(useAuthentication) {
-            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
-            
             final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
             
