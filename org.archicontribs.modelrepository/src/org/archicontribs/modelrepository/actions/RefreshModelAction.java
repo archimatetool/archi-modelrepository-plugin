@@ -188,15 +188,17 @@ public class RefreshModelAction extends AbstractModelAction {
         
         // Do a commit if needed
         if(getRepository().hasChangesToCommit()) {
-            String message = Messages.RefreshModelAction_1;
-            String restored = loader.getRestoredObjectsAsString();
-            if(restored != null) {
-                message += "\n\n" + restored; //$NON-NLS-1$
+            String commitMessage = Messages.RefreshModelAction_1;
+            
+            // Did we restore any missing objects?
+            String restoredObjects = loader.getRestoredObjectsAsString();
+            
+            // Add to commit message
+            if(restoredObjects != null) {
+                commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
             }
 
-            getRepository().commitChanges(message, true);
-
-            MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, restored);
+            getRepository().commitChanges(commitMessage, true);
         }
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
