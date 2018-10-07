@@ -230,16 +230,24 @@ public class GraficoModelExporter {
 
         // Create a new resource for selected file and add object to persist
         XMLResource resource = (XMLResource)fResourceSet.createResource(key);
+        
         // Use UTF-8 and don't start with an XML declaration
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_ENCODING, "UTF-8"); //$NON-NLS-1$
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_DECLARE_XML, Boolean.FALSE);
+        
         // Make the produced XML easy to read
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_FORMATTED, Boolean.TRUE);
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_LINE_WIDTH, new Integer(5));
+        
         // Don't use encoded attribute. Needed to have proper references inside Diagrams
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.FALSE);
+        
         // Use cache
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_CONFIGURATION_CACHE, Boolean.TRUE);
+        
+        // Use UNIX line endings to avoid EOL diffs
+        resource.getDefaultSaveOptions().put(Resource.OPTION_LINE_DELIMITER, "\n"); //$NON-NLS-1$
+
         // Add the object to the resource
         resource.getContents().add(object);
     }

@@ -433,14 +433,14 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set Line endings in the config file to autocrlf=true
+     * Set Line endings in the config file to autocrlf=input
      * This ensures that files are not seen as different
      * @param git
      * @throws IOException
      */
     private void setConfigLineEndings(Git git) throws IOException {
         StoredConfig config = git.getRepository().getConfig();
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "true"); //$NON-NLS-1$
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input"); //$NON-NLS-1$
         config.save();
     }
     
