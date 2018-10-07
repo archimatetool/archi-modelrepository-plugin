@@ -181,8 +181,9 @@ public interface IArchiRepository extends IGraficoConstants {
     /**
      * Export the model to Grafico files
      * @throws IOException
+     * @throws GitAPIException 
      */
-    void exportModelToGraficoFiles() throws IOException;
+    void exportModelToGraficoFiles() throws IOException, GitAPIException;
 
     /**
      * Save a checksum

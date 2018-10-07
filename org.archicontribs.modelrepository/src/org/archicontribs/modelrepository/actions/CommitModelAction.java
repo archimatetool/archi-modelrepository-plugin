@@ -61,7 +61,7 @@ public class CommitModelAction extends AbstractModelAction {
         try {
             getRepository().exportModelToGraficoFiles();
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.CommitModelAction_0, ex);
             return;
         }

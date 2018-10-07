@@ -366,7 +366,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public void exportModelToGraficoFiles() throws IOException {
+    public void exportModelToGraficoFiles() throws IOException, GitAPIException {
         // Open the model
         IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
         
@@ -376,6 +376,15 @@ public class ArchiRepository implements IArchiRepository {
         
         GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
         exporter.exportModel();
+        
+        // Stage modified files to index
+        // This will clear any different line endings
+        try (Git git = Git.open(getLocalRepositoryFolder())) {
+            AddCommand addCommand = git.add();
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+        }
     }
     
     @Override

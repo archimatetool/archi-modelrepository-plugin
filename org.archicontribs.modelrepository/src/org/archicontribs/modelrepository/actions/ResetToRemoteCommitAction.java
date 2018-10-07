@@ -50,7 +50,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         try {
             getRepository().exportModelToGraficoFiles();
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
             return;
         }
