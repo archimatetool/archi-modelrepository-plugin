@@ -448,12 +448,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         item.setText(Messages.ConflictsDialog_21);
         item.setControl(sash);
         
-        // TabItem child controls are not disposed when a TabItem is disposed
+        // (TabItem child controls are not disposed when a TabItem is disposed)
         item.addDisposeListener((event) -> {
             // Remove composites from the update list
             fTabComposites.remove(c1);
             fTabComposites.remove(c2);
-            sash.dispose(); // Dispose of top parent, will cause dispose of children and image
+            // Explicitly dispose images here (Mac throws NPE if we dispose of Sash)
+            c1.disposeImages();
+            c2.disposeImages();
         });
         
         return item;
@@ -471,11 +473,6 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         
         ViewComposite(Composite parent, int choice) {
             super(parent, choice);
-            
-            // Dispose of image when done
-            parent.addDisposeListener((e) -> {
-                disposeImages();
-            });
             
             scale = new Scale(this, SWT.HORIZONTAL);
             scale.setMinimum(1);
