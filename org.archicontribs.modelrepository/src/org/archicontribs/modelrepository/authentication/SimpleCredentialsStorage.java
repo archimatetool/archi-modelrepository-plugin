@@ -44,7 +44,7 @@ public class SimpleCredentialsStorage {
     
     public String getUsername() throws IOException {
         if(!hasCredentialsFile()) {
-            return null;
+            return ""; //$NON-NLS-1$
         }
         
         try(BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()))) {
@@ -55,7 +55,7 @@ public class SimpleCredentialsStorage {
     
     public String getPassword() throws IOException {
         if(!hasCredentialsFile()) {
-            return null;
+            return ""; //$NON-NLS-1$
         }
         
         try(BufferedReader in = new BufferedReader(new FileReader(getCredentialsFile()))) {
@@ -90,7 +90,7 @@ public class SimpleCredentialsStorage {
             return new String(decoder.decode(cipher));
         }
 
-        return null;
+        return ""; //$NON-NLS-1$
     }
     
     private File getCredentialsFile() {

@@ -82,16 +82,13 @@ public class FetchJob extends Job {
                 return Status.OK_STATUS;
             }
 
-            // If the user name and password are stored
+            // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
             SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+            
             try {
-                String userName = scs.getUsername();
-                String userPassword = scs.getPassword();
-                if(userName != null && userPassword != null) {
-                    ProxyAuthenticater.update(repo.getOnlineRepositoryURL());
-                    repo.fetchFromRemote(userName, userPassword, null, false);
-                    needsRefresh = true;
-                }
+                ProxyAuthenticater.update(repo.getOnlineRepositoryURL());
+                repo.fetchFromRemote(scs.getUsername(), scs.getPassword(), null, false);
+                needsRefresh = true;
             }
             catch(IOException ex) {
             }
