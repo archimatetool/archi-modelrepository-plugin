@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -17,11 +18,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.widgets.Display;
 
 /**
  * Fetch in Background Job
@@ -71,7 +75,7 @@ public class FetchJob extends Job {
         }
         
         boolean needsRefresh = false;
-
+        
         for(IArchiRepository repo : fViewer.getRepositories(fViewer.getRootFolder())) {
             // Check also in for loop
             if(!canRun()) {
@@ -84,12 +88,38 @@ public class FetchJob extends Job {
                 String userName = scs.getUsername();
                 String userPassword = scs.getPassword();
                 if(userName != null && userPassword != null) {
+                    ProxyAuthenticater.update(repo.getOnlineRepositoryURL());
                     repo.fetchFromRemote(userName, userPassword, null, false);
                     needsRefresh = true;
                 }
             }
-            catch(IOException | GitAPIException ex) {
-                // silence is golden
+            catch(IOException ex) {
+            }
+            catch(GitAPIException ex) {
+                if(ex instanceof TransportException) {
+                    // Seems to be the only way to trap these exceptions :-(
+                    if(ex.getMessage().contains("not authorized") || //$NON-NLS-1$
+                            ex.getMessage().contains("authentication not supported")) { //$NON-NLS-1$
+                        // Disable background fetch
+                        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
+
+                        // Show message
+                        Display.getDefault().asyncExec(() -> {
+                            String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
+                            message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
+                            try {
+                                message += repo.getName() + "\n"; //$NON-NLS-1$
+                                message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
+                            }
+                            catch(IOException ex1) {
+                                ex1.printStackTrace();
+                            }
+                            MessageDialog.openInformation(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
+                        });
+
+                        return Status.OK_STATUS;
+                    }
+                }
             }
         }
 

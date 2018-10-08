@@ -6,6 +6,12 @@ public class Messages extends NLS {
 
     private static final String BUNDLE_NAME = "org.archicontribs.modelrepository.views.repositories.messages"; //$NON-NLS-1$
 
+    public static String FetchJob_0;
+
+    public static String FetchJob_1;
+
+    public static String FetchJob_2;
+
     public static String ModelRepositoryTreeViewer_0;
 
     public static String ModelRepositoryTreeViewer_1;
