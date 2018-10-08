@@ -61,6 +61,8 @@ public class PushModelAction extends RefreshModelAction {
     }
     
     private void push(UsernamePassword up) throws InvocationTargetException, InterruptedException {
+        Exception[] exception = new Exception[1];
+        
         IProgressService ps = PlatformUI.getWorkbench().getProgressService();
         ps.busyCursorWhile(new IRunnableWithProgress() {
             public void run(IProgressMonitor pm) {
@@ -68,10 +70,14 @@ public class PushModelAction extends RefreshModelAction {
                     getRepository().pushToRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
                 }
                 catch(GitAPIException | IOException ex) {
-                    displayErrorDialog(Messages.PushModelAction_0, ex);
+                    exception[0] = ex;
                 }
             }
         });
+        
+        if(exception[0] != null) {
+            displayErrorDialog(Messages.PushModelAction_0, exception[0]);
+        }
 
         // Don't do this in the progress service as it will cause an Invalid thread access
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
