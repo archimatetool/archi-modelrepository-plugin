@@ -17,8 +17,8 @@ public class UsernamePassword {
     private String fPassword;
     
     public UsernamePassword(String username, String password) {
-        fUsername = username;
-        fPassword = password;
+        fUsername = username == null ? "" : username; //$NON-NLS-1$
+        fPassword = password == null ? "" : password; //$NON-NLS-1$
     }
     
     public String getPassword() {
