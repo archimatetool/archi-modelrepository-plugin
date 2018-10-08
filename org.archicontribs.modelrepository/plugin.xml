@@ -311,6 +311,7 @@
                label="%infoTab">
          </propertyTab>
          <propertyTab
+               afterTab="info.tab"
                category="main.category"
                id="user.tab"
                label="%userTab">
@@ -331,6 +332,13 @@
                class="org.archicontribs.modelrepository.propertysections.UserDetailsSection"
                filter="org.archicontribs.modelrepository.propertysections.UserDetailsSection$Filter"
                id="userSection"
+               tab="user.tab">
+         </propertySection>
+         <propertySection
+               afterSection="userSection"
+               class="org.archicontribs.modelrepository.propertysections.AuthSection"
+               filter="org.archicontribs.modelrepository.propertysections.AuthSection$Filter"
+               id="authSection"
                tab="user.tab">
          </propertySection>
       </propertySections>

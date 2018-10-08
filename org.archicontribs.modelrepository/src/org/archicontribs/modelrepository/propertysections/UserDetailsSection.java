@@ -18,8 +18,11 @@ import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -124,11 +127,17 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
 
     @Override
     protected void createControls(Composite parent) {
-        createLabel(parent, Messages.UserDetailsSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextName = new UserText(parent, ConfigConstants.CONFIG_KEY_NAME);
+        Group group = getWidgetFactory().createGroup(parent, Messages.UserDetailsSection_2);
+        GridData gd = new GridData(GridData.FILL_BOTH);
+        gd.horizontalSpan = 2;
+        group.setLayoutData(gd);
+        group.setLayout(new GridLayout(2, false));
         
-        createLabel(parent, Messages.UserDetailsSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        fTextEmail = new UserText(parent, ConfigConstants.CONFIG_KEY_EMAIL);
+        createLabel(group, Messages.UserDetailsSection_0, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        fTextName = new UserText(group, ConfigConstants.CONFIG_KEY_NAME);
+        
+        createLabel(group, Messages.UserDetailsSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        fTextEmail = new UserText(group, ConfigConstants.CONFIG_KEY_EMAIL);
         
         // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
         // But causes ModelRepositoryView to lose focus when selecting
