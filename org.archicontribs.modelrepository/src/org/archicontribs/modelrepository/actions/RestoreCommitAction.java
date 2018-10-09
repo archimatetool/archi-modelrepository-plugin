@@ -6,11 +6,11 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -93,7 +93,9 @@ public class RestoreCommitAction extends AbstractModelAction {
                     File file = new File(getRepository().getLocalRepositoryFolder(), treeWalk.getPathString());
                     file.getParentFile().mkdirs();
                     
-                    GraficoUtils.writeObjectToFileWithSystemLineEndings(file, loader);
+                    try(FileOutputStream out = new FileOutputStream(file)) {
+                        loader.copyTo(out);
+                    }
                 }
             }
         }

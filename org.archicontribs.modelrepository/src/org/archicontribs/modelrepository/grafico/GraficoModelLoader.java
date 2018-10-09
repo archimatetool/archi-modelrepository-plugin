@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -167,7 +168,9 @@ public class GraficoModelLoader {
                                     File file = new File(fRepository.getLocalRepositoryFolder(), treeWalk.getPathString());
                                     file.getParentFile().mkdirs();
                                     
-                                    GraficoUtils.writeObjectToFileWithSystemLineEndings(file, loader);
+                                    try(FileOutputStream out = new FileOutputStream(file)) {
+                                        loader.copyTo(out);
+                                    }
                                     
                                     restoredIdentifiers.add(missingObjectID);
                                     found = true;

@@ -130,17 +130,15 @@ public class GraficoUtils {
     }
 
     /**
-     * Write an object from an ObjectLoader to file using system file endings
-     * On Windows when a file is restored from the ObjectLoader it has CR line endings.
-     * Then when a Grafic export is done, CRLF line endings are used, resulting in git seeing a diff.
-     * So, we write the object file with the system's line endings, as Grafico does it.
-     * @param file
-     * @param loader
+     * Write an object from an ObjectLoader to file using specified line ending
+     * @param file File to write to
+     * @param loader 
+     * @param lineEnding can be "\n" or "\r\n"
      * @throws IOException
      */
-    public static void writeObjectToFileWithSystemLineEndings(File file, ObjectLoader loader) throws IOException {
+    public static void writeObjectToFileWithLineEnding(File file, ObjectLoader loader, String lineEnding) throws IOException {
         String str = new String(loader.getBytes(), StandardCharsets.UTF_8);
-        str = str.replaceAll("\\r?\\n", System.lineSeparator()); //$NON-NLS-1$
+        str = str.replaceAll("\\r?\\n", lineEnding); //$NON-NLS-1$
         Files.write(Paths.get(file.getAbsolutePath()), str.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
     }
 }
