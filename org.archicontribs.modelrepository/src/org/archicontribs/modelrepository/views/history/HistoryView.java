@@ -29,8 +29,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -38,7 +37,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
@@ -61,12 +59,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
     
-    /**
-     * The Viewer
-     */
-    private HistoryTableViewer fTableViewer;
+    private HistoryTableViewer fHistoryTableViewer;
     private CLabel fRepoLabel;
     private RevisionCommentViewer fCommentViewer;
+    
+    private BranchesTableViewer fBranchesTableViewer;
     
     /*
      * Actions
@@ -91,31 +88,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         layout.verticalSpacing = 0;
         parent.setLayout(layout);
         
-        fRepoLabel = new CLabel(parent, SWT.NONE);
-        fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        fRepoLabel.setText(Messages.HistoryView_0);
+        // Main Sash
+        SashForm mainSash = new SashForm(parent, SWT.HORIZONTAL);
+        mainSash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
-        SashForm sash = new SashForm(parent, SWT.VERTICAL);
-        GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-        sash.setLayoutData(gd);
-        
-        Composite tableComp = new Composite(sash, SWT.NONE);
-        
-        // This ensures a minumum and equal size and no horizontal size creep
-        gd = new GridData(GridData.FILL_BOTH);
-        gd.widthHint = 100;
-        gd.heightHint = 50;
-        tableComp.setLayoutData(gd);
+        // Create History Table and Comment Viewer
+        createHistorySection(mainSash);
 
-        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        // Create Branches Section
+        createBranchesSection(mainSash);
         
-        // Create the Viewer first
-        fTableViewer = new HistoryTableViewer(tableComp);
-        
-        // Comments Viewer
-        fCommentViewer = new RevisionCommentViewer(sash);
-        
-        sash.setWeights(new int[] { 80, 20 });
+        mainSash.setWeights(new int[] { 80, 20 });
         
         makeActions();
         hookContextMenu();
@@ -123,12 +106,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         makeLocalToolBarActions();
         
         // Register us as a selection provider so that Actions can pick us up
-        getSite().setSelectionProvider(getViewer());
+        getSite().setSelectionProvider(getHistoryViewer());
         
         /*
-         * Listen to Selections to update local Actions
+         * Listen to History Selections to update local Actions
          */
-        getViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+        getHistoryViewer().addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions(event.getSelection());
             }
@@ -137,8 +120,18 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         /*
          * Listen to Double-click Action
          */
-        getViewer().addDoubleClickListener(new IDoubleClickListener() {
+        getHistoryViewer().addDoubleClickListener(new IDoubleClickListener() {
             public void doubleClick(DoubleClickEvent event) {
+            }
+        });
+        
+        /*
+         * Listen to Branch Selections
+         */
+        getBranchesViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                Ref ref = (Ref)event.getStructuredSelection().getFirstElement();
+                getHistoryViewer().setRef(ref);
             }
         });
         
@@ -146,7 +139,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
 
         // Register Help Context
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getViewer().getControl(), HELP_ID);
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(getHistoryViewer().getControl(), HELP_ID);
         
         // Initialise with whatever is selected in the workbench
         IWorkbenchPart part = getSite().getWorkbenchWindow().getPartService().getActivePart();
@@ -156,6 +149,51 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Add listener
         RepositoryListenerManager.INSTANCE.addListener(this);
+    }
+    
+    private void createHistorySection(Composite parent) {
+        Composite mainComp = new Composite(parent, SWT.NONE);
+        mainComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+        mainComp.setLayout(new GridLayout());
+        
+        fRepoLabel = new CLabel(mainComp, SWT.NONE);
+        fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fRepoLabel.setText(Messages.HistoryView_0);
+        
+        SashForm tableSash = new SashForm(mainComp, SWT.VERTICAL);
+        tableSash.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
+        Composite tableComp = new Composite(tableSash, SWT.NONE);
+        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        
+        // This ensures a minumum and equal size and no horizontal size creep for the table
+        GridData gd = new GridData(GridData.FILL_BOTH);
+        gd.widthHint = 100;
+        gd.heightHint = 50;
+        tableComp.setLayoutData(gd);
+        
+        // History Table
+        fHistoryTableViewer = new HistoryTableViewer(tableComp);
+        
+        // Comments Viewer
+        fCommentViewer = new RevisionCommentViewer(tableSash);
+        
+        tableSash.setWeights(new int[] { 80, 20 });
+    }
+    
+    private void createBranchesSection(Composite parent) {
+        Composite mainComp = new Composite(parent, SWT.NONE);
+        mainComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+        mainComp.setLayout(new GridLayout());
+        
+        CLabel label = new CLabel(mainComp, SWT.NONE);
+        label.setText("Branches");
+        
+        Composite tableComp = new Composite(mainComp, SWT.NONE);
+        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+        
+        fBranchesTableViewer = new BranchesTableViewer(tableComp);
     }
     
     /**
@@ -192,10 +230,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             }
         });
         
-        Menu menu = menuMgr.createContextMenu(getViewer().getControl());
-        getViewer().getControl().setMenu(menu);
+        Menu menu = menuMgr.createContextMenu(getHistoryViewer().getControl());
+        getHistoryViewer().getControl().setMenu(menu);
         
-        getSite().registerContextMenu(menuMgr, getViewer());
+        getSite().registerContextMenu(menuMgr, getHistoryViewer());
     }
     
     /**
@@ -259,17 +297,18 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionResetToRemoteCommit);
     }
 
-    /**
-     * @return The Viewer
-     */
-    public TableViewer getViewer() {
-        return fTableViewer;
+    HistoryTableViewer getHistoryViewer() {
+        return fHistoryTableViewer;
     }
     
+    BranchesTableViewer getBranchesViewer() {
+        return fBranchesTableViewer;
+    }
+
     @Override
     public void setFocus() {
-        if(getViewer() != null) {
-            getViewer().getControl().setFocus();
+        if(getHistoryViewer() != null) {
+            getHistoryViewer().getControl().setFocus();
         }
     }
     
@@ -299,10 +338,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
             // Set label text
             fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
-            getViewer().setInput(selectedRepository);
             
-            // Do the table kludge
-            ((UpdatingTableColumnLayout)getViewer().getTable().getParent().getLayout()).doRelayout();
+            // Set History first
+            getHistoryViewer().doSetInput(selectedRepository);
+            
+            // Set Branches
+            getBranchesViewer().setInput(selectedRepository);
 
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
@@ -310,19 +351,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
             
-            // Select first row
-            Display.getDefault().asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                    if(!getViewer().getTable().isDisposed()) {
-                        Object element = getViewer().getElementAt(0);
-                        if(element != null) {
-                            getViewer().setSelection(new StructuredSelection(element));
-                        }
-                    }
-                }
-            });
-
             // Store last selected
             fSelectedRepository = selectedRepository;
         }
@@ -334,12 +362,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
-                    getViewer().setInput(repository);
+                    getHistoryViewer().setInput(repository);
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
                     fRepoLabel.setText(Messages.HistoryView_0);
-                    getViewer().setInput(repository);
+                    getHistoryViewer().setInput(""); //$NON-NLS-1$
                     fSelectedRepository = null; // Reset this
                     break;
                     

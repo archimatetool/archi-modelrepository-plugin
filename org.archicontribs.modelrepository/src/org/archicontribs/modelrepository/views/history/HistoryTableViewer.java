@@ -13,24 +13,28 @@ import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+
+import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 
 
 /**
@@ -38,7 +42,9 @@ import org.eclipse.swt.widgets.Composite;
  */
 public class HistoryTableViewer extends TableViewer {
     
-    private RevCommit localMasterCommit, originMasterCommit;
+    private RevCommit localCommit, originCommit;
+    
+    private Ref currentRef;
     
     /**
      * Constructor
@@ -78,9 +84,38 @@ public class HistoryTableViewer extends TableViewer {
         column = new TableViewerColumn(this, SWT.NONE, 3);
         column.getColumn().setText(Messages.HistoryTableViewer_3);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
-    
     }
     
+    public void doSetInput(IArchiRepository repo) {
+        currentRef = null;
+        
+        setInput(repo);
+        
+        // Do the Layout kludge
+        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+
+        // Select first row
+        Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                if(!getTable().isDisposed()) {
+                    Object element = getElementAt(0);
+                    if(element != null) {
+                        setSelection(new StructuredSelection(element));
+                    }
+                }
+            }
+        });
+    }
+    
+    public void setRef(Ref ref) {
+        currentRef = ref;
+        refresh();
+        
+        // Layout kludge
+        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+    }
+
     // ===============================================================================================
 	// ===================================== Table Model ==============================================
 	// ===============================================================================================
@@ -89,46 +124,50 @@ public class HistoryTableViewer extends TableViewer {
      * The Model for the Table.
      */
     class HistoryContentProvider implements IStructuredContentProvider {
-        List<RevCommit> commits = new ArrayList<RevCommit>();
-        
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-            commits = new ArrayList<RevCommit>();
+        }
+
+        public void dispose() {
+        }
+        
+        public Object[] getElements(Object parent) {
+            List<RevCommit> commits = new ArrayList<RevCommit>();
+            localCommit = null;
+            originCommit = null;
             
-            if(!(newInput instanceof IArchiRepository)) {
-                return;
+            if(!(parent instanceof IArchiRepository)) {
+                return commits.toArray();
             }
             
-            IArchiRepository repo = (IArchiRepository)newInput;
+            IArchiRepository repo = (IArchiRepository)parent;
             
             // Local Repo was deleted
             if(!repo.getLocalRepositoryFolder().exists()) {
-                return;
+                return commits.toArray();
             }
             
-            // TODO See https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/ShowLog.java
+
             try(Repository repository = Git.open(repo.getLocalRepositoryFolder()).getRepository()) {
-                // get a list of all known heads, tags, remotes, ...
-                //Collection<Ref> allRefs = repository.getAllRefs().values();
-                
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
-//                    for(Ref ref : allRefs ) {
-//                        revWalk.markStart(revWalk.parseCommit(ref.getObjectId()));
+                    // Find the local branch
+                    ObjectId objectID = repository.resolve("refs/heads/master");
+                    if(currentRef != null) {
+                        objectID = currentRef.getObjectId();
+                    }
+                    if(objectID != null) {
+                        localCommit = revWalk.parseCommit(objectID);
+                        revWalk.markStart(localCommit); 
+                    }
+                    
+                    // Find the remote branch
+//                    objectID = repository.resolve("refs/remotes/origin/master");
+//                    if(objectID != null) {
+//                        originCommit = revWalk.parseCommit(objectID);
+//                        revWalk.markStart(originCommit);
 //                    }
                     
-                    // We are interested in the local master branch and origin master branch
-                    ObjectId objectID = repository.resolve(IGraficoConstants.REFS_HEADS_MASTER);
-                    if(objectID != null) {
-                        localMasterCommit = revWalk.parseCommit(objectID);
-                        revWalk.markStart(localMasterCommit); 
-                    }
-                    
-                    objectID = repository.resolve(IGraficoConstants.ORIGIN_MASTER);
-                    if(objectID != null) {
-                        originMasterCommit = revWalk.parseCommit(objectID);
-                        revWalk.markStart(originMasterCommit);
-                    }
-                    
+                    // Collect the commits
                     for(RevCommit commit : revWalk ) {
                         commits.add(commit);
                     }
@@ -139,12 +178,7 @@ public class HistoryTableViewer extends TableViewer {
             catch(IOException ex) {
                 ex.printStackTrace();
             }
-        }
-        
-        public void dispose() {
-        }
-        
-        public Object[] getElements(Object parent) {
+            
             return commits.toArray();
         }
     }
@@ -186,13 +220,13 @@ public class HistoryTableViewer extends TableViewer {
                 if(cell.getColumnIndex() == 1) {
                     Image image = null;
                     
-                    if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
+                    if(commit.equals(localCommit) && commit.equals(originCommit)) {
                         image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_HISTORY_VIEW);
                     }
-                    else if(commit.equals(originMasterCommit)) {
+                    else if(commit.equals(originCommit)) {
                         image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_REMOTE);
                     }
-                    else if(commit.equals(localMasterCommit)) {
+                    else if(commit.equals(localCommit)) {
                         image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_LOCAL);
                     }
                     
@@ -208,14 +242,14 @@ public class HistoryTableViewer extends TableViewer {
                 
                 String s = ""; //$NON-NLS-1$
                 
-                if(commit.equals(localMasterCommit) && commit.equals(originMasterCommit)) {
+                if(commit.equals(localCommit) && commit.equals(originCommit)) {
                     s += Messages.HistoryTableViewer_4 + " "; //$NON-NLS-1$
                 }
-                else if(commit.equals(localMasterCommit)) {
+                else if(commit.equals(localCommit)) {
                     s += Messages.HistoryTableViewer_5 + " "; //$NON-NLS-1$
                 }
 
-                else if(commit.equals(originMasterCommit)) {
+                else if(commit.equals(originCommit)) {
                     s += Messages.HistoryTableViewer_6 + " "; //$NON-NLS-1$
                 }
                 
