@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -25,7 +26,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -44,7 +44,7 @@ public class HistoryTableViewer extends TableViewer {
     
     private RevCommit localCommit, originCommit;
     
-    private Ref currentRef;
+    private String localBranch;
     
     /**
      * Constructor
@@ -87,7 +87,13 @@ public class HistoryTableViewer extends TableViewer {
     }
     
     public void doSetInput(IArchiRepository repo) {
-        currentRef = null;
+        // Current local branch
+        try {
+            localBranch = BranchStatus.getCurrentBranch(repo);
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
         
         setInput(repo);
         
@@ -108,8 +114,12 @@ public class HistoryTableViewer extends TableViewer {
         });
     }
     
-    public void setRef(Ref ref) {
-        currentRef = ref;
+    public void setLocalBranch(String branchName) {
+        if(branchName.equals(localBranch)) {
+           return; 
+        }
+        
+        localBranch = branchName;
         refresh();
         
         // Layout kludge
@@ -151,21 +161,19 @@ public class HistoryTableViewer extends TableViewer {
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     // Find the local branch
-                    ObjectId objectID = repository.resolve("refs/heads/master");
-                    if(currentRef != null) {
-                        objectID = currentRef.getObjectId();
-                    }
+                    ObjectId objectID = repository.resolve(localBranch);
                     if(objectID != null) {
                         localCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(localCommit); 
                     }
                     
                     // Find the remote branch
-//                    objectID = repository.resolve("refs/remotes/origin/master");
-//                    if(objectID != null) {
-//                        originCommit = revWalk.parseCommit(objectID);
-//                        revWalk.markStart(originCommit);
-//                    }
+                    String remoteName = BranchStatus.getRemoteBranchNameFor(localBranch);
+                    objectID = repository.resolve(remoteName);
+                    if(objectID != null) {
+                        originCommit = revWalk.parseCommit(objectID);
+                        revWalk.markStart(originCommit);
+                    }
                     
                     // Collect the commits
                     for(RevCommit commit : revWalk ) {

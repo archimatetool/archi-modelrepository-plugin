@@ -5,9 +5,6 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
@@ -26,21 +23,10 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand.ListMode;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -70,11 +56,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
     
-    private HistoryTableViewer fHistoryTableViewer;
     private Label fRepoLabel;
+
+    private HistoryTableViewer fHistoryTableViewer;
+    
     private RevisionCommentViewer fCommentViewer;
     
-    private ComboViewer fBranchesComboViewer;
+    private BranchesViewer fBranchesViewer;
     
     /*
      * Actions
@@ -142,57 +130,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         Label label = new Label(mainComp, SWT.NONE);
         label.setText("Branch:");
 
-        fBranchesComboViewer = new ComboViewer(mainComp, SWT.READ_ONLY);
-        GridData gd = new GridData();
-        fBranchesComboViewer.getCombo().setLayoutData(gd);
+        fBranchesViewer = new BranchesViewer(mainComp);
+        GridData gd = new GridData(SWT.END);
+        fBranchesViewer.getControl().setLayoutData(gd);
 
-        fBranchesComboViewer.setContentProvider(new IStructuredContentProvider() {
-            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-            }
-
-            public void dispose() {
-            }
-
-            public Object[] getElements(Object inputElement) {
-                if(!(inputElement instanceof IArchiRepository)) {
-                    return new Object[0];
-                }
-                
-                IArchiRepository repo = (IArchiRepository)inputElement;
-                
-                // Local Repo was deleted
-                if(!repo.getLocalRepositoryFolder().exists()) {
-                    return new Object[0];
-                }
-                
-                try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
-                    //List<Ref> refs = git.branchList().call(); // Local branches
-                    List<Ref> refs = git.branchList().setListMode(ListMode.ALL).call(); // All
-                    return refs.toArray();
-                }
-                catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
-                }
-
-                return new Object[0];
-            }
-        });
-
-        fBranchesComboViewer.setLabelProvider(new LabelProvider() {
-            @Override
-            public String getText(Object element) {
-                Ref ref = (Ref)element;
-                return ref.getName();
-            }
-        });
-        
         /*
-         * Listen to Branch Selections
+         * Listen to Branch Selections and forward on to History View
          */
-        fBranchesComboViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+        fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
-                Ref ref = (Ref)event.getStructuredSelection().getFirstElement();
-                getHistoryViewer().setRef(ref);
+                String branch = (String)event.getStructuredSelection().getFirstElement();
+                getHistoryViewer().setLocalBranch(branch);
             }
         });
     }
@@ -224,14 +172,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fHistoryTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions(event.getSelection());
-            }
-        });
-        
-        /*
-         * Listen to Double-click Action
-         */
-        fHistoryTableViewer.addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
             }
         });
     }
@@ -341,6 +281,11 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         return fHistoryTableViewer;
     }
     
+    BranchesViewer getBranchesViewer() {
+        return fBranchesViewer;
+    }
+
+    
     @Override
     public void setFocus() {
         if(getHistoryViewer() != null) {
@@ -379,11 +324,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             getHistoryViewer().doSetInput(selectedRepository);
             
             // Set Branches
-            fBranchesComboViewer.setInput(selectedRepository);
-            Object element = fBranchesComboViewer.getElementAt(0);
-            if(element != null) {
-                fBranchesComboViewer.setSelection(new StructuredSelection(element));
-            }
+            getBranchesViewer().doSetInput(selectedRepository);
             
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
