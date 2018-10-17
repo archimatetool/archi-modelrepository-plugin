@@ -5,6 +5,9 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
@@ -23,20 +26,28 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
@@ -60,10 +71,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
     
     private HistoryTableViewer fHistoryTableViewer;
-    private CLabel fRepoLabel;
+    private Label fRepoLabel;
     private RevisionCommentViewer fCommentViewer;
     
-    private BranchesTableViewer fBranchesTableViewer;
+    private ComboViewer fBranchesComboViewer;
     
     /*
      * Actions
@@ -82,24 +93,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     @Override
     public void createPartControl(Composite parent) {
-        GridLayout layout = new GridLayout();
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
-        layout.verticalSpacing = 0;
-        parent.setLayout(layout);
+        parent.setLayout(new GridLayout());
         
-        // Main Sash
-        SashForm mainSash = new SashForm(parent, SWT.HORIZONTAL);
-        mainSash.setLayoutData(new GridData(GridData.FILL_BOTH));
+        // Create Info Section
+        createInfoSection(parent);
         
         // Create History Table and Comment Viewer
-        createHistorySection(mainSash);
+        createHistorySection(parent);
 
-        // Create Branches Section
-        createBranchesSection(mainSash);
-        
-        mainSash.setWeights(new int[] { 80, 20 });
-        
         makeActions();
         hookContextMenu();
         //makeLocalMenuActions();
@@ -107,33 +108,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Register us as a selection provider so that Actions can pick us up
         getSite().setSelectionProvider(getHistoryViewer());
-        
-        /*
-         * Listen to History Selections to update local Actions
-         */
-        getHistoryViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-            public void selectionChanged(SelectionChangedEvent event) {
-                updateActions(event.getSelection());
-            }
-        });
-        
-        /*
-         * Listen to Double-click Action
-         */
-        getHistoryViewer().addDoubleClickListener(new IDoubleClickListener() {
-            public void doubleClick(DoubleClickEvent event) {
-            }
-        });
-        
-        /*
-         * Listen to Branch Selections
-         */
-        getBranchesViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-            public void selectionChanged(SelectionChangedEvent event) {
-                Ref ref = (Ref)event.getStructuredSelection().getFirstElement();
-                getHistoryViewer().setRef(ref);
-            }
-        });
         
         // Listen to workbench selections
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
@@ -151,16 +125,80 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         RepositoryListenerManager.INSTANCE.addListener(this);
     }
     
-    private void createHistorySection(Composite parent) {
+    private void createInfoSection(Composite parent) {
         Composite mainComp = new Composite(parent, SWT.NONE);
-        mainComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-        mainComp.setLayout(new GridLayout());
-        
-        fRepoLabel = new CLabel(mainComp, SWT.NONE);
+        mainComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        GridLayout layout = new GridLayout(3, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
+        mainComp.setLayout(layout);
+
+        // Repository name
+        fRepoLabel = new Label(mainComp, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fRepoLabel.setText(Messages.HistoryView_0);
         
-        SashForm tableSash = new SashForm(mainComp, SWT.VERTICAL);
+        // Branches
+        Label label = new Label(mainComp, SWT.NONE);
+        label.setText("Branch:");
+
+        fBranchesComboViewer = new ComboViewer(mainComp, SWT.READ_ONLY);
+        GridData gd = new GridData();
+        fBranchesComboViewer.getCombo().setLayoutData(gd);
+
+        fBranchesComboViewer.setContentProvider(new IStructuredContentProvider() {
+            public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+            }
+
+            public void dispose() {
+            }
+
+            public Object[] getElements(Object inputElement) {
+                if(!(inputElement instanceof IArchiRepository)) {
+                    return new Object[0];
+                }
+                
+                IArchiRepository repo = (IArchiRepository)inputElement;
+                
+                // Local Repo was deleted
+                if(!repo.getLocalRepositoryFolder().exists()) {
+                    return new Object[0];
+                }
+                
+                try(Git git = Git.open(repo.getLocalRepositoryFolder())) {
+                    //List<Ref> refs = git.branchList().call(); // Local branches
+                    List<Ref> refs = git.branchList().setListMode(ListMode.ALL).call(); // All
+                    return refs.toArray();
+                }
+                catch(IOException | GitAPIException ex) {
+                    ex.printStackTrace();
+                }
+
+                return new Object[0];
+            }
+        });
+
+        fBranchesComboViewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public String getText(Object element) {
+                Ref ref = (Ref)element;
+                return ref.getName();
+            }
+        });
+        
+        /*
+         * Listen to Branch Selections
+         */
+        fBranchesComboViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                Ref ref = (Ref)event.getStructuredSelection().getFirstElement();
+                getHistoryViewer().setRef(ref);
+            }
+        });
+    }
+    
+    private void createHistorySection(Composite parent) {
+        SashForm tableSash = new SashForm(parent, SWT.VERTICAL);
         tableSash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         Composite tableComp = new Composite(tableSash, SWT.NONE);
@@ -179,21 +217,23 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fCommentViewer = new RevisionCommentViewer(tableSash);
         
         tableSash.setWeights(new int[] { 80, 20 });
-    }
-    
-    private void createBranchesSection(Composite parent) {
-        Composite mainComp = new Composite(parent, SWT.NONE);
-        mainComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-        mainComp.setLayout(new GridLayout());
         
-        CLabel label = new CLabel(mainComp, SWT.NONE);
-        label.setText("Branches");
+        /*
+         * Listen to History Selections to update local Actions
+         */
+        fHistoryTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            public void selectionChanged(SelectionChangedEvent event) {
+                updateActions(event.getSelection());
+            }
+        });
         
-        Composite tableComp = new Composite(mainComp, SWT.NONE);
-        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
-        tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-        
-        fBranchesTableViewer = new BranchesTableViewer(tableComp);
+        /*
+         * Listen to Double-click Action
+         */
+        fHistoryTableViewer.addDoubleClickListener(new IDoubleClickListener() {
+            public void doubleClick(DoubleClickEvent event) {
+            }
+        });
     }
     
     /**
@@ -301,10 +341,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         return fHistoryTableViewer;
     }
     
-    BranchesTableViewer getBranchesViewer() {
-        return fBranchesTableViewer;
-    }
-
     @Override
     public void setFocus() {
         if(getHistoryViewer() != null) {
@@ -343,8 +379,12 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             getHistoryViewer().doSetInput(selectedRepository);
             
             // Set Branches
-            getBranchesViewer().setInput(selectedRepository);
-
+            fBranchesComboViewer.setInput(selectedRepository);
+            Object element = fBranchesComboViewer.getElementAt(0);
+            if(element != null) {
+                fBranchesComboViewer.setSelection(new StructuredSelection(element));
+            }
+            
             // Update actions
             fActionExtractCommit.setRepository(selectedRepository);
             fActionRestoreCommit.setRepository(selectedRepository);
