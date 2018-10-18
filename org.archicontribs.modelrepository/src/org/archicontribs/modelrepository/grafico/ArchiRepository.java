@@ -318,20 +318,17 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public boolean isHeadAndRemoteSame() throws IOException {
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
-            Ref onlineRef = repository.findRef(ORIGIN_MASTER);
-            Ref localRef = repository.findRef(HEAD);
+            Ref headRef = repository.findRef(HEAD);
+
+            String currentRemoteBranch = BranchStatus.getCurrentRemoteBranch(this);
+            Ref remoteRef = repository.findRef(currentRemoteBranch);
             
             // In case of missing ref return false
-            if(onlineRef == null || localRef == null) {
+            if(headRef == null || remoteRef == null) {
                 return false;
             }
             
-            try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit onlineCommit = revWalk.parseCommit(onlineRef.getObjectId());
-                RevCommit localLatestCommit = revWalk.parseCommit(localRef.getObjectId());
-                revWalk.dispose();
-                return onlineCommit.equals(localLatestCommit);
-            }
+            return headRef.getObjectId().equals(remoteRef.getObjectId());
         }
     }
     

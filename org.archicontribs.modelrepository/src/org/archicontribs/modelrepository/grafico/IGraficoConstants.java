@@ -54,17 +54,7 @@ public interface IGraficoConstants {
     String MASTER = "master"; //$NON-NLS-1$
 
     /**
-     * Remote master branch, assumed that the repo is called "origin"
-     */
-    String ORIGIN_MASTER = "origin/master"; //$NON-NLS-1$
-    
-    /**
      * Head
      */
     String HEAD = "HEAD"; //$NON-NLS-1$
-    
-    /**
-     * Local master
-     */
-    String REFS_HEADS_MASTER = "refs/heads/master"; //$NON-NLS-1$
 }

@@ -47,14 +47,23 @@ public class BranchStatus {
         }
     }
     
-    public static String getCurrentBranch(IArchiRepository archiRepo) throws IOException {
+    public static String getCurrentLocalBranch(IArchiRepository archiRepo) throws IOException {
         try(Repository repository = Git.open(archiRepo.getLocalRepositoryFolder()).getRepository()) {
             return repository.getFullBranch();
         }
     }
     
+    public static String getCurrentRemoteBranch(IArchiRepository archiRepo) throws IOException {
+        return getRemoteBranchNameFor(getCurrentLocalBranch(archiRepo));
+    }
+    
+    public static String getRemoteBranchNameFor(String localBranchName) {
+        String shortName = getShortName(localBranchName);
+        return remotePrefix + shortName;
+    }
+    
     public static boolean isCurrentBranch(IArchiRepository archiRepo, String branchName) throws IOException {
-        return branchName.equals(getCurrentBranch(archiRepo));
+        return branchName.equals(getCurrentLocalBranch(archiRepo));
     }
     
     public static String getShortName(String branchName) {
@@ -64,11 +73,6 @@ public class BranchStatus {
         }
         
         return branchName;
-    }
-    
-    public static String getRemoteBranchNameFor(String localBranchName) {
-        String shortName = getShortName(localBranchName);
-        return remotePrefix + shortName;
     }
     
 }

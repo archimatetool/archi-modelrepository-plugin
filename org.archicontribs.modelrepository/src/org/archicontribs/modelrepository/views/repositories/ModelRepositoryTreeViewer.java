@@ -15,9 +15,9 @@ import java.util.Map;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -265,8 +265,11 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 // Image
                 try {
-                    boolean hasUnpushedCommits = repo.hasUnpushedCommits(IGraficoConstants.REFS_HEADS_MASTER);
-                    boolean hasRemoteCommits = repo.hasRemoteCommits(IGraficoConstants.REFS_HEADS_MASTER);
+                    // Check status of current branch
+                    String currentLocalBranch = BranchStatus.getCurrentLocalBranch(repo);
+                    
+                    boolean hasUnpushedCommits = repo.hasUnpushedCommits(currentLocalBranch);
+                    boolean hasRemoteCommits = repo.hasRemoteCommits(currentLocalBranch);
                     boolean hasLocalChanges = repo.hasLocalChanges();
                     
                     StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);

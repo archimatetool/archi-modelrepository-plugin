@@ -89,7 +89,7 @@ public class HistoryTableViewer extends TableViewer {
     public void doSetInput(IArchiRepository repo) {
         // Current local branch
         try {
-            localBranch = BranchStatus.getCurrentBranch(repo);
+            localBranch = BranchStatus.getCurrentLocalBranch(repo);
         }
         catch(IOException ex) {
             ex.printStackTrace();

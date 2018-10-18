@@ -8,7 +8,6 @@ package org.archicontribs.modelrepository.merge;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -37,9 +36,6 @@ class MergeObjectInfo {
     public static int OURS = 0;
     public static int THEIRS = 1;
     
-    public static String REF_OURS = IGraficoConstants.REFS_HEADS_MASTER;
-    public static String REF_THEIRS = IGraficoConstants.ORIGIN_MASTER;
-    
     // User's choice
     private int userChoice = OURS;
 
@@ -47,8 +43,8 @@ class MergeObjectInfo {
         this.handler = handler;
         this.xmlPath = xmlPath;
         
-        objects[OURS] = loadEObject(REF_OURS);
-        objects[THEIRS] = loadEObject(REF_THEIRS);
+        objects[OURS] = loadEObject(handler.getLocalRef());
+        objects[THEIRS] = loadEObject(handler.getRemoteRef());
     }
     
     String getXMLPath() {
@@ -117,7 +113,7 @@ class MergeObjectInfo {
         // Now get the full object from the appropriate model
         IArchimateModel model = null;
         
-        if(ref == REF_OURS) { // Ours
+        if(ref == handler.getLocalRef()) { // Ours
             model = handler.getOurModel();
         }
         else {

@@ -8,8 +8,8 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -82,7 +82,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         
         // Do it!
         try {
-            getRepository().resetToRef(IGraficoConstants.ORIGIN_MASTER);
+            getRepository().resetToRef(BranchStatus.getCurrentRemoteBranch(getRepository()));
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
@@ -105,8 +105,11 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
     @Override
     protected boolean shouldBeEnabled() {
         try {
+            // Repository exists
+            // AND there is a remote ref for the current branch
+            // AND NOT head and remote the same
             return getRepository() != null && getRepository().getLocalRepositoryFolder().exists() &&
-                    getRepository().hasRef(IGraficoConstants.ORIGIN_MASTER) &&
+                    getRepository().hasRef(BranchStatus.getCurrentRemoteBranch(getRepository())) &&
                     !getRepository().isHeadAndRemoteSame();
         }
         catch(IOException ex) {

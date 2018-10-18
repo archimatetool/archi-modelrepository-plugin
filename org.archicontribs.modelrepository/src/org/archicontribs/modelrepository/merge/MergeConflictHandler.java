@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
@@ -76,7 +78,7 @@ public class MergeConflictHandler {
         }
         
         // Their model needs to be extracted
-        fTheirModel = extractModel(MergeObjectInfo.REF_THEIRS);
+        fTheirModel = extractModel(getRemoteRef());
         
         // Create Merge Infos
         fMergeObjectInfos = new ArrayList<MergeObjectInfo>();
@@ -148,12 +150,20 @@ public class MergeConflictHandler {
         }
     }
     
+    String getLocalRef() {
+        return IGraficoConstants.HEAD;
+    }
+    
+    String getRemoteRef() throws IOException {
+        return BranchStatus.getCurrentRemoteBranch(getArchiRepository());
+    }
+    
     public void resetToLocalState() throws IOException, GitAPIException {
-        resetToState(MergeObjectInfo.REF_OURS);
+        resetToState(getLocalRef());
     }
     
     public void resetToRemoteState() throws IOException, GitAPIException {
-        resetToState(MergeObjectInfo.REF_THEIRS);
+        resetToState(getRemoteRef());
     }
     
     // Check out conflicting files either from us or them

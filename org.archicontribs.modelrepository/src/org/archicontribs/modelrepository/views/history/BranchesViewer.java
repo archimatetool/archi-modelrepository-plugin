@@ -89,7 +89,7 @@ public class BranchesViewer extends ComboViewer {
         
         // Set selection to current branch
         try {
-            String branch = BranchStatus.getCurrentBranch(archiRepo);
+            String branch = BranchStatus.getCurrentLocalBranch(archiRepo);
             if(branch != null) {
                 setSelection(new StructuredSelection(branch));
             }

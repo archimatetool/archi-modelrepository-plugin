@@ -50,7 +50,7 @@ public class AbortChangesAction extends AbstractModelAction {
         }
         
         try {
-            getRepository().resetToRef(IGraficoConstants.REFS_HEADS_MASTER);
+            getRepository().resetToRef(IGraficoConstants.HEAD);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);
