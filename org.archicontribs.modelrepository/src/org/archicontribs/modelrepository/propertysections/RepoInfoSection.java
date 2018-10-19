@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.propertysections;
 
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -32,6 +33,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     
     private Text fTextFile;
     private Text fTextURL;
+    private Text fTextCurrentBranch;
 
     public RepoInfoSection() {
     }
@@ -44,6 +46,9 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         createLabel(parent, Messages.RepoInfoSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextURL = createSingleTextControl(parent, SWT.READ_ONLY);
         
+        createLabel(parent, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        fTextCurrentBranch = createSingleTextControl(parent, SWT.READ_ONLY);
+        
         // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
         // But causes ModelRepositoryView to lose focus when selecting
         // addHiddenTextFieldToForm(parent);
@@ -52,12 +57,13 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     @Override
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
-            IArchiRepository repo = (IArchiRepository)selection.getFirstElement();
+            IArchiRepository archiRepo = (IArchiRepository)selection.getFirstElement();
             
-            fTextFile.setText(repo.getLocalRepositoryFolder().getAbsolutePath());
+            fTextFile.setText(archiRepo.getLocalRepositoryFolder().getAbsolutePath());
             
             try {
-                fTextURL.setText(repo.getOnlineRepositoryURL());
+                fTextURL.setText(archiRepo.getOnlineRepositoryURL());
+                fTextCurrentBranch.setText(BranchStatus.getShortName(BranchStatus.getCurrentLocalBranch(archiRepo)));
             }
             catch(IOException ex) {
                 ex.printStackTrace();

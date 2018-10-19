@@ -71,7 +71,7 @@ public class BranchesViewer extends ComboViewer {
                     if(getInput() != null) {
                         boolean isCurrentBranch = BranchStatus.isCurrentBranch((IArchiRepository)getInput(), branch);
                         if(isCurrentBranch) {
-                            current = " (current)";
+                            current = " " + Messages.BranchesViewer_0; //$NON-NLS-1$
                         }
                     }
                 }

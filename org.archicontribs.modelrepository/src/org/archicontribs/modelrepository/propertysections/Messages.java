@@ -32,6 +32,8 @@ public class Messages extends NLS {
 
     public static String RepoInfoSection_1;
 
+    public static String RepoInfoSection_2;
+
     public static String UserDetailsSection_0;
 
     public static String UserDetailsSection_1;

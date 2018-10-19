@@ -263,7 +263,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     return;
                 }
                 
-                // Image
                 try {
                     // Check status of current branch
                     String currentLocalBranch = BranchStatus.getCurrentLocalBranch(repo);
@@ -275,19 +274,23 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);
                     cache.put(repo, sc);
 
+                    // Red text
                     if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
                         cell.setForeground(ColorFactory.get(255, 64, 0));
                     }
                     else {
                         cell.setForeground(null);
                     }
+
+                    // Repository name and current branch
+                    cell.setText(repo.getName() + " [" + BranchStatus.getShortName(currentLocalBranch) + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+                    
+                    // Image
+                    cell.setImage(getImage(repo));
                 }
                 catch(IOException ex) {
                     ex.printStackTrace();
                 }
-                
-                cell.setText(repo.getName());
-                cell.setImage(getImage(repo));
             }
         }
         

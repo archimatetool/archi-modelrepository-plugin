@@ -131,7 +131,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Branches
         Label label = new Label(mainComp, SWT.NONE);
-        label.setText("Branch:");
+        label.setText(Messages.HistoryView_2);
 
         fBranchesViewer = new BranchesViewer(mainComp);
         GridData gd = new GridData(SWT.END);

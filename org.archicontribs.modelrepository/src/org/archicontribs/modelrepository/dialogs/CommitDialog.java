@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.dialogs;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -74,6 +75,23 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         GridLayout layout = new GridLayout(2, false);
         container.setLayout(layout);
         
+        // Repo and branch
+        String branch = ""; //$NON-NLS-1$
+
+        try {
+            branch = BranchStatus.getShortName(BranchStatus.getCurrentLocalBranch(fRepository));
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+                
+        Label label = new Label(container, SWT.NONE);
+        label.setText(Messages.CommitDialog_6);
+        
+        Text text = new Text(container, SWT.BORDER | SWT.READ_ONLY);
+        text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        text.setText(fRepository.getName() + " [" + branch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+        
         // User name & email
         String userName = ""; //$NON-NLS-1$
         String userEmail = ""; //$NON-NLS-1$
@@ -87,7 +105,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
             ex.printStackTrace();
         }
 
-        Label label = new Label(container, SWT.NONE);
+        label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_2);
         
         fTextUserName = new Text(container, SWT.BORDER);
