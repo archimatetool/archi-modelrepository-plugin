@@ -5,12 +5,15 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
+import java.io.IOException;
+
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
 import org.archicontribs.modelrepository.actions.RestoreCommitAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -141,6 +144,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             public void selectionChanged(SelectionChangedEvent event) {
                 String branch = (String)event.getStructuredSelection().getFirstElement();
                 getHistoryViewer().setLocalBranch(branch);
+                updateActions();
             }
         });
     }
@@ -171,7 +175,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
          */
         fHistoryTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
-                updateActions(event.getSelection());
+                updateActions();
             }
         });
     }
@@ -179,7 +183,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     /**
      * Make local actions
      */
-    protected void makeActions() {
+    private void makeActions() {
         fActionExtractCommit = new ExtractModelFromCommitAction(getViewSite().getWorkbenchWindow());
         fActionExtractCommit.setEnabled(false);
         
@@ -200,7 +204,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     /**
      * Hook into a right-click menu
      */
-    protected void hookContextMenu() {
+    private void hookContextMenu() {
         MenuManager menuMgr = new MenuManager("#HistoryPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
@@ -255,19 +259,37 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
      * Update the Local Actions depending on the local selection 
      * @param selection
      */
-    public void updateActions(ISelection selection) {
-        RevCommit commit = (RevCommit)((IStructuredSelection)selection).getFirstElement();
+    private void updateActions() {
+        RevCommit commit = (RevCommit)getHistoryViewer().getStructuredSelection().getFirstElement();
         
+        // Set commit in these actions
         fActionExtractCommit.setCommit(commit);
         fActionRestoreCommit.setCommit(commit);
         
+        // Also set the commit in the Comment Viewer
+        fCommentViewer.setCommit(commit);
+
+        // Update these actions
         fActionUndoLastCommit.update();
         fActionResetToRemoteCommit.update();
         
-        fCommentViewer.setCommit(commit);
+        // Disable actions if our selected branch is not actually the current branch
+        String currentBranch = (String)getBranchesViewer().getStructuredSelection().getFirstElement();
+        boolean isCurrentBranch = true;
+        
+        try {
+            isCurrentBranch = BranchStatus.isCurrentBranch(fSelectedRepository, currentBranch);
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+
+        fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
+        fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
+        fActionResetToRemoteCommit.setEnabled(isCurrentBranch && fActionResetToRemoteCommit.isEnabled());
     }
     
-    protected void fillContextMenu(IMenuManager manager) {
+    private void fillContextMenu(IMenuManager manager) {
         // boolean isEmpty = getViewer().getSelection().isEmpty();
 
         manager.add(fActionExtractCommit);
@@ -317,6 +339,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Update if selectedRepository is different 
         if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
+            // Store last selected
+            fSelectedRepository = selectedRepository;
+
             // Set label text
             fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
             
@@ -331,9 +356,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionRestoreCommit.setRepository(selectedRepository);
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
-            
-            // Store last selected
-            fSelectedRepository = selectedRepository;
         }
     }
     
