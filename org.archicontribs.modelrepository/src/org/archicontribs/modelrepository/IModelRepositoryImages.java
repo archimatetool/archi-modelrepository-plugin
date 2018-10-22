@@ -24,6 +24,7 @@ public interface IModelRepositoryImages {
     String ICON_PLUGIN = IMGPATH + "plugin.png"; //$NON-NLS-1$
     
     String ICON_ABORT = IMGPATH + "abort.png"; //$NON-NLS-1$
+    String ICON_BRANCH = IMGPATH + "branch_obj.png"; //$NON-NLS-1$
     String ICON_CLONE = IMGPATH + "add_obj.png"; //$NON-NLS-1$
     String ICON_COMMIT = IMGPATH + "commit.png"; //$NON-NLS-1$
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png"; //$NON-NLS-1$
@@ -33,11 +34,10 @@ public interface IModelRepositoryImages {
     String ICON_OPEN = IMGPATH + "open.png"; //$NON-NLS-1$
     String ICON_PUSH = IMGPATH + "push.png"; //$NON-NLS-1$
     String ICON_REFRESH = IMGPATH + "pull.png"; //$NON-NLS-1$
-    String ICON_RESET = IMGPATH + "reset.gif"; //$NON-NLS-1$
-    String ICON_REVERT = IMGPATH + "revert.gif"; //$NON-NLS-1$
+    String ICON_RESET = IMGPATH + "reset.png"; //$NON-NLS-1$
+    String ICON_REVERT = IMGPATH + "revert.png"; //$NON-NLS-1$
     String ICON_SYNCED = IMGPATH + "synced.png"; //$NON-NLS-1$
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
-    String ICON_UNSTAGE = IMGPATH + "unstage.gif"; //$NON-NLS-1$
 
     String ICON_LEFT_BALL_OVERLAY = IMGPATH + "left_ball_ovr.png"; //$NON-NLS-1$
     String ICON_RIGHT_BALL_OVERLAY = IMGPATH + "right_ball_ovr.png"; //$NON-NLS-1$
