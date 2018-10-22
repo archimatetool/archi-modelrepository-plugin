@@ -30,6 +30,10 @@ public class Messages extends NLS {
 
     public static String AbstractModelAction_9;
 
+    public static String AddBranchAction_0;
+
+    public static String AddBranchAction_1;
+
     public static String CloneModelAction_0;
 
     public static String CloneModelAction_1;

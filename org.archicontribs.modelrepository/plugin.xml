@@ -58,6 +58,11 @@
             id="org.archicontribs.modelrepository.command.deleteModel"
             name="Delete Model from Workspace">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.AddBranchHandler"
+            id="org.archicontribs.modelrepository.command.addBranch"
+            name="Add Branch">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -107,6 +112,15 @@
             </command>
             <separator
                   name="org.archicontribs.modelrepository.popup.separator2"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.addBranch"
+                  icon="img/branch_obj.png"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.popup.separator3"
                   visible="true">
             </separator>
             <command
@@ -172,6 +186,15 @@
             </command>
             <separator
                   name="org.archicontribs.modelrepository.menu.separator2"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.addBranch"
+                  icon="img/branch_obj.png"
+                  style="push">
+            </command>
+            <separator
+                  name="org.archicontribs.modelrepository.menu.separator3"
                   visible="true">
             </separator>
             <command

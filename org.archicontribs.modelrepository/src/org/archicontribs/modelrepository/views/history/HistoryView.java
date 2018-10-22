@@ -378,6 +378,10 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
                     break;
 
+                case IRepositoryListener.BRANCHES_CHANGED:
+                    getBranchesViewer().doSetInput(fSelectedRepository);
+                    break;
+                    
                 default:
                     break;
             }
