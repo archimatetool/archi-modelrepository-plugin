@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.AddBranchDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
-import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -50,10 +49,12 @@ public class AddBranchAction extends AbstractModelAction {
         if(retVal == IDialogConstants.CANCEL_ID || !StringUtils.isSet(branchName)) {
             return;
         }
+        
+        String fullName = Constants.R_HEADS + branchName;
     	
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // If the branch exists
-            if(BranchStatus.localBranchExists(getRepository(), branchName)) {
+            if(getRepository().hasRef(fullName)) {
                 MessageDialog.openError(fWindow.getShell(),
                         Messages.AddBranchAction_1,
                         NLS.bind(Messages.AddBranchAction_2, branchName));
@@ -64,7 +65,7 @@ public class AddBranchAction extends AbstractModelAction {
 
                 // Checkout if option set
                 if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
-                    git.checkout().setName(Constants.R_HEADS + branchName).call();
+                    git.checkout().setName(fullName).call();
                 }
                 
                 // Notify listeners

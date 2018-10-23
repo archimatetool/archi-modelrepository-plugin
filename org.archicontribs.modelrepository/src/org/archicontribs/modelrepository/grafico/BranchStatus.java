@@ -8,12 +8,10 @@ package org.archicontribs.modelrepository.grafico;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
@@ -74,22 +72,6 @@ public class BranchStatus {
         return branchName.equals(getCurrentLocalBranch(archiRepo));
     }
     
-    public static boolean localBranchExists(IArchiRepository archiRepo, String branchName) throws GitAPIException, IOException {
-        String fullName = Constants.R_HEADS + branchName;
-        boolean localBranchExists = false;
-        
-        try(Git git = Git.open(archiRepo.getLocalRepositoryFolder())) {
-            for(Ref ref : git.branchList().call()) {
-                String name = ref.getName();
-                if(Objects.equals(name, fullName)) {
-                    localBranchExists = true;
-                }
-            }
-        }
-
-        return localBranchExists;
-    }
-
     public static String getShortName(String branchName) {
         int index = branchName.lastIndexOf("/"); //$NON-NLS-1$
         if(index != -1 && branchName.length() > index) {
