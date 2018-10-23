@@ -63,6 +63,11 @@
             id="org.archicontribs.modelrepository.command.addBranch"
             name="Add Branch">
       </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.SwitchBranchHandler"
+            id="org.archicontribs.modelrepository.command.switchBranch"
+            name="Switch Branch">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -70,7 +75,7 @@
             allPopups="true"
             locationURI="popup:com.archimatetool.editor.treeModelView?before=start_properties">
          <menu
-               id="org.archicontribs.modelrepository.menu"
+               id="org.archicontribs.modelrepository.popup"
                label="Collaboration">
             <separator
                   name="org.archicontribs.modelrepository.popup.start"
@@ -116,7 +121,13 @@
             </separator>
             <command
                   commandId="org.archicontribs.modelrepository.command.addBranch"
-                  icon="img/branch_obj.png"
+                  icon="img/new_branch_obj.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.switchBranch"
+                  icon="img/branches_obj.png"
+                  label="Switch Branch..."
                   style="push">
             </command>
             <separator
@@ -143,7 +154,7 @@
             allPopups="false"
             locationURI="menu:org.eclipse.ui.main.menu?after=tools">
          <menu
-               id="repository"
+               id="org.archicontribs.modelrepository.menu"
                label="Collaboration">
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
@@ -190,7 +201,13 @@
             </separator>
             <command
                   commandId="org.archicontribs.modelrepository.command.addBranch"
-                  icon="img/branch_obj.png"
+                  icon="img/new_branch_obj.png"
+                  style="push">
+            </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.switchBranch"
+                  icon="img/branches_obj.png"
+                  label="Switch Branch..."
                   style="push">
             </command>
             <separator
