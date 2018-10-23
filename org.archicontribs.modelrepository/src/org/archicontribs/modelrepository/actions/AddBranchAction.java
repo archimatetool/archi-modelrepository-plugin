@@ -31,7 +31,7 @@ public class AddBranchAction extends AbstractModelAction {
 	
     public AddBranchAction(IWorkbenchWindow window, IArchimateModel model) {
         super(window);
-        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_BRANCH));
+        setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_NEW_BRANCH));
         setText(Messages.AddBranchAction_0);
         setToolTipText(Messages.AddBranchAction_0);
         
@@ -74,10 +74,5 @@ public class AddBranchAction extends AbstractModelAction {
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.AddBranchAction_1, ex);
         }
-    }
-    
-    @Override
-    protected boolean shouldBeEnabled() {
-        return true;
     }
 }

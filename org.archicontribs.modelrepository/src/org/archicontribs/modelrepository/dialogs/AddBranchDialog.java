@@ -11,8 +11,8 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -61,19 +61,18 @@ public class AddBranchDialog extends TitleAreaDialog {
 
         txtBranch = createTextField(container, Messages.AddBranchDialog_3, SWT.NONE);
         
-        txtBranch.addModifyListener(new ModifyListener() {
-            public void modifyText(ModifyEvent e) {
-                String name = txtBranch.getText();
-                boolean isValidName = true;
-                boolean hasChars = name.length() > 0;
+        txtBranch.addVerifyListener(new VerifyListener() {
+            public void verifyText(VerifyEvent e) {
+                String currentText = ((Text)e.widget).getText();
+                String newText = (currentText.substring(0, e.start) + e.text + currentText.substring(e.end));
                 
+                boolean hasChars = newText.length() > 0;
                 if(hasChars) {
-                    isValidName = Repository.isValidRefName(Constants.R_HEADS + txtBranch.getText());
+                    e.doit = Repository.isValidRefName(Constants.R_HEADS + newText);
                 }
                 
-                setErrorMessage(isValidName ? null : Messages.AddBranchDialog_4);
-                getButton(ADD_BRANCH).setEnabled(isValidName && hasChars);
-                getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidName && hasChars);
+                getButton(ADD_BRANCH).setEnabled(hasChars);
+                getButton(ADD_BRANCH_CHECKOUT).setEnabled(hasChars);
             }
         });
         
