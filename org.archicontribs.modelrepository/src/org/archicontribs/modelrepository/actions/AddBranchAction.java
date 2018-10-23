@@ -14,9 +14,11 @@ import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
@@ -50,21 +52,26 @@ public class AddBranchAction extends AbstractModelAction {
         }
     	
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            // If the branch does not exist create it
-            if(!BranchStatus.localBranchExists(getRepository(), branchName)) {
+            // If the branch exists
+            if(BranchStatus.localBranchExists(getRepository(), branchName)) {
+                MessageDialog.openError(fWindow.getShell(),
+                        Messages.AddBranchAction_1,
+                        NLS.bind(Messages.AddBranchAction_2, branchName));
+            }
+            else {
+                // Create the branch
                 git.branchCreate().setName(branchName).call();
+
+                // Checkout if option set
+                if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
+                    git.checkout().setName(Constants.R_HEADS + branchName).call();
+                }
+                
+                // Notify listeners
+                notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
             }
-            
-            // Checkout
-            if(retVal == AddBranchDialog.ADD_BRANCH_CHECKOUT) {
-                git.checkout().setName(Constants.R_HEADS + branchName).call();
-            }
-            
-            // Notify listeners
-            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         }
         catch(IOException | GitAPIException ex) {
-            ex.printStackTrace();
             displayErrorDialog(Messages.AddBranchAction_1, ex);
         }
     }

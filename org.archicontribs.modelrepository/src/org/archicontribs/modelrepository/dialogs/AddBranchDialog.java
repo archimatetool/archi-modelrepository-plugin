@@ -108,11 +108,6 @@ public class AddBranchDialog extends TitleAreaDialog {
         close();
     }
 
-    @Override
-    protected boolean isResizable() {
-        return true;
-    }
-
     public String getBranchName() {
         return branchName;
     }
