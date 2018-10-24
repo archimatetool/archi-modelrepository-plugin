@@ -88,9 +88,9 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         Label label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_6);
         
-        Text text = new Text(container, SWT.BORDER | SWT.READ_ONLY);
-        text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        text.setText(fRepository.getName() + " [" + branch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+        label = new Label(container, SWT.NONE);
+        label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        label.setText(fRepository.getName() + " [" + branch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
         
         // User name & email
         String userName = ""; //$NON-NLS-1$
