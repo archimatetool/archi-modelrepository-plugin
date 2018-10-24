@@ -23,6 +23,7 @@ import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -138,9 +139,16 @@ public class RefreshModelAction extends AbstractModelAction {
             
             throw exception[0];
         }
-
-        // Nothing more to do
+        
+        // Merge is already up to date...
         if(pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
+            // Check if any tracked refs were updated
+            FetchResult fetchResult = pullResult[0].getFetchResult();
+            if(fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty()) {
+                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                return PULL_STATUS_OK;
+            }
+            
             return PULL_STATUS_UP_TO_DATE;
         }
 
