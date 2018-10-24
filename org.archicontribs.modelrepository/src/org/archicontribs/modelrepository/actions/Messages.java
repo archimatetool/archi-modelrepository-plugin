@@ -108,6 +108,8 @@ public class Messages extends NLS {
 
     public static String ShowInHistoryAction_1;
 
+    public static String SwitchBranchAction_0;
+
     public static String UndoLastCommitAction_0;
 
     public static String UndoLastCommitAction_1;

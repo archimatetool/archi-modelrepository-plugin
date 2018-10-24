@@ -44,19 +44,19 @@ public class SwitchBranchDialog extends TitleAreaDialog {
 	
     public SwitchBranchDialog(Shell parentShell, IArchiRepository archiRepo) {
         super(parentShell);
-        setTitle("Switch Branch");
+        setTitle(Messages.SwitchBranchDialog_0);
         this.archiRepo = archiRepo;
     }
 
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Switch Branch");
+        shell.setText(Messages.SwitchBranchDialog_0);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("Select the branch to switch to.", IMessageProvider.INFORMATION);
+        setMessage(Messages.SwitchBranchDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -66,7 +66,7 @@ public class SwitchBranchDialog extends TitleAreaDialog {
         container.setLayout(layout);
 
         Label label = new Label(container, SWT.NONE);
-        label.setText("Branch:");
+        label.setText(Messages.SwitchBranchDialog_2);
         
         branchesViewer = new ComboViewer(container, SWT.READ_ONLY);
         branchesViewer.getControl().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
