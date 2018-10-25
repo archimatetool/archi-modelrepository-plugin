@@ -88,8 +88,10 @@ public class SwitchBranchAction extends AbstractModelAction {
             notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
 
             // Reload the model from the Grafico XML files
-            GraficoModelLoader loader = new GraficoModelLoader(getRepository());
-            loader.loadModel();
+            new GraficoModelLoader(getRepository()).loadModel();
+            
+            // Save the checksum
+            getRepository().saveChecksum();
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
