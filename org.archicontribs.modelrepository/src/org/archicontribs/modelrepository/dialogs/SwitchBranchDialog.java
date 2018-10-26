@@ -80,9 +80,12 @@ public class SwitchBranchDialog extends TitleAreaDialog {
 
             public Object[] getElements(Object inputElement) {
                 try {
-                    List<String> names = BranchStatus.getLocalBranchNames(archiRepo);
+                    List<String> names = BranchStatus.getUnionOfBranches(archiRepo);
+                    
+                    // Remove current branch
                     String currentBranch = BranchStatus.getCurrentLocalBranch(archiRepo);
                     names.remove(currentBranch);
+                    
                     return names.toArray();
                 }
                 catch(IOException | GitAPIException ex) {
@@ -96,7 +99,25 @@ public class SwitchBranchDialog extends TitleAreaDialog {
         branchesViewer.setLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                return BranchStatus.getShortName((String)element);
+                String branch = (String)element;
+                String name = BranchStatus.getShortName(branch);
+                
+                try {
+                    if(BranchStatus.isDeleted(archiRepo, branch)) {
+                        name += " (deleted)";
+                    }
+                    else if(BranchStatus.isPublished(archiRepo, branch)) {
+                        name += " (published)";
+                    }
+                    else {
+                        name += " (unpublished)";
+                    }
+                }
+                catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                
+                return name;
             }
         });
         
