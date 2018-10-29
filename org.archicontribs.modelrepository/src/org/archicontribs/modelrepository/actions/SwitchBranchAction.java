@@ -17,6 +17,7 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -83,15 +84,22 @@ public class SwitchBranchAction extends AbstractModelAction {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Switch branch
             
-            // If local checkout
+            // If the branch is local just checkout
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();
             }
             // If the branch is remote and not tracked we need create the local branch and switch to that
             else if(branchInfo.isRemote() && !branchInfo.hasTrackedRef()) {
                 String branchName = branchInfo.getShortName();
-                git.branchCreate().setName(branchName).setStartPoint(branchInfo.getFullName()).call();
-                git.checkout().setName(branchInfo.getLocalBranchNameFor()).call();
+                
+                // Create local branch at point of remote branch ref
+                Ref ref = git.branchCreate()
+                        .setName(branchName)
+                        .setStartPoint(branchInfo.getFullName())
+                        .call();
+                
+                // checkout
+                git.checkout().setName(ref.getName()).call();
             }
             
             // Notify listeners
