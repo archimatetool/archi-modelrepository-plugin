@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -63,7 +64,7 @@ public class MergeConflictHandler {
         fShell = shell;
     }
     
-    public void init(IProgressMonitor pm) throws IOException, CanceledException {
+    public void init(IProgressMonitor pm) throws IOException, GitAPIException {
         // This could be null if Rebase is the default behaviour on the repo rather than merge when a Pull is done
         if(fMergeResult == null) {
             throw new IOException("MergeResult was null"); //$NON-NLS-1$
@@ -154,8 +155,13 @@ public class MergeConflictHandler {
         return IGraficoConstants.HEAD;
     }
     
-    String getRemoteRef() throws IOException {
-        return BranchStatus.getCurrentRemoteBranch(getArchiRepository());
+    String getRemoteRef() throws IOException, GitAPIException {
+        BranchStatus status = getArchiRepository().getBranchStatus();
+        if(status != null) {
+            BranchInfo currentRemoteBranch = status.getCurrentRemoteBranch();
+            return currentRemoteBranch == null ? null : currentRemoteBranch.getFullName();
+        }
+        return null;
     }
     
     public void resetToLocalState() throws IOException, GitAPIException {

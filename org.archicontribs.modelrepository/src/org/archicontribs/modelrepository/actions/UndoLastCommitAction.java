@@ -105,7 +105,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
         try {
             return !getRepository().isHeadAndRemoteSame();
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
         }
         

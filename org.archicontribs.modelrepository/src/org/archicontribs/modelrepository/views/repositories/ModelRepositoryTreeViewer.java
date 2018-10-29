@@ -15,6 +15,7 @@ import java.util.Map;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -29,6 +30,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -265,7 +267,15 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 
                 try {
                     // Check status of current branch
-                    String currentLocalBranch = BranchStatus.getCurrentLocalBranch(repo);
+                    String currentLocalBranch = ""; //$NON-NLS-1$
+                    
+                    BranchStatus status = repo.getBranchStatus();
+                    if(status != null) {
+                        BranchInfo branchInfo = status.getCurrentLocalBranch();
+                        if(branchInfo != null) {
+                            currentLocalBranch = branchInfo.getShortName();
+                        }
+                    }
                     
                     boolean hasUnpushedCommits = repo.hasUnpushedCommits(currentLocalBranch);
                     boolean hasRemoteCommits = repo.hasRemoteCommits(currentLocalBranch);
@@ -283,12 +293,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     }
 
                     // Repository name and current branch
-                    cell.setText(repo.getName() + " [" + BranchStatus.getShortName(currentLocalBranch) + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+                    cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
                     
                     // Image
                     cell.setImage(getImage(repo));
                 }
-                catch(IOException ex) {
+                catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
                 }
             }

@@ -6,8 +6,8 @@
 package org.archicontribs.modelrepository.views.history;
 
 import java.io.IOException;
-import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.viewers.ComboViewer;
@@ -37,26 +37,12 @@ public class BranchesViewer extends ComboViewer {
             }
 
             public Object[] getElements(Object inputElement) {
-                if(!(inputElement instanceof IArchiRepository)) {
+                if(!(inputElement instanceof BranchStatus)) {
                     return new Object[0];
                 }
                 
-                IArchiRepository repo = (IArchiRepository)inputElement;
-                
-                // Local Repo was deleted
-                if(!repo.getLocalRepositoryFolder().exists()) {
-                    return new Object[0];
-                }
-                
-                try {
-                    List<String> names = BranchStatus.getLocalBranchNames(repo);
-                    return names.toArray();
-                }
-                catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
-                }
-                
-                return new Object[0];
+                BranchStatus branchStatus = (BranchStatus)inputElement;
+                return branchStatus.getLocalBranches().toArray();
             }
         });
         
@@ -64,40 +50,40 @@ public class BranchesViewer extends ComboViewer {
         setLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                String branch = (String)element;
-                String current = "";  //$NON-NLS-1$
+                BranchInfo branchInfo = (BranchInfo)element;
+                String branchName = branchInfo.getShortName();
                 
-                try {
-                    if(getInput() != null) {
-                        boolean isCurrentBranch = BranchStatus.isCurrentBranch((IArchiRepository)getInput(), branch);
-                        if(isCurrentBranch) {
-                            current = " " + Messages.BranchesViewer_0; //$NON-NLS-1$
-                        }
-                    }
-                }
-                catch(IOException ex) {
-                    ex.printStackTrace();
+                if(branchInfo.isCurrentBranch()) {
+                    branchName += " " + Messages.BranchesViewer_0; //$NON-NLS-1$
                 }
                 
-                return BranchStatus.getShortName(branch) + current;
+                return branchName;
             }
         });
     }
 
     void doSetInput(IArchiRepository archiRepo) {
-        setInput(archiRepo);
+        // Get BranchStatus
+        BranchStatus branchStatus = null;
         
-        // Set selection to current branch
         try {
-            String branch = BranchStatus.getCurrentLocalBranch(archiRepo);
-            if(branch != null) {
-                setSelection(new StructuredSelection(branch));
-            }
+            branchStatus = archiRepo.getBranchStatus();
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
         }
         
+        setInput(branchStatus);
+        
+        // Set selection to current branch
+        if(branchStatus != null) {
+            BranchInfo branchInfo = branchStatus.getCurrentLocalBranch();
+            if(branchInfo != null) {
+                setSelection(new StructuredSelection(branchInfo));
+            }
+        }
+        
+        // And relayout
         getControl().getParent().layout();
     }
 }

@@ -7,10 +7,12 @@ package org.archicontribs.modelrepository.propertysections;
 
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
@@ -63,9 +65,20 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
             
             try {
                 fTextURL.setText(archiRepo.getOnlineRepositoryURL());
-                fTextCurrentBranch.setText(BranchStatus.getShortName(BranchStatus.getCurrentLocalBranch(archiRepo)));
+                
+                String branch = ""; //$NON-NLS-1$
+                
+                BranchStatus status = archiRepo.getBranchStatus();
+                if(status != null) {
+                    BranchInfo branchInfo = status.getCurrentLocalBranch();
+                    if(branchInfo != null) {
+                        branch = branchInfo.getShortName();
+                    }
+                }
+                
+                fTextCurrentBranch.setText(branch);
             }
-            catch(IOException ex) {
+            catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
             }
         }

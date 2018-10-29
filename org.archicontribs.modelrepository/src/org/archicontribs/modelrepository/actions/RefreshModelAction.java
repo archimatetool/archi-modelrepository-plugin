@@ -162,7 +162,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     try {
                         handler.init(pm);
                     }
-                    catch(IOException | CanceledException ex) {
+                    catch(IOException | GitAPIException ex) {
                         exception[0] = ex;
                     }
                 }

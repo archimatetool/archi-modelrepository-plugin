@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.SwitchBranchDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -19,7 +20,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -74,16 +74,26 @@ public class SwitchBranchAction extends AbstractModelAction {
         SwitchBranchDialog dialog = new SwitchBranchDialog(fWindow.getShell(), getRepository());
         int retVal = dialog.open();
         
-        String branchName = dialog.getBranchName();
+        BranchInfo branchInfo = dialog.getBranchInfo();
         
-        if(retVal == IDialogConstants.CANCEL_ID || !StringUtils.isSet(branchName)) {
+        if(retVal == IDialogConstants.CANCEL_ID || branchInfo == null) {
             return;
         }
         
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Switch branch
-            git.checkout().setName(branchName).call();
-
+            
+            // If local checkout
+            if(branchInfo.isLocal()) {
+                git.checkout().setName(branchInfo.getFullName()).call();
+            }
+            // If the branch is remote and not tracked we need create the local branch and switch to that
+            else if(branchInfo.isRemote() && !branchInfo.hasTrackedRef()) {
+                String branchName = branchInfo.getShortName();
+                git.branchCreate().setName(branchName).setStartPoint(branchInfo.getFullName()).call();
+                git.checkout().setName(branchInfo.getLocalBranchNameFor()).call();
+            }
+            
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
 

@@ -316,26 +316,31 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public boolean isHeadAndRemoteSame() throws IOException {
+    public boolean isHeadAndRemoteSame() throws IOException, GitAPIException {
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
+            // Get remote branch ref
+            BranchStatus status = getBranchStatus();
+            if(status == null) {
+                return false;
+            }
+            
+            BranchInfo currentRemoteBranch = getBranchStatus().getCurrentRemoteBranch();
+            if(currentRemoteBranch == null) {
+                return false;
+            }
+
+            // Remote
+            Ref remoteRef = currentRemoteBranch.getRef();
+            
+            // Head
             Ref headRef = repository.findRef(HEAD);
 
-            String currentRemoteBranch = BranchStatus.getCurrentRemoteBranch(this);
-            Ref remoteRef = repository.findRef(currentRemoteBranch);
-            
             // In case of missing ref return false
             if(headRef == null || remoteRef == null) {
                 return false;
             }
             
             return headRef.getObjectId().equals(remoteRef.getObjectId());
-        }
-    }
-    
-    @Override
-    public boolean hasRef(String refName) throws IOException {
-        try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
-            return repository.findRef(refName) != null;
         }
     }
     
@@ -349,7 +354,6 @@ public class ArchiRepository implements IArchiRepository {
             return false;
         }
     }
-    
 
     @Override
     public boolean hasRemoteCommits(String branch) throws IOException {
@@ -491,6 +495,10 @@ public class ArchiRepository implements IArchiRepository {
         Files.write(Paths.get(checksumFile.getAbsolutePath()), checksum.getBytes(), StandardOpenOption.CREATE);
         
         return true;
+    }
+    
+    public BranchStatus getBranchStatus() throws IOException, GitAPIException {
+        return new BranchStatus(this);
     }
     
     private String getLatestChecksum() throws IOException {

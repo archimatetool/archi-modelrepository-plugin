@@ -14,6 +14,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IIdentifier;
@@ -39,7 +40,7 @@ class MergeObjectInfo {
     // User's choice
     private int userChoice = OURS;
 
-    MergeObjectInfo(String xmlPath, MergeConflictHandler handler) throws IOException {
+    MergeObjectInfo(String xmlPath, MergeConflictHandler handler) throws IOException, GitAPIException {
         this.handler = handler;
         this.xmlPath = xmlPath;
         

@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.dialogs;
 import java.io.IOException;
 import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -39,7 +40,7 @@ public class SwitchBranchDialog extends TitleAreaDialog {
     public static final int ADD_BRANCH_CHECKOUT = 1025;
     
 	private ComboViewer branchesViewer;
-	private String branchName;
+	private BranchInfo branchInfo;
     private IArchiRepository archiRepo;
 	
     public SwitchBranchDialog(Shell parentShell, IArchiRepository archiRepo) {
@@ -80,13 +81,18 @@ public class SwitchBranchDialog extends TitleAreaDialog {
 
             public Object[] getElements(Object inputElement) {
                 try {
-                    List<String> names = BranchStatus.getUnionOfBranches(archiRepo);
-                    
-                    // Remove current branch
-                    String currentBranch = BranchStatus.getCurrentLocalBranch(archiRepo);
-                    names.remove(currentBranch);
-                    
-                    return names.toArray();
+                    BranchStatus branchStatus = archiRepo.getBranchStatus();
+                    if(branchStatus != null) {
+                        List<BranchInfo> branches = branchStatus.getLocalAndUntrackedRemoteBranches();
+                        
+                        // Remove the current branch
+                        BranchInfo currentBranch = branchStatus.getCurrentLocalBranch();
+                        if(currentBranch != null) {
+                            branches.remove(currentBranch);
+                        }
+                        
+                        return branches.toArray();
+                    }
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
@@ -99,22 +105,17 @@ public class SwitchBranchDialog extends TitleAreaDialog {
         branchesViewer.setLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {
-                String branch = (String)element;
-                String name = BranchStatus.getShortName(branch);
+                BranchInfo branchInfo = (BranchInfo)element;
+                String name = branchInfo.getShortName();
                 
-                try {
-                    if(BranchStatus.isDeleted(archiRepo, branch)) {
-                        name += " (deleted)";
-                    }
-                    else if(BranchStatus.isPublished(archiRepo, branch)) {
-                        name += " (published)";
-                    }
-                    else {
-                        name += " (unpublished)";
-                    }
+                if(branchInfo.isDeleted()) {
+                    name += " (deleted)";
                 }
-                catch(IOException ex) {
-                    ex.printStackTrace();
+                else if(branchInfo.isPublished()) {
+                    name += " (published)";
+                }
+                else {
+                    name += " (unpublished)";
                 }
                 
                 return name;
@@ -133,11 +134,11 @@ public class SwitchBranchDialog extends TitleAreaDialog {
     
     @Override
     protected void okPressed() {
-        branchName = (String)branchesViewer.getStructuredSelection().getFirstElement();
+        branchInfo = (BranchInfo)branchesViewer.getStructuredSelection().getFirstElement();
         super.okPressed();
     }
 
-    public String getBranchName() {
-        return branchName;
+    public BranchInfo getBranchInfo() {
+        return branchInfo;
     }
 }

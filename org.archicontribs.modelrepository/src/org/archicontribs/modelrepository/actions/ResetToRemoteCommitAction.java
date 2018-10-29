@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -82,7 +83,10 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         
         // Do it!
         try {
-            getRepository().resetToRef(BranchStatus.getCurrentRemoteBranch(getRepository()));
+            BranchInfo currentRemoteBranch = getCurrentRemoteBranchInfo();
+            if(currentRemoteBranch != null) {
+                getRepository().resetToRef(currentRemoteBranch.getFullName());
+            }
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
@@ -108,14 +112,23 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
             // Repository exists
             // AND there is a remote ref for the current branch
             // AND NOT head and remote the same
-            return getRepository() != null && getRepository().getLocalRepositoryFolder().exists() &&
-                    getRepository().hasRef(BranchStatus.getCurrentRemoteBranch(getRepository())) &&
-                    !getRepository().isHeadAndRemoteSame();
+            
+            if(getRepository() != null && getRepository().getLocalRepositoryFolder().exists()) {
+                BranchInfo currentRemoteBranch = getCurrentRemoteBranchInfo();
+                return currentRemoteBranch != null &&
+                       !getRepository().isHeadAndRemoteSame();
+            }
+            
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
         }
         
         return false;
+    }
+    
+    private BranchInfo getCurrentRemoteBranchInfo() throws IOException, GitAPIException {
+        BranchStatus status = getRepository().getBranchStatus();
+        return status == null ? null : status.getCurrentRemoteBranch();
     }
 }

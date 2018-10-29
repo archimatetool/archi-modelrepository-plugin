@@ -168,16 +168,10 @@ public interface IArchiRepository extends IGraficoConstants {
     /**
      * @return if the latest local HEAD commit and the remote commit are the same
      * @throws IOException
+     * @throws GitAPIException 
      */
-    boolean isHeadAndRemoteSame() throws IOException;
+    boolean isHeadAndRemoteSame() throws IOException, GitAPIException;
     
-    /**
-     * @param refName The name of the ref to lookup
-     * @return true if ref exists
-     * @throws IOException
-     */
-    boolean hasRef(String refName) throws IOException;
-
     /**
      * Export the model to Grafico files
      * @throws IOException
@@ -205,4 +199,11 @@ public interface IArchiRepository extends IGraficoConstants {
      * @throws IOException
      */
     public void saveUserDetails(String name, String email) throws IOException;
+    
+    /**
+     * @return The Branch Status
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public BranchStatus getBranchStatus() throws IOException, GitAPIException;
 }

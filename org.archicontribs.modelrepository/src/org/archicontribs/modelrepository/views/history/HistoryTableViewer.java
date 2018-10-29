@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -25,6 +26,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -44,7 +46,7 @@ public class HistoryTableViewer extends TableViewer {
     
     private RevCommit localCommit, originCommit;
     
-    private String localBranch;
+    private BranchInfo branchInfo;
     
     /**
      * Constructor
@@ -86,16 +88,19 @@ public class HistoryTableViewer extends TableViewer {
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(20, false));
     }
     
-    public void doSetInput(IArchiRepository repo) {
-        // Current local branch
+    public void doSetInput(IArchiRepository archiRepo) {
+        // Get BranchStatus and currentLocalBranch
         try {
-            localBranch = BranchStatus.getCurrentLocalBranch(repo);
+            BranchStatus branchStatus = archiRepo.getBranchStatus();
+            if(branchStatus != null) {
+                branchInfo = branchStatus.getCurrentLocalBranch();
+            }
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
         }
         
-        setInput(repo);
+        setInput(archiRepo);
         
         // Do the Layout kludge
         ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
@@ -114,12 +119,12 @@ public class HistoryTableViewer extends TableViewer {
         });
     }
     
-    public void setLocalBranch(String branchName) {
-        if(branchName.equals(localBranch)) {
+    public void setLocalBranch(BranchInfo branchInfo) {
+        if(this.branchInfo == branchInfo) {
            return; 
         }
         
-        localBranch = branchName;
+        this.branchInfo = branchInfo;
         refresh();
         
         // Layout kludge
@@ -161,15 +166,14 @@ public class HistoryTableViewer extends TableViewer {
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     // Find the local branch
-                    ObjectId objectID = repository.resolve(localBranch);
+                    ObjectId objectID = repository.resolve(branchInfo.getFullName());
                     if(objectID != null) {
                         localCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(localCommit); 
                     }
                     
                     // Find the remote branch
-                    String remoteName = BranchStatus.getRemoteBranchNameFor(localBranch);
-                    objectID = repository.resolve(remoteName);
+                    objectID = repository.resolve(branchInfo.getRemoteBranchNameFor());
                     if(objectID != null) {
                         originCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(originCommit);

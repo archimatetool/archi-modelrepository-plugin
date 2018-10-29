@@ -5,15 +5,13 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
-import java.io.IOException;
-
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
 import org.archicontribs.modelrepository.actions.RestoreCommitAction;
 import org.archicontribs.modelrepository.actions.UndoLastCommitAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
-import org.archicontribs.modelrepository.grafico.BranchStatus;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -142,8 +140,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
          */
         fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             public void selectionChanged(SelectionChangedEvent event) {
-                String branch = (String)event.getStructuredSelection().getFirstElement();
-                getHistoryViewer().setLocalBranch(branch);
+                BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
+                getHistoryViewer().setLocalBranch(branchInfo);
                 updateActions();
             }
         });
@@ -274,16 +272,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionResetToRemoteCommit.update();
         
         // Disable actions if our selected branch is not actually the current branch
-        String currentBranch = (String)getBranchesViewer().getStructuredSelection().getFirstElement();
-        boolean isCurrentBranch = true;
+        BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
+        boolean isCurrentBranch = selectedBranch.isCurrentBranch();
         
-        try {
-            isCurrentBranch = BranchStatus.isCurrentBranch(fSelectedRepository, currentBranch);
-        }
-        catch(IOException ex) {
-            ex.printStackTrace();
-        }
-
         fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
         fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
         fActionResetToRemoteCommit.setEnabled(isCurrentBranch && fActionResetToRemoteCommit.isEnabled());

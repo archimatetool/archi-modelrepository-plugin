@@ -8,12 +8,14 @@ package org.archicontribs.modelrepository.dialogs;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
@@ -76,12 +78,18 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         container.setLayout(layout);
         
         // Repo and branch
-        String branch = ""; //$NON-NLS-1$
+        String shortBranchName = "unknown"; //$NON-NLS-1$
 
         try {
-            branch = BranchStatus.getShortName(BranchStatus.getCurrentLocalBranch(fRepository));
+            BranchStatus status = fRepository.getBranchStatus();
+            if(status != null) {
+                BranchInfo branchInfo = status.getCurrentLocalBranch();
+                if(branchInfo != null) {
+                    shortBranchName = branchInfo.getShortName();
+                }
+            }
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
         }
                 
@@ -90,7 +98,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         
         label = new Label(container, SWT.NONE);
         label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        label.setText(fRepository.getName() + " [" + branch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
+        label.setText(fRepository.getName() + " [" + shortBranchName + "]"); //$NON-NLS-1$ //$NON-NLS-2$
         
         // User name & email
         String userName = ""; //$NON-NLS-1$
@@ -143,7 +151,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         try {
             fAmendLastCommitCheckbox.setEnabled(isAmendAllowed());
         }
-        catch(IOException ex) {
+        catch(IOException | GitAPIException ex) {
             fAmendLastCommitCheckbox.setEnabled(false);
             ex.printStackTrace();
         }
@@ -213,7 +221,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
      * If HEAD and remote are not the same AND
      * The latest local commit does not have more than one parent (i.e last commit was a merge)
      */
-    private boolean isAmendAllowed() throws IOException {
+    private boolean isAmendAllowed() throws IOException, GitAPIException {
         return !fRepository.isHeadAndRemoteSame() && getLatestLocalCommitParentCount() < 2;
     }
     
