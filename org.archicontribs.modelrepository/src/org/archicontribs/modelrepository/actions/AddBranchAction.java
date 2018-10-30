@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.AddBranchDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -27,7 +28,13 @@ import com.archimatetool.model.IArchimateModel;
  * Add a Branch
  */
 public class AddBranchAction extends AbstractModelAction {
+    
+    private BranchInfo fBranchInfo;
 	
+    public AddBranchAction(IWorkbenchWindow window) {
+        this(window, null);
+    }
+
     public AddBranchAction(IWorkbenchWindow window, IArchimateModel model) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_NEW_BRANCH));
@@ -76,4 +83,19 @@ public class AddBranchAction extends AbstractModelAction {
             displayErrorDialog(Messages.AddBranchAction_1, ex);
         }
     }
+    
+    public void setBranch(BranchInfo branchInfo) {
+        fBranchInfo = branchInfo;
+        setEnabled(shouldBeEnabled());
+    }
+    
+    @Override
+    protected boolean shouldBeEnabled() {
+        if(fBranchInfo != null) {
+            return super.shouldBeEnabled() && fBranchInfo.isCurrentBranch();
+        }
+        
+        return super.shouldBeEnabled();
+    }
+
 }

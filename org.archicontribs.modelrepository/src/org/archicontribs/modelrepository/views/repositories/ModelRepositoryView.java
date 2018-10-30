@@ -15,6 +15,7 @@ import org.archicontribs.modelrepository.actions.OpenModelAction;
 import org.archicontribs.modelrepository.actions.PropertiesAction;
 import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
+import org.archicontribs.modelrepository.actions.ShowInBranchesViewAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -89,6 +90,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     private IGraficoModelAction fActionPush;
     
     private IGraficoModelAction fActionShowInHistory;
+    private IGraficoModelAction fActionShowInBranches;
     private IGraficoModelAction fActionProperties;
     
 
@@ -164,6 +166,9 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         fActionShowInHistory = new ShowInHistoryAction(getViewSite().getWorkbenchWindow());
         fActionShowInHistory.setEnabled(false);
         
+        fActionShowInBranches = new ShowInBranchesViewAction(getViewSite().getWorkbenchWindow());
+        fActionShowInBranches.setEnabled(false);
+
         fActionProperties = new PropertiesAction(getViewSite().getWorkbenchWindow());
         fActionProperties.setEnabled(false);
         
@@ -270,6 +275,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
             fActionPush.setRepository(repo);
             
             fActionShowInHistory.setRepository(repo);
+            fActionShowInBranches.setRepository(repo);
             
             fActionProperties.setRepository(repo);
         }
@@ -299,6 +305,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         else {
             manager.add(fActionOpen);
             manager.add(fActionShowInHistory);
+            manager.add(fActionShowInBranches);
             manager.add(new Separator());
             manager.add(fActionDelete);
             manager.add(new Separator());

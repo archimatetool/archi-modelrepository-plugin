@@ -14,6 +14,11 @@
             name="Toggle Change History">
       </command>
       <command
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowBranchesViewHandler"
+            id="org.archicontribs.modelrepository.command.showBranchesView"
+            name="Toggle Branches View">
+      </command>
+      <command
             defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
             id="org.archicontribs.modelrepository.command.createRepoFromModel"
             name="Add Local Model to Workspace and Publish">
@@ -52,6 +57,11 @@
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInRepositoryView"
             name="Show in Collaboration Workspace">
+      </command>
+      <command
+            defaultHandler="org.archicontribs.modelrepository.actions.ShowInBranchesViewHandler"
+            id="org.archicontribs.modelrepository.command.showInBranchesView"
+            name="Show Branches">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.DeleteModelHandler"
@@ -144,6 +154,11 @@
                   icon="img/history_view.png"
                   style="push">
             </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showInBranchesView"
+                  icon="img/branches_obj.png"
+                  style="push">
+            </command>
             <separator
                   name="org.archicontribs.modelrepository.popup.end"
                   visible="true">
@@ -225,6 +240,11 @@
                   icon="img/history_view.png"
                   style="push">
             </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showBranchesView"
+                  icon="img/branches_obj.png"
+                  style="push">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
@@ -275,6 +295,11 @@
                   icon="img/history_view.png"
                   style="push">
             </command>
+            <command
+                  commandId="org.archicontribs.modelrepository.command.showBranchesView"
+                  icon="img/branches_obj.png"
+                  style="push">
+            </command>
          </toolbar>
       </menuContribution>
    </extension>
@@ -294,6 +319,13 @@
             name="%history_repository"
             restorable="true">
       </view>
+      <view
+            class="org.archicontribs.modelrepository.views.branches.BranchesView"
+            icon="img/branches_obj.png"
+            id="org.archicontribs.modelrepository.branchesView"
+            name="Branches"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -310,6 +342,12 @@
                minimized="false"
                relationship="stack"
                relative="com.archimatetool.zest.zestView">
+         </view>
+         <view
+               id="org.archicontribs.modelrepository.branchesView"
+               minimized="false"
+               relationship="stack"
+               relative="org.archicontribs.modelrepository.historyView">
          </view>
       </perspectiveExtension>
    </extension>

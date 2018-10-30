@@ -27,6 +27,12 @@ import com.archimatetool.model.IArchimateModel;
  * Switch and checkout Branch
  */
 public class SwitchBranchAction extends AbstractModelAction {
+    
+    private BranchInfo fBranchInfo;
+    
+    public SwitchBranchAction(IWorkbenchWindow window) {
+        this(window, null);
+    }
 	
     public SwitchBranchAction(IWorkbenchWindow window, IArchimateModel model) {
         super(window);
@@ -71,14 +77,21 @@ public class SwitchBranchAction extends AbstractModelAction {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
         
-        // Open dialog
-        SwitchBranchDialog dialog = new SwitchBranchDialog(fWindow.getShell(), getRepository());
-        int retVal = dialog.open();
+        BranchInfo branchInfo = null;
         
-        BranchInfo branchInfo = dialog.getBranchInfo();
-        
-        if(retVal == IDialogConstants.CANCEL_ID || branchInfo == null) {
-            return;
+        // Open dialog if no branch info
+        if(fBranchInfo != null) {
+            branchInfo = fBranchInfo;
+        }
+        else {
+            SwitchBranchDialog dialog = new SwitchBranchDialog(fWindow.getShell(), getRepository());
+            int retVal = dialog.open();
+
+            branchInfo = dialog.getBranchInfo();
+
+            if(retVal == IDialogConstants.CANCEL_ID || branchInfo == null) {
+                return;
+            }
         }
         
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
@@ -114,5 +127,19 @@ public class SwitchBranchAction extends AbstractModelAction {
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
+    }
+    
+    public void setBranch(BranchInfo branchInfo) {
+        fBranchInfo = branchInfo;
+        setEnabled(shouldBeEnabled());
+    }
+    
+    @Override
+    protected boolean shouldBeEnabled() {
+        if(fBranchInfo != null) {
+            return super.shouldBeEnabled() && !fBranchInfo.isCurrentBranch();
+        }
+        
+        return super.shouldBeEnabled();
     }
 }

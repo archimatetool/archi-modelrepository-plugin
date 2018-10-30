@@ -140,11 +140,17 @@ public class RefreshModelAction extends AbstractModelAction {
             throw exception[0];
         }
         
+        // Check for tracking updates
+        FetchResult fetchResult = pullResult[0].getFetchResult();
+        boolean newTrackingRefUpdates = fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty();
+        if(newTrackingRefUpdates) {
+            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+        }
+        
         // Merge is already up to date...
         if(pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
             // Check if any tracked refs were updated
-            FetchResult fetchResult = pullResult[0].getFetchResult();
-            if(fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty()) {
+            if(newTrackingRefUpdates) {
                 notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 return PULL_STATUS_OK;
             }

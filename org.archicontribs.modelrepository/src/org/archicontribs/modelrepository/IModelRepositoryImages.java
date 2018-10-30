@@ -39,6 +39,7 @@ public interface IModelRepositoryImages {
     String ICON_RESET = IMGPATH + "reset.png"; //$NON-NLS-1$
     String ICON_REVERT = IMGPATH + "revert.png"; //$NON-NLS-1$
     String ICON_SYNCED = IMGPATH + "synced.png"; //$NON-NLS-1$
+    String ICON_TICK = IMGPATH + "tick.png"; //$NON-NLS-1$
     String ICON_UNDO_COMMIT = IMGPATH + "undo_commit.png"; //$NON-NLS-1$
 
     String ICON_LEFT_BALL_OVERLAY = IMGPATH + "left_ball_ovr.png"; //$NON-NLS-1$
