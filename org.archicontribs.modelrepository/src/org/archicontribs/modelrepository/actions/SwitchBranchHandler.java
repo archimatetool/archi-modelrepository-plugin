@@ -7,14 +7,14 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
@@ -41,11 +41,13 @@ public class SwitchBranchHandler extends AbstractModelSelectionHandler {
     
     @Override
     public boolean isEnabled() {
+        // Is enabled if there is more than one branch to switch to
         File localRepoFolder = GraficoUtils.getLocalRepositoryFolderForModel(getActiveArchimateModel());
         if(localRepoFolder != null) {
-            try(Git git = Git.open(localRepoFolder)) {
-                List<Ref> branches = git.branchList().call(); // Local branches
-                return branches.size() > 1;
+            IArchiRepository archiRepo = new ArchiRepository(localRepoFolder);
+            try {
+                BranchStatus status = archiRepo.getBranchStatus();
+                return status != null && status.getLocalAndUntrackedRemoteBranches().size() > 1;
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
