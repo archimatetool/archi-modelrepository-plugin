@@ -73,7 +73,7 @@ public class DeleteBranchAction extends AbstractModelAction {
             pushCommand.call();
         }
         catch(IOException | GitAPIException ex) {
-            ex.printStackTrace();
+            displayErrorDialog("Delete Branch", ex);
         }
         finally {
             // Notify listeners
@@ -88,11 +88,8 @@ public class DeleteBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        if(fBranchInfo != null) {
-            return super.shouldBeEnabled() && !fBranchInfo.isCurrentBranch() &&
-                    !IGraficoConstants.MASTER.equals(fBranchInfo.getShortName());
-        }
-        
-        return super.shouldBeEnabled();
+        return super.shouldBeEnabled() && fBranchInfo != null && 
+                !fBranchInfo.isCurrentBranch() &&
+                !IGraficoConstants.MASTER.equals(fBranchInfo.getShortName());
     }
 }
