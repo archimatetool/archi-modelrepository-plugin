@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.views.branches;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AddBranchAction;
+import org.archicontribs.modelrepository.actions.DeleteBranchAction;
 import org.archicontribs.modelrepository.actions.SwitchBranchAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
@@ -21,6 +22,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -58,6 +60,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     private AddBranchAction fActionAddBranch;
     private SwitchBranchAction fActionSwitchBranch;
+    private DeleteBranchAction fActionDeleteBranch;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -144,13 +147,16 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         fActionSwitchBranch = new SwitchBranchAction(getViewSite().getWorkbenchWindow());
         fActionSwitchBranch.setEnabled(false);
+        
+        fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
+        fActionDeleteBranch.setEnabled(false);
     }
 
     /**
      * Hook into a right-click menu
      */
     private void hookContextMenu() {
-        MenuManager menuMgr = new MenuManager("#HistoryPopupMenu"); //$NON-NLS-1$
+        MenuManager menuMgr = new MenuManager("#BranchesPopupMenu"); //$NON-NLS-1$
         menuMgr.setRemoveAllWhenShown(true);
         
         menuMgr.addMenuListener(new IMenuListener() {
@@ -174,7 +180,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
-//        manager.add(new Separator());
+        manager.add(new Separator());
+        manager.add(fActionDeleteBranch);
     }
     
     /**
@@ -185,6 +192,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         fActionSwitchBranch.setBranch(branchInfo);
         fActionAddBranch.setBranch(branchInfo);
+        fActionDeleteBranch.setBranch(branchInfo);
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -192,7 +200,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
-//        manager.add(new Separator());
+        manager.add(new Separator());
+        manager.add(fActionDeleteBranch);
     }
 
     @Override
@@ -242,6 +251,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             // Update actions
             fActionAddBranch.setRepository(selectedRepository);
             fActionSwitchBranch.setRepository(selectedRepository);
+            fActionDeleteBranch.setRepository(selectedRepository);
         }
     }
     
@@ -250,6 +260,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         if(repository.equals(fSelectedRepository)) {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
+                    getBranchesViewer().doSetInput(repository);
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
