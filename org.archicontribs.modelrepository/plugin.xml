@@ -68,16 +68,6 @@
             id="org.archicontribs.modelrepository.command.deleteModel"
             name="Delete Model from Workspace">
       </command>
-      <command
-            defaultHandler="org.archicontribs.modelrepository.actions.AddBranchHandler"
-            id="org.archicontribs.modelrepository.command.addBranch"
-            name="Add Branch">
-      </command>
-      <command
-            defaultHandler="org.archicontribs.modelrepository.actions.SwitchBranchHandler"
-            id="org.archicontribs.modelrepository.command.switchBranch"
-            name="Switch Branch">
-      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -127,21 +117,6 @@
             </command>
             <separator
                   name="org.archicontribs.modelrepository.popup.separator2"
-                  visible="true">
-            </separator>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.addBranch"
-                  icon="img/new_branch_obj.png"
-                  style="push">
-            </command>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.switchBranch"
-                  icon="img/branches_obj.png"
-                  label="Switch Branch..."
-                  style="push">
-            </command>
-            <separator
-                  name="org.archicontribs.modelrepository.popup.separator3"
                   visible="true">
             </separator>
             <command
@@ -212,21 +187,6 @@
             </command>
             <separator
                   name="org.archicontribs.modelrepository.menu.separator2"
-                  visible="true">
-            </separator>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.addBranch"
-                  icon="img/new_branch_obj.png"
-                  style="push">
-            </command>
-            <command
-                  commandId="org.archicontribs.modelrepository.command.switchBranch"
-                  icon="img/branches_obj.png"
-                  label="Switch Branch..."
-                  style="push">
-            </command>
-            <separator
-                  name="org.archicontribs.modelrepository.menu.separator3"
                   visible="true">
             </separator>
             <command

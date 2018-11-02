@@ -9,10 +9,8 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.SwitchBranchDialog;
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jgit.api.Git;
@@ -31,18 +29,10 @@ public class SwitchBranchAction extends AbstractModelAction {
     private BranchInfo fBranchInfo;
     
     public SwitchBranchAction(IWorkbenchWindow window) {
-        this(window, null);
-    }
-	
-    public SwitchBranchAction(IWorkbenchWindow window, IArchimateModel model) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_BRANCHES));
         setText(Messages.SwitchBranchAction_0);
         setToolTipText(Messages.SwitchBranchAction_0);
-        
-        if(model != null) {
-            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
-        }
     }
 
     @Override

@@ -9,9 +9,7 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.AddBranchDialog;
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -22,7 +20,6 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.model.IArchimateModel;
 
 /**
  * Add a Branch
@@ -32,18 +29,10 @@ public class AddBranchAction extends AbstractModelAction {
     private BranchInfo fBranchInfo;
 	
     public AddBranchAction(IWorkbenchWindow window) {
-        this(window, null);
-    }
-
-    public AddBranchAction(IWorkbenchWindow window, IArchimateModel model) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_NEW_BRANCH));
         setText(Messages.AddBranchAction_0);
         setToolTipText(Messages.AddBranchAction_0);
-        
-        if(model != null) {
-            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
-        }
     }
 
     @Override
