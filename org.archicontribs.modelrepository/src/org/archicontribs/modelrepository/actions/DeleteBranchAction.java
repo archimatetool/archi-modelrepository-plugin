@@ -41,20 +41,23 @@ public class DeleteBranchAction extends AbstractModelAction {
             return;
         }
         
+        // Keep a local reference in case of a notification event changing the current branch selection in the UI
+        BranchInfo branchInfo = fBranchInfo;
+
         boolean response = MessageDialog.openConfirm(fWindow.getShell(),
                 "Delete Branch",
-                NLS.bind("Are you sure you want to delete branch ''{0}''?", fBranchInfo.getShortName()));
+                NLS.bind("Are you sure you want to delete branch ''{0}''?", branchInfo.getShortName()));
         if(!response) {
             return;
         }
         
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Delete local branch and remote branch refs
-            git.branchDelete().setBranchNames(fBranchInfo.getLocalBranchNameFor(),
-                    fBranchInfo.getRemoteBranchNameFor()).setForce(true).call();
+            git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
+                    branchInfo.getRemoteBranchNameFor()).setForce(true).call();
             
             // Was just a local branch
-            if(fBranchInfo.isLocal() && !fBranchInfo.hasTrackedRef()) {
+            if(branchInfo.isLocal() && !branchInfo.hasTrackedRef()) {
                 return;
             }
             
@@ -67,7 +70,7 @@ public class DeleteBranchAction extends AbstractModelAction {
             // Delete remote branch
             PushCommand pushCommand = git.push();
             pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(up.getUsername(), up.getPassword()));
-            RefSpec refSpec = new RefSpec( ":" + fBranchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
+            RefSpec refSpec = new RefSpec( ":" + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
             pushCommand.setRefSpecs(refSpec);
             pushCommand.setRemote(IGraficoConstants.ORIGIN);
             pushCommand.call();

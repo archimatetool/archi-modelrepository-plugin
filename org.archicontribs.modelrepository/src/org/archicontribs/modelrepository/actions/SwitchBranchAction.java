@@ -8,11 +8,9 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.dialogs.SwitchBranchDialog;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -37,6 +35,13 @@ public class SwitchBranchAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        if(!shouldBeEnabled()) {
+            return;
+        }
+
+        // Keep a local reference in case of a notification event changing the current branch selection in the UI
+        BranchInfo branchInfo = fBranchInfo;
+        
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -55,33 +60,18 @@ public class SwitchBranchAction extends AbstractModelAction {
         }
         
         // Then offer to Commit
+        boolean notifyHistoryChanged = false;
+        
         try {
             if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
                 }
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+                notifyHistoryChanged = true;
             }
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
-        }
-        
-        BranchInfo branchInfo = null;
-        
-        // Open dialog if no branch info
-        if(fBranchInfo != null) {
-            branchInfo = fBranchInfo;
-        }
-        else {
-            SwitchBranchDialog dialog = new SwitchBranchDialog(fWindow.getShell(), getRepository());
-            int retVal = dialog.open();
-
-            branchInfo = dialog.getBranchInfo();
-
-            if(retVal == IDialogConstants.CANCEL_ID || branchInfo == null) {
-                return;
-            }
         }
         
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
@@ -105,9 +95,6 @@ public class SwitchBranchAction extends AbstractModelAction {
                 git.checkout().setName(ref.getName()).call();
             }
             
-            // Notify listeners
-            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
-
             // Reload the model from the Grafico XML files
             new GraficoModelLoader(getRepository()).loadModel();
             
@@ -117,6 +104,14 @@ public class SwitchBranchAction extends AbstractModelAction {
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
+        
+        // Notify listeners last because a new UI selection will trigger an updated BranchInfo here
+        
+        if(notifyHistoryChanged) {
+            notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        }
+        
+        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
     public void setBranch(BranchInfo branchInfo) {
@@ -126,10 +121,6 @@ public class SwitchBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        if(fBranchInfo != null) {
-            return super.shouldBeEnabled() && !fBranchInfo.isCurrentBranch();
-        }
-        
-        return super.shouldBeEnabled();
+        return fBranchInfo != null && !fBranchInfo.isCurrentBranch() && super.shouldBeEnabled();
     }
 }
