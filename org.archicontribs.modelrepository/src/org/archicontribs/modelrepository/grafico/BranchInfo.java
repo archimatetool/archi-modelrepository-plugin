@@ -20,17 +20,20 @@ public class BranchInfo {
     
     private Ref ref;
     private String shortName;
-    private boolean isPublished;
-    private boolean isDeleted;
+    private boolean isRemoteDeleted;
     private boolean isCurrentBranch;
     private boolean hasTrackedRef;
+    private boolean hasLocalRef;
+    private boolean hasRemoteRef;
     
     BranchInfo(Repository repository, Ref ref) throws IOException {
         this.ref = ref;
         
-        isPublished = getIsPublished(repository);
+        hasLocalRef = getHasLocalRef(repository);
+        hasRemoteRef = getHasRemoteRef(repository);
         hasTrackedRef = getHasTrackedRef(repository);
-        isDeleted = getIsDeleted(repository);
+
+        isRemoteDeleted = getIsRemoteDeleted(repository);
         isCurrentBranch = getIsCurrentBranch(repository);
     }
     
@@ -57,12 +60,16 @@ public class BranchInfo {
         return getFullName().startsWith(BranchStatus.remotePrefix);
     }
 
-    public boolean isPublished() {
-        return isPublished;
+    public boolean hasLocalRef() {
+        return hasLocalRef;
     }
 
-    public boolean isDeleted() {
-        return isDeleted;
+    public boolean hasRemoteRef() {
+        return hasRemoteRef;
+    }
+
+    public boolean isRemoteDeleted() {
+        return isRemoteDeleted;
     }
 
     public boolean isCurrentBranch() {
@@ -81,28 +88,29 @@ public class BranchInfo {
         return BranchStatus.localPrefix + getShortName();
     }
 
-    private boolean getHasTrackedRef(Repository repository) throws IOException {
-        Ref ref = null;
-        if(isLocal()) {
-            ref = repository.findRef(getRemoteBranchNameFor());
-        }
-        else {
-            ref = repository.findRef(getLocalBranchNameFor());
-        }
-        return ref != null;
-    }
-    
-    private boolean getIsPublished(Repository repository) throws IOException {
-        return repository.findRef(BranchStatus.remotePrefix + getShortName()) != null;
+    private boolean getHasLocalRef(Repository repository) throws IOException {
+        return repository.findRef(getLocalBranchNameFor()) != null;
     }
 
+    private boolean getHasRemoteRef(Repository repository) throws IOException {
+        return repository.findRef(getRemoteBranchNameFor()) != null;
+    }
+
+    private boolean getHasTrackedRef(Repository repository) throws IOException {
+        if(isRemote()) {
+            return getHasLocalRef(repository);
+        }
+        
+        return getHasRemoteRef(repository);
+    }
+    
     /*
-     * "Deleted" means
-     * 1. It has a local branch ref
-     * 2. It does not have a remote branch ref
-     * 3. It is being tracked
+     * Figure out whether the remote branch has been deleted
+     * 1. We have a local branch ref
+     * 2. We are tracking it
+     * 3. But it does not have a remote branch ref
      */
-    private boolean getIsDeleted(Repository repository) throws IOException {
+    private boolean getIsRemoteDeleted(Repository repository) throws IOException {
         if(isRemote()) {
             return false;
         }
@@ -111,9 +119,10 @@ public class BranchInfo {
         BranchConfig branchConfig = new BranchConfig(repository.getConfig(), getShortName());
         boolean isBeingTracked = branchConfig.getRemoteTrackingBranch() != null;
         
-        // Does it have a remote ref
+        // Does it have a remote ref?
         boolean hasNoRemoteBranchFor = repository.findRef(getRemoteBranchNameFor()) == null;
         
+        // Is being tracked but no remote ref
         return isBeingTracked && hasNoRemoteBranchFor;
     }
 

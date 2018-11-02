@@ -63,17 +63,6 @@ public class BranchesTableViewer extends TableViewer {
         column.getColumn().setText("Status");
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(40, false));
 
-        column = new TableViewerColumn(this, SWT.NONE, 2);
-        column.getColumn().setText("Local");
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
-    
-        column = new TableViewerColumn(this, SWT.NONE, 3);
-        column.getColumn().setText("Remote");
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
-
-        column = new TableViewerColumn(this, SWT.NONE, 4);
-        column.getColumn().setText("Tracked");
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
     }
     
     public void doSetInput(IArchiRepository archiRepo) {
@@ -148,16 +137,15 @@ public class BranchesTableViewer extends TableViewer {
                     return name;
 
                 case 1:
-                    if(branchInfo.isDeleted()) {
+                    if(branchInfo.isRemoteDeleted()) {
                         return "Deleted";
                     }
-                    if(branchInfo.isPublished()) {
-                        return "Published";
+                    if(branchInfo.hasRemoteRef()) {
+                        return "Available";
                     }
                     else {
                         return "Unpublished";
                     }
-                    //return "";
                     
                 default:
                     return null;
@@ -178,24 +166,6 @@ public class BranchesTableViewer extends TableViewer {
                 switch(cell.getColumnIndex()) {
                     case 0:
                         cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_BRANCH));
-                        break;
-                        
-                    case 2:
-                        if(branchInfo.isLocal()) {
-                            cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_TICK));
-                        }
-                        break;
-
-                    case 3:
-                        if(branchInfo.isRemote()) {
-                            cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_TICK));
-                        }
-                        break;
-
-                    case 4:
-                        if(branchInfo.hasTrackedRef()) {
-                            cell.setImage(IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_TICK));
-                        }
                         break;
 
                     default:

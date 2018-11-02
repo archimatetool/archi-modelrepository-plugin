@@ -108,11 +108,11 @@ public class SwitchBranchDialog extends TitleAreaDialog {
                 BranchInfo branchInfo = (BranchInfo)element;
                 String name = branchInfo.getShortName();
                 
-                if(branchInfo.isDeleted()) {
+                if(branchInfo.isRemoteDeleted()) {
                     name += " (deleted)";
                 }
-                else if(branchInfo.isPublished()) {
-                    name += " (published)";
+                else if(branchInfo.hasRemoteRef()) {
+                    name += " (available)";
                 }
                 else {
                     name += " (unpublished)";
