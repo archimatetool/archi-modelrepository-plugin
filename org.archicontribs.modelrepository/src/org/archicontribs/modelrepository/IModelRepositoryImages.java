@@ -31,6 +31,7 @@ public interface IModelRepositoryImages {
     String ICON_CREATE_REPOSITORY = IMGPATH + "createRepository.png"; //$NON-NLS-1$
     String ICON_DELETE = IMGPATH + "delete.png"; //$NON-NLS-1$
     String ICON_HISTORY_VIEW = IMGPATH + "history_view.png"; //$NON-NLS-1$
+    String ICON_MERGE = IMGPATH + "merge.png"; //$NON-NLS-1$
     String ICON_MODEL = IMGPATH + "elements_obj.png"; //$NON-NLS-1$
     String ICON_NEW_BRANCH = IMGPATH + "new_branch_obj.png"; //$NON-NLS-1$
     String ICON_OPEN = IMGPATH + "open.png"; //$NON-NLS-1$

@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.views.branches;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AddBranchAction;
 import org.archicontribs.modelrepository.actions.DeleteBranchAction;
+import org.archicontribs.modelrepository.actions.MergeBranchAction;
 import org.archicontribs.modelrepository.actions.SwitchBranchAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
@@ -60,6 +61,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     private AddBranchAction fActionAddBranch;
     private SwitchBranchAction fActionSwitchBranch;
+    private MergeBranchAction fActionMergeBranch;
     private DeleteBranchAction fActionDeleteBranch;
     
     @Override
@@ -148,6 +150,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionSwitchBranch = new SwitchBranchAction(getViewSite().getWorkbenchWindow());
         fActionSwitchBranch.setEnabled(false);
         
+        fActionMergeBranch = new MergeBranchAction(getViewSite().getWorkbenchWindow());
+        fActionMergeBranch.setEnabled(false);
+        
         fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
         fActionDeleteBranch.setEnabled(false);
     }
@@ -180,6 +185,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
+        manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
     }
@@ -192,6 +198,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         BranchInfo branchInfo = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
         fActionSwitchBranch.setBranch(branchInfo);
         fActionAddBranch.setBranch(branchInfo);
+        fActionMergeBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);
     }
     
@@ -200,6 +207,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
         manager.add(fActionAddBranch);
         manager.add(fActionSwitchBranch);
+        manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
     }
@@ -251,6 +259,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             // Update actions
             fActionAddBranch.setRepository(selectedRepository);
             fActionSwitchBranch.setRepository(selectedRepository);
+            fActionMergeBranch.setRepository(selectedRepository);
             fActionDeleteBranch.setRepository(selectedRepository);
         }
     }
