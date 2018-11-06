@@ -51,18 +51,13 @@ public class SwitchBranchAction extends AbstractModelAction {
             }
         }
         
-        // Do the Grafico Export first
-        try {
-            getRepository().exportModelToGraficoFiles();
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.SwitchBranchAction_0, ex);
-        }
-        
-        // Then offer to Commit
         boolean notifyHistoryChanged = false;
         
         try {
+            // Do the Grafico Export first
+            getRepository().exportModelToGraficoFiles();
+
+            // Then offer to Commit
             if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
@@ -72,11 +67,11 @@ public class SwitchBranchAction extends AbstractModelAction {
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
+            return;
         }
         
+        // Switch branch
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            // Switch branch
-            
             // If the branch is local just checkout
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();

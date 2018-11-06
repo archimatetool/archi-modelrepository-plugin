@@ -67,16 +67,11 @@ public class MergeBranchAction extends AbstractModelAction {
             }
         }
         
-        // Do the Grafico Export first
         try {
+            // Do the Grafico Export first
             getRepository().exportModelToGraficoFiles();
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.MergeBranchAction_1, ex);
-        }
-        
-        // Then offer to Commit
-        try {
+            
+            // Then offer to Commit
             if(getRepository().hasChangesToCommit()) {
                 if(!offerToCommitChanges()) {
                     return;
@@ -85,8 +80,10 @@ public class MergeBranchAction extends AbstractModelAction {
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
+            return;
         }
-        
+
+        // Attempt a merge
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
             
