@@ -11,6 +11,7 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -160,8 +161,13 @@ public class RefreshModelAction extends AbstractModelAction {
 
         // Merge failure
         if(!pullResult[0].isSuccessful() && pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
+            // Get the remote ref name
+            BranchStatus status = getRepository().getBranchStatus();
+            String remoteRef = status.getCurrentRemoteBranch().getFullName();
+            
             // Try to handle the merge conflict
-            MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), getRepository(), fWindow.getShell());
+            MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), remoteRef,
+                    getRepository(), fWindow.getShell());
             
             ps.busyCursorWhile(new IRunnableWithProgress() {
                 public void run(IProgressMonitor pm) {

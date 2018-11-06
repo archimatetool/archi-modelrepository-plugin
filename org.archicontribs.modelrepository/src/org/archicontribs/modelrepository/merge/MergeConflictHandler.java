@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.archicontribs.modelrepository.grafico.BranchInfo;
-import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -52,15 +50,18 @@ public class MergeConflictHandler {
     private MergeResult fMergeResult;
     private Shell fShell;
     
+    private String fTheirRef;
+    
     private List<MergeObjectInfo> fMergeObjectInfos;
     
     private IArchimateModel fOurModel, fTheirModel;
     
     private IProgressMonitor fProgressMonitor;
 
-    public MergeConflictHandler(MergeResult mergeResult, IArchiRepository repo, Shell shell) {
+    public MergeConflictHandler(MergeResult mergeResult, String theirRef, IArchiRepository repo, Shell shell) {
         fMergeResult = mergeResult;
         fArchiRepo = repo;
+        fTheirRef = theirRef;
         fShell = shell;
     }
     
@@ -79,7 +80,7 @@ public class MergeConflictHandler {
         }
         
         // Their model needs to be extracted
-        fTheirModel = extractModel(getRemoteRef());
+        fTheirModel = extractModel(getTheirRef());
         
         // Create Merge Infos
         fMergeObjectInfos = new ArrayList<MergeObjectInfo>();
@@ -152,24 +153,22 @@ public class MergeConflictHandler {
     }
     
     String getLocalRef() {
+        // We assume that we are at HEAD
         return IGraficoConstants.HEAD;
     }
     
-    String getRemoteRef() throws IOException, GitAPIException {
-        BranchStatus status = getArchiRepository().getBranchStatus();
-        if(status != null) {
-            BranchInfo currentRemoteBranch = status.getCurrentRemoteBranch();
-            return currentRemoteBranch == null ? null : currentRemoteBranch.getFullName();
-        }
-        return null;
+    String getTheirRef() {
+        return fTheirRef;
     }
     
     public void resetToLocalState() throws IOException, GitAPIException {
-        resetToState(getLocalRef());
-    }
-    
-    public void resetToRemoteState() throws IOException, GitAPIException {
-        resetToState(getRemoteRef());
+        // Reset HARD  which will lose all changes
+        try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
+            ResetCommand resetCommand = git.reset();
+            resetCommand.setRef(getLocalRef());
+            resetCommand.setMode(ResetType.HARD);
+            resetCommand.call();
+        }
     }
     
     // Check out conflicting files either from us or them
@@ -178,16 +177,6 @@ public class MergeConflictHandler {
         checkoutCommand.setStage(stage);
         checkoutCommand.addPaths(paths);
         checkoutCommand.call();
-    }
-    
-    private void resetToState(String ref) throws IOException, GitAPIException {
-        // Reset HARD  which will lose all changes
-        try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
-            ResetCommand resetCommand = git.reset();
-            resetCommand.setRef(ref);
-            resetCommand.setMode(ResetType.HARD);
-            resetCommand.call();
-        }
     }
     
     IArchiRepository getArchiRepository() {

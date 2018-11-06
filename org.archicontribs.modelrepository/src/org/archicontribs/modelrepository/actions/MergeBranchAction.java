@@ -99,7 +99,8 @@ public class MergeBranchAction extends AbstractModelAction {
                 Exception[] exception = new Exception[1];
                 
                 // Try to handle the merge conflict
-                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, getRepository(), fWindow.getShell());
+                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, branchInfo.getShortName(),
+                        getRepository(), fWindow.getShell());
                 
                 IProgressService ps = PlatformUI.getWorkbench().getProgressService();
                 ps.busyCursorWhile(new IRunnableWithProgress() {
