@@ -17,10 +17,8 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CheckoutCommand.Stage;
-import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand;
@@ -29,7 +27,6 @@ import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -121,34 +118,6 @@ public class MergeConflictHandler {
             if(!theirs.isEmpty()) {
                 checkout(git, Stage.THEIRS, theirs);
             }
-        }
-    }
-    
-    /**
-     * Do a merge followed by a commit
-     * @param commitMessage
-     * @param amend
-     * @throws IOException
-     * @throws GitAPIException
-     */
-    public void mergeAndCommit(String commitMessage, boolean amend) throws IOException, GitAPIException {
-        merge();
-        
-        // Commit
-        try(Git git = Git.open(fArchiRepo.getLocalRepositoryFolder())) {
-            // Add to index all files
-            AddCommand addCommand = git.add();
-            addCommand.addFilepattern("."); //$NON-NLS-1$
-            addCommand.setUpdate(false);
-            addCommand.call();
-            
-            // Commit
-            CommitCommand commitCommand = git.commit();
-            PersonIdent userDetails = fArchiRepo.getUserDetails();
-            commitCommand.setAuthor(userDetails);
-            commitCommand.setMessage(commitMessage);
-            commitCommand.setAmend(amend);
-            commitCommand.call();
         }
     }
     
