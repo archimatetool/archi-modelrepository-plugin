@@ -140,9 +140,6 @@ public class MergeBranchAction extends AbstractModelAction {
             GraficoModelLoader loader = new GraficoModelLoader(getRepository());
             loader.loadModel();
             
-            // Save the checksum
-            getRepository().saveChecksum();
-
             // Do a commit if needed
             if(getRepository().hasChangesToCommit()) {
                 String commitMessage = "Resolve Merge";
