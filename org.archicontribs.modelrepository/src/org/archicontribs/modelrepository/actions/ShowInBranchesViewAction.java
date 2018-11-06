@@ -21,8 +21,8 @@ public class ShowInBranchesViewAction extends AbstractModelAction {
     public ShowInBranchesViewAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_BRANCHES));
-        setText("Show Branches");
-        setToolTipText("Show Branches");
+        setText(Messages.ShowInBranchesViewAction_0);
+        setToolTipText(Messages.ShowInBranchesViewAction_0);
     }
     
     @Override

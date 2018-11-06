@@ -58,6 +58,10 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_7;
 
+    public static String DeleteBranchAction_0;
+
+    public static String DeleteBranchAction_1;
+
     public static String DeleteModelAction_0;
 
     public static String DeleteModelAction_1;
@@ -69,6 +73,14 @@ public class Messages extends NLS {
     public static String ExtractModelFromCommitAction_1;
 
     public static String ExtractModelFromCommitAction_2;
+
+    public static String MergeBranchAction_0;
+
+    public static String MergeBranchAction_1;
+
+    public static String MergeBranchAction_2;
+
+    public static String MergeBranchAction_3;
 
     public static String OpenModelAction_0;
 
@@ -103,6 +115,8 @@ public class Messages extends NLS {
     public static String RestoreCommitAction_3;
 
     public static String RestoreCommitAction_4;
+
+    public static String ShowInBranchesViewAction_0;
 
     public static String ShowInHistoryAction_0;
 

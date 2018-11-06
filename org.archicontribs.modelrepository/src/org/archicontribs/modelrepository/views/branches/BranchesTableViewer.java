@@ -56,11 +56,11 @@ public class BranchesTableViewer extends TableViewer {
         TableColumnLayout tableLayout = (TableColumnLayout)parent.getLayout();
         
         TableViewerColumn column = new TableViewerColumn(this, SWT.NONE, 0);
-        column.getColumn().setText("Branch");
+        column.getColumn().setText(Messages.BranchesTableViewer_0);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(50, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 1);
-        column.getColumn().setText("Status");
+        column.getColumn().setText(Messages.BranchesTableViewer_1);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(40, false));
 
     }
@@ -132,19 +132,19 @@ public class BranchesTableViewer extends TableViewer {
                 case 0:
                     String name = branchInfo.getShortName();
                     if(branchInfo.isCurrentBranch()) {
-                        name += " " + "(current)";
+                        name += " " + Messages.BranchesTableViewer_2; //$NON-NLS-1$
                     }
                     return name;
 
                 case 1:
                     if(branchInfo.isRemoteDeleted()) {
-                        return "Deleted";
+                        return Messages.BranchesTableViewer_3;
                     }
                     if(branchInfo.hasRemoteRef()) {
-                        return "Available";
+                        return Messages.BranchesTableViewer_4;
                     }
                     else {
-                        return "Unpublished";
+                        return Messages.BranchesTableViewer_5;
                     }
                     
                 default:

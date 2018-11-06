@@ -108,7 +108,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         // Repository name
         fRepoLabel = new Label(mainComp, SWT.NONE);
         fRepoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        fRepoLabel.setText("Model:");
+        fRepoLabel.setText(Messages.BranchesView_0);
     }
 
     private void createTableSection(Composite parent) {
@@ -251,7 +251,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fSelectedRepository = selectedRepository;
 
             // Set label text
-            fRepoLabel.setText("Model:" + " " + selectedRepository.getName()); //$NON-NLS-2$
+            fRepoLabel.setText(Messages.BranchesView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
             
             // Set Branches
             getBranchesViewer().doSetInput(selectedRepository);
@@ -273,13 +273,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
-                    fRepoLabel.setText("Model:");
+                    fRepoLabel.setText(Messages.BranchesView_0);
                     getBranchesViewer().setInput(""); //$NON-NLS-1$
                     fSelectedRepository = null; // Reset this
                     break;
                     
                 case IRepositoryListener.REPOSITORY_CHANGED:
-                    fRepoLabel.setText("Model:" + " " + repository.getName()); //$NON-NLS-2$
+                    fRepoLabel.setText(Messages.BranchesView_0 + " " + repository.getName()); //$NON-NLS-1$
                     break;
 
                 case IRepositoryListener.BRANCHES_CHANGED:
@@ -313,6 +313,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     }
 
     public String getSearchExpression(Object target) {
-        return "Branches View";
+        return Messages.BranchesView_1;
     }
 }

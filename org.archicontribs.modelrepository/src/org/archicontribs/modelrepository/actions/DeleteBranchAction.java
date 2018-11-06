@@ -31,8 +31,8 @@ public class DeleteBranchAction extends AbstractModelAction {
     public DeleteBranchAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
-        setText("Delete Branch");
-        setToolTipText("Delete Branch");
+        setText(Messages.DeleteBranchAction_0);
+        setToolTipText(Messages.DeleteBranchAction_0);
     }
 
     @Override
@@ -45,8 +45,8 @@ public class DeleteBranchAction extends AbstractModelAction {
         BranchInfo branchInfo = fBranchInfo;
 
         boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                "Delete Branch",
-                NLS.bind("Are you sure you want to delete branch ''{0}''?", branchInfo.getShortName()));
+                Messages.DeleteBranchAction_0,
+                NLS.bind(Messages.DeleteBranchAction_1, branchInfo.getShortName()));
         if(!response) {
             return;
         }
@@ -76,7 +76,7 @@ public class DeleteBranchAction extends AbstractModelAction {
             pushCommand.call();
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Delete Branch", ex);
+            displayErrorDialog(Messages.DeleteBranchAction_0, ex);
         }
         finally {
             // Notify listeners

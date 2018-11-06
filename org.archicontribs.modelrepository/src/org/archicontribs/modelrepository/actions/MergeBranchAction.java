@@ -37,8 +37,8 @@ public class MergeBranchAction extends AbstractModelAction {
     public MergeBranchAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_MERGE));
-        setText("Merge Branch into Current Branch");
-        setToolTipText("Merge Branch");
+        setText(Messages.MergeBranchAction_0);
+        setToolTipText(Messages.MergeBranchAction_1);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MergeBranchAction extends AbstractModelAction {
             getRepository().exportModelToGraficoFiles();
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Merge Branch", ex);
+            displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
         
         // Then offer to Commit
@@ -76,13 +76,13 @@ public class MergeBranchAction extends AbstractModelAction {
             }
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Merge Branch", ex);
+            displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
         
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
             
-            String message = "Merged branch" + " '" +  branchInfo.getShortName() + "'";
+            String message = Messages.MergeBranchAction_2 + " '" +  branchInfo.getShortName() + "'";  //$NON-NLS-1$ //$NON-NLS-2$
             
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
@@ -142,7 +142,7 @@ public class MergeBranchAction extends AbstractModelAction {
             
             // Do a commit if needed
             if(getRepository().hasChangesToCommit()) {
-                String commitMessage = "Resolve Merge";
+                String commitMessage = Messages.MergeBranchAction_3;
                 
                 // Did we restore any missing objects?
                 String restoredObjects = loader.getRestoredObjectsAsString();
@@ -157,7 +157,7 @@ public class MergeBranchAction extends AbstractModelAction {
 
         }
         catch(Exception ex) {
-            displayErrorDialog("Merge Branch", ex);
+            displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
 
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
