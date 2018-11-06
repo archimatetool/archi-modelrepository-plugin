@@ -13,6 +13,7 @@ import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -20,6 +21,7 @@ import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -49,6 +51,12 @@ public class MergeBranchAction extends AbstractModelAction {
 
         // Keep a local reference in case of a notification event changing the current branch selection in the UI
         BranchInfo branchInfo = fBranchInfo;
+        
+        if(!MessageDialog.openConfirm(fWindow.getShell(), Messages.MergeBranchAction_1,
+                NLS.bind(Messages.MergeBranchAction_4,
+                        branchInfo.getShortName()))) {
+            return;
+        }
         
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync

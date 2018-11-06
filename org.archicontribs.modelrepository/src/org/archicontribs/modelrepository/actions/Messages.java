@@ -82,6 +82,8 @@ public class Messages extends NLS {
 
     public static String MergeBranchAction_3;
 
+    public static String MergeBranchAction_4;
+
     public static String OpenModelAction_0;
 
     public static String OpenModelAction_1;
