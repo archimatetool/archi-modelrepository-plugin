@@ -178,7 +178,10 @@ public class MergeBranchAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
-        return fBranchInfo != null && !fBranchInfo.isCurrentBranch() && super.shouldBeEnabled();
+        return fBranchInfo != null
+                && !fBranchInfo.isCurrentBranch() // Not current branch
+                && fBranchInfo.isLocal() // Has to be local
+                && super.shouldBeEnabled();
     }
 
 }
