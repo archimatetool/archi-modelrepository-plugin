@@ -111,7 +111,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 break;
 
             default:
-                refresh(repository);
+                refresh();
                 break;
         }
     }
