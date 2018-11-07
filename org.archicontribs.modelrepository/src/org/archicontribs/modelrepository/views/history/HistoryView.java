@@ -276,7 +276,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         // Disable actions if our selected branch is not actually the current branch
         BranchInfo selectedBranch = (BranchInfo)getBranchesViewer().getStructuredSelection().getFirstElement();
-        boolean isCurrentBranch = selectedBranch.isCurrentBranch();
+        boolean isCurrentBranch = selectedBranch != null && selectedBranch.isCurrentBranch();
         
         fActionRestoreCommit.setEnabled(isCurrentBranch && fActionRestoreCommit.isEnabled());
         fActionUndoLastCommit.setEnabled(isCurrentBranch && fActionUndoLastCommit.isEnabled());
