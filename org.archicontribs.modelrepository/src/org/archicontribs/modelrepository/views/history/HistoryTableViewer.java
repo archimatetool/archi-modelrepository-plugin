@@ -20,7 +20,6 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ILazyContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -34,7 +33,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 
@@ -107,18 +105,11 @@ public class HistoryTableViewer extends TableViewer {
         // Do the Layout kludge
         ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
 
-        // Select first row - this needs to be threaded
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                if(!getTable().isDisposed()) {
-                    Object element = getElementAt(0);
-                    if(element != null) {
-                        setSelection(new StructuredSelection(element));
-                    }
-                }
-            }
-        });
+        // Select first row
+        //Object element = getElementAt(0);
+        //if(element != null) {
+        //    setSelection(new StructuredSelection(element), true);
+        //}
     }
     
     public void setLocalBranch(BranchInfo branchInfo) {
