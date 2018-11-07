@@ -112,6 +112,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          * Listen to Selections to update local Actions
          */
         getViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions(event.getSelection());
                 updateStatusBar(event.getSelection());
@@ -122,11 +123,13 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
          * Listen to Double-click Action
          */
         getViewer().addDoubleClickListener(new IDoubleClickListener() {
+            @Override
             public void doubleClick(DoubleClickEvent event) {
                 Object obj = ((IStructuredSelection)event.getSelection()).getFirstElement();
                 if(obj instanceof IArchiRepository) {
                     IArchiRepository repo = (IArchiRepository)obj;
                     BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+                        @Override
                         public void run() {
                             IEditorModelManager.INSTANCE.openModel(repo.getTempModelFile());
                         }
@@ -195,6 +198,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         menuMgr.setRemoveAllWhenShown(true);
         
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 fillContextMenu(manager);
             }
@@ -229,6 +233,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
         
         IPropertyChangeListener listener = new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 fetchAction.setChecked(store.getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND));
             }
@@ -237,6 +242,7 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
         store.addPropertyChangeListener(listener);
         
         getViewer().getControl().addDisposeListener(new DisposeListener() {
+            @Override
             public void widgetDisposed(DisposeEvent e) {
                 store.removePropertyChangeListener(listener);
             }
@@ -353,14 +359,17 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
     //                       Contextual Help support
     // =================================================================================
     
+    @Override
     public int getContextChangeMask() {
         return NONE;
     }
 
+    @Override
     public IContext getContext(Object target) {
         return HelpSystem.getContext(HELP_ID);
     }
 
+    @Override
     public String getSearchExpression(Object target) {
         return Messages.ModelRepositoryView_0;
     }

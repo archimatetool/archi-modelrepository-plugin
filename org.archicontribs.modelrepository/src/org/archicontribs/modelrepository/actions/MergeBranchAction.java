@@ -109,6 +109,7 @@ public class MergeBranchAction extends AbstractModelAction {
                 
                 IProgressService ps = PlatformUI.getWorkbench().getProgressService();
                 ps.busyCursorWhile(new IRunnableWithProgress() {
+                    @Override
                     public void run(IProgressMonitor pm) {
                         try {
                             handler.init(pm);

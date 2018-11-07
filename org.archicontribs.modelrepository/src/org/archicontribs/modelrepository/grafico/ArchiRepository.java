@@ -398,6 +398,7 @@ public class ArchiRepository implements IArchiRepository {
         }
     }
     
+    @Override
     public void saveUserDetails(String name, String email) throws IOException {
         // Get global user details from .gitconfig for comparison
         PersonIdent global = new PersonIdent("", ""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -497,6 +498,7 @@ public class ArchiRepository implements IArchiRepository {
         return true;
     }
     
+    @Override
     public BranchStatus getBranchStatus() throws IOException, GitAPIException {
         return new BranchStatus(this);
     }

@@ -20,6 +20,7 @@ import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
  */
 public class ShowInHistoryViewHandler extends AbstractModelSelectionHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ShowInHistoryAction action = new ShowInHistoryAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
         action.run();

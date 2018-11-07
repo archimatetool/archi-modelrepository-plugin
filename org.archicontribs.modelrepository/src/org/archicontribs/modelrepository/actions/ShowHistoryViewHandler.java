@@ -20,6 +20,7 @@ import com.archimatetool.editor.ui.services.ViewManager;
  */
 public class ShowHistoryViewHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ViewManager.toggleViewPart(HistoryView.ID, true);
         return null;

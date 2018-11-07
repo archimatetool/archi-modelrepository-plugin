@@ -39,6 +39,7 @@ import com.archimatetool.editor.utils.StringUtils;
 public class UserDetailsSection extends AbstractArchiPropertySection {
     
     public static class Filter implements IFilter {
+        @Override
         public boolean select(Object object) {
             return object instanceof IArchiRepository;
         }

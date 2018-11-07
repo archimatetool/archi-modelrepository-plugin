@@ -20,6 +20,7 @@ import com.archimatetool.editor.ui.services.ViewManager;
  */
 public class ShowRepositoryViewHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ViewManager.toggleViewPart(ModelRepositoryView.ID, true);
         return null;

@@ -28,6 +28,7 @@ import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 public class RepoInfoSection extends AbstractArchiPropertySection {
     
     public static class Filter implements IFilter {
+        @Override
         public boolean select(Object object) {
             return object instanceof IArchiRepository;
         }

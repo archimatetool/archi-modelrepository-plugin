@@ -62,6 +62,7 @@ public class AddBranchDialog extends TitleAreaDialog {
         txtBranch = createTextField(container, Messages.AddBranchDialog_3, SWT.NONE);
         
         txtBranch.addVerifyListener(new VerifyListener() {
+            @Override
             public void verifyText(VerifyEvent e) {
                 String currentText = ((Text)e.widget).getText();
                 String newText = (currentText.substring(0, e.start) + e.text + currentText.substring(e.end));

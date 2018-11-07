@@ -30,6 +30,7 @@ public class RefreshFilesJob extends Job {
         fViewer = viewer;
         
         fViewer.getControl().addDisposeListener(new DisposeListener() {
+            @Override
             public void widgetDisposed(DisposeEvent e) {
                 cancel();
             }

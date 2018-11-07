@@ -18,6 +18,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
  */
 public class CloneModelHandler extends AbstractHandler {
     
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         CloneModelAction action = new CloneModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
         action.run();

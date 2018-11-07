@@ -21,6 +21,7 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class PushModelHandler extends AbstractModelSelectionHandler {
     
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         IArchimateModel model = getActiveArchimateModel();
         

@@ -30,6 +30,7 @@ public class OpenModelAction extends AbstractModelAction {
     @Override
     public void run() {
         BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
+            @Override
             public void run() {
                 IEditorModelManager.INSTANCE.openModel(getRepository().getTempModelFile());
             }

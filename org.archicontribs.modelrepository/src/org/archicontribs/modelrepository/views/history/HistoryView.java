@@ -139,6 +139,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
          * Listen to Branch Selections and forward on to History View
          */
         fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
                 getHistoryViewer().setLocalBranch(branchInfo);
@@ -172,6 +173,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
          * Listen to History Selections to update local Actions
          */
         fHistoryTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions();
             }
@@ -207,6 +209,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         menuMgr.setRemoveAllWhenShown(true);
         
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 fillContextMenu(manager);
             }
@@ -391,14 +394,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     //                       Contextual Help support
     // =================================================================================
     
+    @Override
     public int getContextChangeMask() {
         return NONE;
     }
 
+    @Override
     public IContext getContext(Object target) {
         return HelpSystem.getContext(HELP_ID);
     }
 
+    @Override
     public String getSearchExpression(Object target) {
         return Messages.HistoryView_1;
     }

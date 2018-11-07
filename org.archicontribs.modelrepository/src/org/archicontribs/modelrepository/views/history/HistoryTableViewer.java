@@ -139,12 +139,15 @@ public class HistoryTableViewer extends TableViewer {
      * The Model for the Table.
      */
     class HistoryContentProvider implements IStructuredContentProvider {
+        @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
         }
 
+        @Override
         public void dispose() {
         }
         
+        @Override
         public Object[] getElements(Object parent) {
             List<RevCommit> commits = new ArrayList<RevCommit>();
             localCommit = null;

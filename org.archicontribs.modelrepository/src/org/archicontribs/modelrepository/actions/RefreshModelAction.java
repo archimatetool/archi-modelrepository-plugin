@@ -122,6 +122,7 @@ public class RefreshModelAction extends AbstractModelAction {
         
         IProgressService ps = PlatformUI.getWorkbench().getProgressService();
         ps.busyCursorWhile(new IRunnableWithProgress() {
+            @Override
             public void run(IProgressMonitor pm) {
                 try {
                     pullResult[0] = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
@@ -170,6 +171,7 @@ public class RefreshModelAction extends AbstractModelAction {
                     getRepository(), fWindow.getShell());
             
             ps.busyCursorWhile(new IRunnableWithProgress() {
+                @Override
                 public void run(IProgressMonitor pm) {
                     try {
                         handler.init(pm);

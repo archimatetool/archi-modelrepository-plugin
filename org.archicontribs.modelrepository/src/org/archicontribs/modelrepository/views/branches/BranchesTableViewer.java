@@ -93,12 +93,15 @@ public class BranchesTableViewer extends TableViewer {
      * The Model for the Table.
      */
     class BranchesContentProvider implements IStructuredContentProvider {
+        @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
         }
 
+        @Override
         public void dispose() {
         }
         
+        @Override
         public Object[] getElements(Object parent) {
             IArchiRepository repo = (IArchiRepository)parent;
             

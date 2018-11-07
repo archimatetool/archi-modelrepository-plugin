@@ -41,6 +41,7 @@ public class FetchJob extends Job {
         fViewer = viewer;
         
         IPropertyChangeListener listener = new IPropertyChangeListener() {
+            @Override
             public void propertyChange(PropertyChangeEvent event) {
                 if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
                     if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
@@ -53,6 +54,7 @@ public class FetchJob extends Job {
         ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
         
         fViewer.getControl().addDisposeListener(new DisposeListener() {
+            @Override
             public void widgetDisposed(DisposeEvent e) {
                 ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
             }

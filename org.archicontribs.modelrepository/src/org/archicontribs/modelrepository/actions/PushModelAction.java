@@ -65,6 +65,7 @@ public class PushModelAction extends RefreshModelAction {
         
         IProgressService ps = PlatformUI.getWorkbench().getProgressService();
         ps.busyCursorWhile(new IRunnableWithProgress() {
+            @Override
             public void run(IProgressMonitor pm) {
                 try {
                     getRepository().pushToRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));

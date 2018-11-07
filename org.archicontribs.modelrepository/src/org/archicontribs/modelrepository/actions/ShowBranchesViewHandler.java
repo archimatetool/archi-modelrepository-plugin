@@ -20,6 +20,7 @@ import com.archimatetool.editor.ui.services.ViewManager;
  */
 public class ShowBranchesViewHandler extends AbstractHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ViewManager.toggleViewPart(BranchesView.ID, true);
         return null;

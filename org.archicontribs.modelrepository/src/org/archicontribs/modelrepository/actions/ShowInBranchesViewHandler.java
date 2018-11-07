@@ -20,6 +20,7 @@ import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
  */
 public class ShowInBranchesViewHandler extends AbstractModelSelectionHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ShowInBranchesViewAction action = new ShowInBranchesViewAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
         action.run();

@@ -193,6 +193,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         return commandLine.hasOption(OPTION_CLONE_MODEL) || commandLine.hasOption(OPTION_LOAD_MODEL);
     }
     
+    @Override
     public int getPriority() {
         return PRIORITY_LOAD_OR_CREATE_MODEL;
     }

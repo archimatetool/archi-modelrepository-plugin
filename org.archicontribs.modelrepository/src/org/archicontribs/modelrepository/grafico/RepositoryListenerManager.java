@@ -39,6 +39,7 @@ public class RepositoryListenerManager {
         
         for(IRepositoryListener listener : listeners) {
             SafeRunner.run(new SafeRunnable() {
+                @Override
                 public void run() {
                     listener.repositoryChanged(eventName, repository);
                 }

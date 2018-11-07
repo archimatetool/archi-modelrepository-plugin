@@ -362,6 +362,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         return new PersonIdent(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_NAME), getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
     }
     
+    @Override
     public void init(IWorkbench workbench) {
     }
 }

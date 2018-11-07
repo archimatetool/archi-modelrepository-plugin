@@ -107,6 +107,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             Exception[] exception = new Exception[1];
             IProgressService ps = PlatformUI.getWorkbench().getProgressService();
             ps.busyCursorWhile(new IRunnableWithProgress() {
+                @Override
                 public void run(IProgressMonitor pm) {
                     try {
                         getRepository().pushToRemote(userName, userPassword, new ProgressMonitorWrapper(pm));

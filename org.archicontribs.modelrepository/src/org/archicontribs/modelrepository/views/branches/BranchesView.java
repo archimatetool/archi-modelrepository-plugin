@@ -128,6 +128,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
          * Listen to Table Selections to update local Actions
          */
         fBranchesTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 updateActions();
             }
@@ -165,6 +166,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         menuMgr.setRemoveAllWhenShown(true);
         
         menuMgr.addMenuListener(new IMenuListener() {
+            @Override
             public void menuAboutToShow(IMenuManager manager) {
                 fillContextMenu(manager);
             }
@@ -304,14 +306,17 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     //                       Contextual Help support
     // =================================================================================
     
+    @Override
     public int getContextChangeMask() {
         return NONE;
     }
 
+    @Override
     public IContext getContext(Object target) {
         return HelpSystem.getContext(HELP_ID);
     }
 
+    @Override
     public String getSearchExpression(Object target) {
         return Messages.BranchesView_1;
     }

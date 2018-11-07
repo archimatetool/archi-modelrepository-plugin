@@ -22,6 +22,7 @@ import com.archimatetool.editor.ui.services.ViewManager;
  */
 public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
 
+    @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         ModelRepositoryView part = (ModelRepositoryView)ViewManager.showViewPart(ModelRepositoryView.ID, false);
         if(part != null && getActiveArchimateModel() != null) {

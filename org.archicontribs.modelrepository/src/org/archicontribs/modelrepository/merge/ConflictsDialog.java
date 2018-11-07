@@ -376,12 +376,15 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             // Properties Table Content Provider
             propertiesTableViewer.setContentProvider(new IStructuredContentProvider() {
+                @Override
                 public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
                 }
 
+                @Override
                 public void dispose() {
                 }
 
+                @Override
                 public Object[] getElements(Object inputElement) {
                     if(inputElement instanceof IProperties) {
                         return ((IProperties)inputElement).getProperties().toArray();
@@ -392,6 +395,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
             // Properties Table Label Provider
             class PropertiesLabelCellProvider extends LabelProvider implements ITableLabelProvider {
+                @Override
                 public Image getColumnImage(Object element, int columnIndex) {
                     return null;
                 }
@@ -623,12 +627,15 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         // Content Provider
         fTableViewer.setContentProvider(new IStructuredContentProvider() {
+            @Override
             public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
             }
 
+            @Override
             public void dispose() {
             }
 
+            @Override
             public Object[] getElements(Object inputElement) {
                 return fHandler.getMergeObjectInfos().toArray();
             }
@@ -652,6 +659,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     // Label Provider
     private class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         
+        @Override
         public Image getColumnImage(Object element, int columnIndex) {
             if(columnIndex == 0) {
                 MergeObjectInfo info = (MergeObjectInfo)element;
@@ -661,6 +669,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             return null;
         }
 
+        @Override
         public String getColumnText(Object element, int columnIndex) {
             MergeObjectInfo info = (MergeObjectInfo)element;
             EObject eObject = info.getDefaultEObject();
