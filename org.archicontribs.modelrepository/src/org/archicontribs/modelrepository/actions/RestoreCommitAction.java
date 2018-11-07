@@ -136,6 +136,10 @@ public class RestoreCommitAction extends AbstractModelAction {
     
     @Override
     protected boolean shouldBeEnabled() {
+        if(getRepository() == null) {
+            return false;
+        }
+        
         boolean isHead = false;
         try {
             isHead = isCommitLocalHead();
@@ -144,7 +148,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             ex.printStackTrace();
         }
         
-        return fCommit != null && getRepository() != null && !isHead;
+        return fCommit != null && !isHead;
     }
     
     protected boolean isCommitLocalHead() throws IOException {
