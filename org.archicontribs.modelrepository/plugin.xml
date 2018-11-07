@@ -6,57 +6,57 @@
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
-            name="Toggle Collaboration Workspace">
+            name="%command.name">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showHistoryView"
-            name="Toggle Change History">
+            name="%command.name.0">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
             id="org.archicontribs.modelrepository.command.createRepoFromModel"
-            name="Add Local Model to Workspace and Publish">
+            name="%command.name.1">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CloneModelHandler"
             id="org.archicontribs.modelrepository.command.cloneModel"
-            name="Import Remote Model to Workspace">
+            name="%command.name.2">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.RefreshModelHandler"
             id="org.archicontribs.modelrepository.command.refreshModel"
-            name="Refresh Model">
+            name="%command.name.3">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.CommitModelHandler"
             id="org.archicontribs.modelrepository.command.commitModel"
-            name="Commit Changes">
+            name="%command.name.4">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.PushModelHandler"
             id="org.archicontribs.modelrepository.command.pushModel"
-            name="Publish Changes">
+            name="%command.name.5">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.AbortChangesHandler"
             id="org.archicontribs.modelrepository.command.abortChanges"
-            name="Abort Uncommitted Changes">
+            name="%command.name.6">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInHistoryView"
-            name="Show Change History">
+            name="%command.name.7">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInRepositoryView"
-            name="Show in Collaboration Workspace">
+            name="%command.name.8">
       </command>
       <command
             defaultHandler="org.archicontribs.modelrepository.actions.DeleteModelHandler"
             id="org.archicontribs.modelrepository.command.deleteModel"
-            name="Delete Model from Workspace">
+            name="%command.name.9">
       </command>
    </extension>
    <extension
@@ -66,7 +66,7 @@
             locationURI="popup:com.archimatetool.editor.treeModelView?before=start_properties">
          <menu
                id="org.archicontribs.modelrepository.menu"
-               label="Collaboration">
+               label="%menu.label">
             <separator
                   name="org.archicontribs.modelrepository.popup.start"
                   visible="true">
@@ -130,7 +130,7 @@
             locationURI="menu:org.eclipse.ui.main.menu?after=tools">
          <menu
                id="repository"
-               label="Collaboration">
+               label="%menu.label.0">
             <command
                   commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
                   icon="img/createRepository.png"

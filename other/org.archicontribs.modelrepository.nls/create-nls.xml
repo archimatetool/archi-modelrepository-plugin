@@ -1,0 +1,119 @@
+<project name="Create NLS projects" default="run" basedir=".">
+  	
+	<description>
+		Create NLS language pack projects from source projects
+  	</description>
+	
+	<!-- Default/Start Target -->
+	<target name="run" depends="init_user, init_main, create_archi_projects" />
+	
+	<!-- USER MUST SET THESE VALUES -->
+	<target name="init_user">
+		<description>
+			Edit the following values.
+			"lang_code" shold be one of the language codes such as fr, de, nl, ru
+			"nls_version" should be the version of the language packs
+	  	</description>
+		<property name="lang_code"					value="en"/>
+		<property name="nls_version"				value="0.0.0"/>
+	</target>
+	
+	
+	
+	<target name="init_main">
+		<property name="file.manifest"				value="META-INF/MANIFEST.MF"/>
+		<property name="main.dir"    				value="nls"/>
+		<property name="project.dir"    			value="project"/>
+	</target>
+	
+	
+	
+	<target name="create_archi_projects">
+
+        <!-- org.archicontribs.modelrepository -->
+        <property name="modelrepository.prj.src"                value="org.archicontribs.modelrepository"/>
+        <property name="modelrepository.prj.tgt"                value="${modelrepository.prj.src}.${lang_code}"/>
+        <property name="modelrepository.loc.src"                location="../../${modelrepository.prj.src}"/>
+        <property name="modelrepository.loc.tgt"                location="../../${main.dir}/${modelrepository.prj.tgt}"/>
+		
+        <antcall target="create_archi_project">
+            <param name="prj.src"                   value="${modelrepository.prj.src}"/>
+            <param name="prj.tgt"                   value="${modelrepository.prj.tgt}"/>
+            <param name="loc.src"                   value="${modelrepository.loc.src}"/>
+            <param name="loc.tgt"                   value="${modelrepository.loc.tgt}"/>
+        </antcall>
+		<!--
+        <!- - org.archicontribs.modelrepository.commandline - ->
+        <property name="modelrepository.commandline.prj.src"                value="org.archicontribs.modelrepository.commandline"/>
+        <property name="modelrepository.commandline.prj.tgt"                value="${modelrepository.commandline.prj.src}.${lang_code}"/>
+        <property name="modelrepository.commandline.loc.src"                location="../../${modelrepository.prj.src}"/>
+        <property name="modelrepository.commandline.loc.tgt"                location="../../${main.dir}/${modelrepository.prj.tgt}"/>
+
+        <antcall target="create_archi_project">
+            <param name="prj.src"                   value="${modelrepository.commandline.prj.src}"/>
+            <param name="prj.tgt"                   value="${modelrepository.commandline.prj.tgt}"/>
+            <param name="loc.src"                   value="${modelrepository.commandline.loc.src}"/>
+            <param name="loc.tgt"                   value="${modelrepository.commandline.loc.tgt}"/>
+        </antcall>
+
+        <!- - org.archicontribs.modelrepository.tests - - >
+        <property name="modelrepository.tests.prj.src"                value="org.archicontribs.modelrepository.tests"/>
+        <property name="modelrepository.tests.prj.tgt"                value="${modelrepository.tests.prj.src}.${lang_code}"/>
+        <property name="modelrepository.tests.loc.src"                location="../../${modelrepository.prj.src}"/>
+        <property name="modelrepository.tests.loc.tgt"                location="../../${main.dir}/${modelrepository.prj.tgt}"/>
+
+        <antcall target="create_archi_project">
+            <param name="prj.src"                   value="${modelrepository.tests.prj.src}"/>
+            <param name="prj.tgt"                   value="${modelrepository.tests.prj.tgt}"/>
+            <param name="loc.src"                   value="${modelrepository.tests.loc.src}"/>
+            <param name="loc.tgt"                   value="${modelrepository.tests.loc.tgt}"/>
+        </antcall>
+		
+		<copy todir="${modelrepository.tests.loc.tgt}">
+			<fileset dir="${modelrepository.tests.loc.src}">
+				<include name="OSGI-INF/" />
+			</fileset>
+		</copy>
+		
+		-->
+		
+	</target>
+	
+	<!-- Create target Archi NLS Project -->
+	<target name="create_archi_project">
+		<mkdir dir="${loc.tgt}/nl"/>
+		
+		<copy tofile="${loc.tgt}/.project" file="${project.dir}/project" overwrite="true" />
+		<copy tofile="${loc.tgt}/.classpath" file="${project.dir}/classpath" overwrite="true" />
+		<copy todir="${loc.tgt}" file="${project.dir}/build.properties" overwrite="true" />
+		<copy todir="${loc.tgt}/META-INF" file="${project.dir}/MANIFEST.MF" overwrite="true" />
+		
+		<replace file="${loc.tgt}/.project" token="!project-name!" value="${prj.src}.${lang_code}"/>
+		<replace file="${loc.tgt}/build.properties" token="_xx" value="_${lang_code}"/>
+		<replace file="${loc.tgt}/build.properties" token="!jar-name!" value="${prj.tgt}.jar"/>
+		
+		<replace file="${loc.tgt}/${file.manifest}" token="!bundle-name!" value="${prj.tgt}"/>
+		<replace file="${loc.tgt}/${file.manifest}" token="!bundle-classpath!" value="${prj.tgt}.jar"/>
+		<replace file="${loc.tgt}/${file.manifest}" token="!fragment-host!" value="${prj.src}"/>
+		<replace file="${loc.tgt}/${file.manifest}" token="!nls-version!" value="${nls_version}"/>
+		
+		<antcall target="copy_properties_files">
+			<param name="in.dir"  					value="${loc.src}"/>
+			<param name="out.dir"  					value="${loc.tgt}"/>
+		</antcall>
+	</target>
+	
+	
+	
+	<!-- Copy *.properties files in src folder and rename them to *._xx.properties -->
+	<target name="copy_properties_files">
+		<copy todir="${out.dir}">
+			<fileset dir="${in.dir}">
+				<include name="src/**/*.properties" />
+				<include name="plugin.properties" />
+			</fileset>
+			<mapper type="glob" from="*.properties" to="*_${lang_code}.properties"/>
+		</copy>
+	</target>
+
+</project>

@@ -34,7 +34,7 @@ import com.archimatetool.model.IArchimateModel;
 
 /**
  * Clone a model
- * 
+ *
  * 1. Get user credentials
  * 2. Check Proxy
  * 3. Clone from Remote
@@ -43,12 +43,12 @@ import com.archimatetool.model.IArchimateModel;
  * 6. Store user credentials if prefs agree
  */
 public class CloneModelAction extends AbstractModelAction {
-	
+
     public CloneModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE));
         setText(Messages.CloneModelAction_0);
-        setToolTipText(Messages.CloneModelAction_1);
+        setToolTipText(Messages.CloneModelAction_0);
     }
 
     @Override
@@ -57,18 +57,18 @@ public class CloneModelAction extends AbstractModelAction {
         if(dialog.open() != Window.OK) {
             return;
         }
-    	
+
         final String repoURL = dialog.getURL();
         final String userName = dialog.getUsername();
         final String userPassword = dialog.getPassword();
-        
+
         if(!StringUtils.isSet(repoURL) && !StringUtils.isSet(userName) && !StringUtils.isSet(userPassword)) {
             return;
         }
-        
+
         File localRepoFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                 GraficoUtils.getLocalGitFolderName(repoURL));
-        
+
         // Folder is not empty
         if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
             MessageDialog.openError(fWindow.getShell(),
@@ -77,18 +77,19 @@ public class CloneModelAction extends AbstractModelAction {
 
             return;
         }
-        
+
         setRepository(new ArchiRepository(localRepoFolder));
-        
+
         try {
             // Proxy check
             ProxyAuthenticater.update(repoURL);
-            
+
             // Clone
             Exception[] exception = new Exception[1];
             IProgressService ps = PlatformUI.getWorkbench().getProgressService();
             ps.busyCursorWhile(new IRunnableWithProgress() {
-                public void run(IProgressMonitor pm) {
+                @Override
+				public void run(IProgressMonitor pm) {
                     try {
                         getRepository().cloneModel(repoURL, userName, userPassword, new ProgressMonitorWrapper(pm));
                     }
@@ -101,35 +102,35 @@ public class CloneModelAction extends AbstractModelAction {
             if(exception[0] != null) {
                 throw exception[0];
             }
-            
+
             // Load it from the Grafico files if we can
             IArchimateModel graficoModel = new GraficoModelLoader(getRepository()).loadModel();
-            
+
             // We couldn't load it from Grafico so create a new blank model
             if(graficoModel == null) {
                 // New one. This will open in the tree
                 IArchimateModel model = IEditorModelManager.INSTANCE.createNewModel();
                 model.setFile(getRepository().getTempModelFile());
-                
+
                 // And Save it
                 IEditorModelManager.INSTANCE.saveModel(model);
-                
+
                 // Export to Grafico
                 getRepository().exportModelToGraficoFiles();
-                
+
                 // And do a first commit
                 getRepository().commitChanges(Messages.CloneModelAction_3, false);
-                
+
                 // Save the checksum
                 getRepository().saveChecksum();
             }
-            
+
             // Store repo credentials if option is set
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
                 SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
                 scs.store(userName, userPassword);
             }
-            
+
             // Notify listeners
             notifyChangeListeners(IRepositoryListener.REPOSITORY_ADDED);
         }
@@ -137,7 +138,7 @@ public class CloneModelAction extends AbstractModelAction {
             displayErrorDialog(Messages.CloneModelAction_0, ex);
         }
     }
-    
+
     @Override
     protected boolean shouldBeEnabled() {
         return true;

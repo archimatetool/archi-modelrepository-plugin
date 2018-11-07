@@ -13,18 +13,18 @@ import com.archimatetool.editor.ui.services.ViewManager;
 
 /**
  * Show in History action
- * 
+ *
  * @author Phillip Beauvoir
  */
 public class ShowInHistoryAction extends AbstractModelAction {
-    
+
     public ShowInHistoryAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_HISTORY_VIEW));
         setText(Messages.ShowInHistoryAction_0);
-        setToolTipText(Messages.ShowInHistoryAction_1);
+        setToolTipText(Messages.ShowInHistoryAction_0);
     }
-    
+
     @Override
     public void run() {
         ViewManager.showViewPart(HistoryView.ID, false);

@@ -21,16 +21,16 @@ import com.archimatetool.model.IArchimateModel;
 
 /**
  * Delete local repo folder
- * 
+ *
  * @author Phillip Beauvoir
  */
 public class DeleteModelAction extends AbstractModelAction {
-    
+
     public DeleteModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
         setText(Messages.DeleteModelAction_0);
-        setToolTipText(Messages.DeleteModelAction_1);
+        setToolTipText(Messages.DeleteModelAction_0);
     }
 
     public DeleteModelAction(IWorkbenchWindow window, IArchimateModel model) {
@@ -43,11 +43,11 @@ public class DeleteModelAction extends AbstractModelAction {
     @Override
     public void run() {
         boolean confirm = MessageDialog.openConfirm(fWindow.getShell(), Messages.DeleteModelAction_0, Messages.DeleteModelAction_2);
-        
+
         if(!confirm) {
             return;
         }
-        
+
         try {
             // See if the model is open and close it if it is
             IArchimateModel model = getRepository().locateModel();
@@ -57,10 +57,10 @@ public class DeleteModelAction extends AbstractModelAction {
                     return;
                 }
             }
-            
+
             // Delete folder
             FileUtils.deleteFolder(getRepository().getLocalRepositoryFolder());
-            
+
             // Notify
             RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_DELETED, getRepository());
         }

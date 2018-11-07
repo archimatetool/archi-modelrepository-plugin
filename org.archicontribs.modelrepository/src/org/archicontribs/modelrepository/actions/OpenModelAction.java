@@ -14,23 +14,24 @@ import com.archimatetool.editor.model.IEditorModelManager;
 
 /**
  * Open Model Action
- * 
+ *
  * @author Jean-Baptiste Sarrodie
  * @author Phillip Beauvoir
  */
 public class OpenModelAction extends AbstractModelAction {
-	
+
     public OpenModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_OPEN));
         setText(Messages.OpenModelAction_0);
-        setToolTipText(Messages.OpenModelAction_1);
+        setToolTipText(Messages.OpenModelAction_0);
     }
 
     @Override
     public void run() {
         BusyIndicator.showWhile(Display.getCurrent(), new Runnable() {
-            public void run() {
+            @Override
+			public void run() {
                 IEditorModelManager.INSTANCE.openModel(getRepository().getTempModelFile());
             }
         });
