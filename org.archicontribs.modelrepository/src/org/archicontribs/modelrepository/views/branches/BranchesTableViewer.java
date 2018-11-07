@@ -165,6 +165,9 @@ public class BranchesTableViewer extends TableViewer {
                 if(branchInfo.isCurrentBranch() && cell.getColumnIndex() == 0) {
                     cell.setFont(FontFactory.SystemFontBold);
                 }
+                else {
+                    cell.setFont(null);
+                }
                 
                 switch(cell.getColumnIndex()) {
                     case 0:
