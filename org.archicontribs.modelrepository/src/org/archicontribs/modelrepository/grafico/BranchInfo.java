@@ -5,9 +5,11 @@
  */
 package org.archicontribs.modelrepository.grafico;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jgit.lib.BranchConfig;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 
@@ -26,8 +28,14 @@ public class BranchInfo {
     private boolean hasLocalRef;
     private boolean hasRemoteRef;
     
+    private File repoDir; 
+    
+    private final static String REMOTE = Constants.R_REMOTES + IGraficoConstants.ORIGIN + "/"; //$NON-NLS-1$
+
     BranchInfo(Repository repository, Ref ref) throws IOException {
         this.ref = ref;
+        
+        repoDir = repository.getDirectory();
         
         hasLocalRef = getHasLocalRef(repository);
         hasRemoteRef = getHasRemoteRef(repository);
@@ -131,9 +139,12 @@ public class BranchInfo {
     }
     
     private String getShortName(String branchName) {
-        int index = branchName.lastIndexOf("/"); //$NON-NLS-1$
-        if(index != -1 && branchName.length() > index) {
-            return branchName.substring(index + 1);
+        if(branchName.startsWith(Constants.R_HEADS)) {
+            return branchName.substring(Constants.R_HEADS.length());
+        }
+        
+        if(branchName.startsWith(REMOTE)) {
+            return branchName.substring(REMOTE.length());
         }
         
         return branchName;
@@ -141,9 +152,9 @@ public class BranchInfo {
     
     @Override
     public boolean equals(Object obj) {
-        if((obj != null) && (obj instanceof BranchInfo)) {
-            return getFullName().equals(((BranchInfo)obj).getFullName());
-        }
-        return false;
+        return (obj != null) &&
+                (obj instanceof BranchInfo) &&
+                repoDir.equals(((BranchInfo)obj).repoDir) &&
+                getFullName().equals(((BranchInfo)obj).getFullName());
     }
 }
