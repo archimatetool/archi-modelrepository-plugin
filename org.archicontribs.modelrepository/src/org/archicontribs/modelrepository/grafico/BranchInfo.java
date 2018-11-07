@@ -138,4 +138,12 @@ public class BranchInfo {
         
         return branchName;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if((obj != null) && (obj instanceof BranchInfo)) {
+            return getFullName().equals(((BranchInfo)obj).getFullName());
+        }
+        return false;
+    }
 }
