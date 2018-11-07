@@ -92,7 +92,7 @@ public class AddBranchDialog extends TitleAreaDialog {
     
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        Button b = createButton(parent, ADD_BRANCH, Messages.AddBranchDialog_5, true);
+        Button b = createButton(parent, ADD_BRANCH, Messages.AddBranchDialog_1, true);
         b.setEnabled(false);
         
         b = createButton(parent, ADD_BRANCH_CHECKOUT, Messages.AddBranchDialog_6, false);

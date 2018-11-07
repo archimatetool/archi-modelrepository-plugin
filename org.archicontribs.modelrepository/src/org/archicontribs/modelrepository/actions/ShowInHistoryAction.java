@@ -22,7 +22,7 @@ public class ShowInHistoryAction extends AbstractModelAction {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_HISTORY_VIEW));
         setText(Messages.ShowInHistoryAction_0);
-        setToolTipText(Messages.ShowInHistoryAction_1);
+        setToolTipText(Messages.ShowInHistoryAction_0);
     }
     
     @Override

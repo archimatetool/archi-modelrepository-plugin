@@ -38,8 +38,6 @@ public class Messages extends NLS {
 
     public static String CloneModelAction_0;
 
-    public static String CloneModelAction_1;
-
     public static String CloneModelAction_2;
 
     public static String CloneModelAction_3;
@@ -64,8 +62,6 @@ public class Messages extends NLS {
 
     public static String DeleteModelAction_0;
 
-    public static String DeleteModelAction_1;
-
     public static String DeleteModelAction_2;
 
     public static String ExtractModelFromCommitAction_0;
@@ -85,8 +81,6 @@ public class Messages extends NLS {
     public static String MergeBranchAction_4;
 
     public static String OpenModelAction_0;
-
-    public static String OpenModelAction_1;
 
     public static String PropertiesAction_0;
 
@@ -121,8 +115,6 @@ public class Messages extends NLS {
     public static String ShowInBranchesViewAction_0;
 
     public static String ShowInHistoryAction_0;
-
-    public static String ShowInHistoryAction_1;
 
     public static String SwitchBranchAction_0;
 

@@ -48,7 +48,7 @@ public class CloneModelAction extends AbstractModelAction {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_CLONE));
         setText(Messages.CloneModelAction_0);
-        setToolTipText(Messages.CloneModelAction_1);
+        setToolTipText(Messages.CloneModelAction_0);
     }
 
     @Override

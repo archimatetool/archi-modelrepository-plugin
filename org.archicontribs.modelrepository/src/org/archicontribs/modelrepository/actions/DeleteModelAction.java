@@ -30,7 +30,7 @@ public class DeleteModelAction extends AbstractModelAction {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
         setText(Messages.DeleteModelAction_0);
-        setToolTipText(Messages.DeleteModelAction_1);
+        setToolTipText(Messages.DeleteModelAction_0);
     }
 
     public DeleteModelAction(IWorkbenchWindow window, IArchimateModel model) {
