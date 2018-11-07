@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -61,6 +62,15 @@ public class BranchesViewer extends ComboViewer {
                 }
                 
                 return branchName;
+            }
+        });
+        
+        setComparator(new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                BranchInfo b1 = (BranchInfo)e1;
+                BranchInfo b2 = (BranchInfo)e2;
+                return b1.getShortName().compareToIgnoreCase(b2.getShortName());
             }
         });
     }

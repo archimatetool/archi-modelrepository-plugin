@@ -15,15 +15,14 @@ import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
@@ -40,16 +39,6 @@ public class BranchesTableViewer extends TableViewer {
     public BranchesTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
         
-        setup(parent);
-        
-        setContentProvider(new BranchesContentProvider());
-        setLabelProvider(new BranchesLabelProvider());
-    }
-
-    /**
-     * Set things up.
-     */
-    protected void setup(Composite parent) {
         getTable().setHeaderVisible(true);
         getTable().setLinesVisible(false);
         
@@ -62,9 +51,20 @@ public class BranchesTableViewer extends TableViewer {
         column = new TableViewerColumn(this, SWT.NONE, 1);
         column.getColumn().setText(Messages.BranchesTableViewer_1);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(40, false));
-
+        
+        setContentProvider(new BranchesContentProvider());
+        setLabelProvider(new BranchesLabelProvider());
+        
+        setComparator(new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                BranchInfo b1 = (BranchInfo)e1;
+                BranchInfo b2 = (BranchInfo)e2;
+                return b1.getShortName().compareToIgnoreCase(b2.getShortName());
+            }
+        });
     }
-    
+
     public void doSetInput(IArchiRepository archiRepo) {
         setInput(archiRepo);
         
@@ -72,17 +72,10 @@ public class BranchesTableViewer extends TableViewer {
         ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
 
         // Select first row
-        Display.getDefault().asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                if(!getTable().isDisposed()) {
-                    Object element = getElementAt(0);
-                    if(element != null) {
-                        setSelection(new StructuredSelection(element));
-                    }
-                }
-            }
-        });
+        //Object element = getElementAt(0);
+        //if(element != null) {
+        //    setSelection(new StructuredSelection(element));
+        //}
     }
     
     // ===============================================================================================
