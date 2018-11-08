@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.CanceledException;
@@ -92,8 +93,8 @@ public class MergeBranchAction extends AbstractModelAction {
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
                     .setCommit(true)
-                    // .setFastForward(FastForwardMode.NO_FF)
-                    // .setSquash(false).
+                    .setFastForward(FastForwardMode.FF)
+                    .setSquash(false)
                     .setMessage(message)
                     .call();
             
