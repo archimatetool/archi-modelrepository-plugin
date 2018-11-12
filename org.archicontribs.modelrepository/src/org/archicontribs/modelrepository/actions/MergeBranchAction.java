@@ -85,6 +85,17 @@ public class MergeBranchAction extends AbstractModelAction {
         }
 
         // Attempt a merge
+        try {
+            merge(branchInfo);
+        }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.MergeBranchAction_1, ex);
+        }
+
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+    }
+    
+    protected void merge(BranchInfo branchInfo) throws Exception {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
             
@@ -161,13 +172,7 @@ public class MergeBranchAction extends AbstractModelAction {
 
                 getRepository().commitChanges(commitMessage, true);
             }
-
         }
-        catch(Exception ex) {
-            displayErrorDialog(Messages.MergeBranchAction_1, ex);
-        }
-
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
     
     public void setBranch(BranchInfo branchInfo) {

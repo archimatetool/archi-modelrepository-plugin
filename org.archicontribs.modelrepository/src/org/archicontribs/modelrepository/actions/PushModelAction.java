@@ -60,7 +60,7 @@ public class PushModelAction extends RefreshModelAction {
         }
     }
     
-    private void push(UsernamePassword up) throws InvocationTargetException, InterruptedException {
+    protected void push(UsernamePassword up) throws InvocationTargetException, InterruptedException {
         Exception[] exception = new Exception[1];
         
         IProgressService ps = PlatformUI.getWorkbench().getProgressService();

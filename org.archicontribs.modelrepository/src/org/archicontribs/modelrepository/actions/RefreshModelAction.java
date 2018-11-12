@@ -48,10 +48,10 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class RefreshModelAction extends AbstractModelAction {
     
-    protected int PULL_STATUS_ERROR = -1;
-    protected int PULL_STATUS_OK = 0;
-    protected int PULL_STATUS_UP_TO_DATE = 1;
-    protected int PULL_STATUS_MERGE_CANCEL = 2;
+    protected static final int PULL_STATUS_ERROR = -1;
+    protected static final int PULL_STATUS_OK = 0;
+    protected static final int PULL_STATUS_UP_TO_DATE = 1;
+    protected static final int PULL_STATUS_MERGE_CANCEL = 2;
     
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
