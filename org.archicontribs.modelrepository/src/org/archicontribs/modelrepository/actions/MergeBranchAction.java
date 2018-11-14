@@ -22,6 +22,7 @@ import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -35,6 +36,11 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class MergeBranchAction extends AbstractModelAction {
     
+    protected static final int MERGE_STATUS_ERROR = -1;
+    protected static final int MERGE_STATUS_OK = 0;
+    protected static final int MERGE_STATUS_UP_TO_DATE = 1;
+    protected static final int MERGE_STATUS_MERGE_CANCEL = 2;
+
     private BranchInfo fBranchInfo;
 	
     public MergeBranchAction(IWorkbenchWindow window) {
@@ -95,7 +101,7 @@ public class MergeBranchAction extends AbstractModelAction {
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
     
-    protected void merge(BranchInfo branchInfo) throws Exception {
+    protected int merge(BranchInfo branchInfo) throws Exception {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
             
@@ -105,6 +111,7 @@ public class MergeBranchAction extends AbstractModelAction {
                     .include(mergeBase)
                     .setCommit(true)
                     .setFastForward(FastForwardMode.FF)
+                    .setStrategy(MergeStrategy.RECURSIVE)
                     .setSquash(false)
                     .setMessage(message)
                     .call();
@@ -136,7 +143,7 @@ public class MergeBranchAction extends AbstractModelAction {
                     handler.resetToLocalState(); // Clean up
 
                     if(exception[0] instanceof CanceledException) {
-                        return;
+                        return MERGE_STATUS_MERGE_CANCEL;
                     }
                     
                     throw exception[0];
@@ -146,11 +153,11 @@ public class MergeBranchAction extends AbstractModelAction {
                 if(result) {
                     handler.merge();
                 }
-                // User cancelled - we assume they committed all changes so we can reset
+                // User cancelled - so we reset
                 else {
                     handler.resetToLocalState();
                     notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-                    return;
+                    return MERGE_STATUS_MERGE_CANCEL;
                 }
             }
             
@@ -173,6 +180,8 @@ public class MergeBranchAction extends AbstractModelAction {
                 getRepository().commitChanges(commitMessage, true);
             }
         }
+        
+        return MERGE_STATUS_OK;
     }
     
     public void setBranch(BranchInfo branchInfo) {

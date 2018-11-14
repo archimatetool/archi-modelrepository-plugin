@@ -56,10 +56,10 @@ public class MergeBranchAction2 extends AbstractModelAction {
             }
             
             // Pull
-            int status = pushAction.pull(up);
+            int pullStatus = pushAction.pull(up);
             
             // Push
-            if(status == RefreshModelAction.PULL_STATUS_OK || status == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+            if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
                 pushAction.push(up);
             }
             else {
@@ -72,10 +72,10 @@ public class MergeBranchAction2 extends AbstractModelAction {
             switchBranchAction.switchBranch(branchToMerge, true);
             
             // Pull
-            status = pushAction.pull(up);
+            pullStatus = pushAction.pull(up);
             
             // Push
-            if(status == RefreshModelAction.PULL_STATUS_OK || status == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+            if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
                 pushAction.push(up);
             }
             else {
