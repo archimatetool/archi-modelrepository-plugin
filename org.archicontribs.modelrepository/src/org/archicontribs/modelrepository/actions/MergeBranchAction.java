@@ -177,7 +177,8 @@ public class MergeBranchAction extends AbstractModelAction {
                     commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
                 }
 
-                getRepository().commitChanges(commitMessage, true);
+                // IMPORTANT!!! "amend" has to be false after a merge conflict or else the commit will be orphaned
+                getRepository().commitChanges(commitMessage, false);
             }
         }
         
