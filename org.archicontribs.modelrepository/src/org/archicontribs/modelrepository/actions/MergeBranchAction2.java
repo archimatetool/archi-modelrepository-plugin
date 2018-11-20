@@ -89,6 +89,9 @@ public class MergeBranchAction2 extends AbstractModelAction {
             MergeBranchAction mergeBranchAction = new MergeBranchAction(fWindow);
             mergeBranchAction.setRepository(getRepository());
             mergeBranchAction.merge(branchToMerge);
+            
+            // Final Push on this branch
+            pushAction.push(up);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
