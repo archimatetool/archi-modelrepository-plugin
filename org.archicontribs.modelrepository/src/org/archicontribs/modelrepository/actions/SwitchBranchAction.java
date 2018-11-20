@@ -15,7 +15,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -57,7 +56,7 @@ public class SwitchBranchAction extends AbstractModelAction {
         
         try {
             // Will we require a switch to a different commit point?
-            boolean isCommitSameAsCurrentBranch = isCommitSameAsCurrentBranch(branchInfo);
+            boolean isCurrentPositionSameAsCurrentBranch = isBranchRefSameAsCurrentBranchRef(branchInfo);
             
             // Do the Grafico Export first
             getRepository().exportModelToGraficoFiles();
@@ -68,7 +67,7 @@ public class SwitchBranchAction extends AbstractModelAction {
                 
                 // If target branch ref is same as the current commit we don't actully need to commit changes
                 // But we should ask the user first...
-                if(isCommitSameAsCurrentBranch) {
+                if(isCurrentPositionSameAsCurrentBranch) {
                     // Ask user
                     doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0,
                             Messages.SwitchBranchAction_1);
@@ -83,7 +82,7 @@ public class SwitchBranchAction extends AbstractModelAction {
             }
             
             // Switch branch
-            switchBranch(branchInfo, !isCommitSameAsCurrentBranch);
+            switchBranch(branchInfo, !isCurrentPositionSameAsCurrentBranch);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
@@ -126,17 +125,16 @@ public class SwitchBranchAction extends AbstractModelAction {
         }
     }
     
-    protected boolean isCommitSameAsCurrentBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
-        BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
-        
-        try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
-            Ref currentRef = repository.exactRef(currentBranch.getFullName());
-            Ref branchRef = repository.exactRef(branchInfo.getFullName());
-            
-            return currentRef != null &&
-                    branchRef != null &&
-                    currentRef.getObjectId().equals(branchRef.getObjectId());
+    private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
+        try {
+            BranchInfo currentLocalBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
+            return currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
         }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+        }
+        
+        return false;
     }
     
     public void setBranch(BranchInfo branchInfo) {

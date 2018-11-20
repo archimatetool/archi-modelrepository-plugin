@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
@@ -23,7 +24,7 @@ import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.merge.MergeStrategy;
-import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -55,16 +56,39 @@ public class MergeBranchAction extends AbstractModelAction {
         if(!shouldBeEnabled()) {
             return;
         }
-
-        // Keep a local reference in case of a notification event changing the current branch selection in the UI
-        BranchInfo branchInfo = fBranchInfo;
         
-        if(!MessageDialog.openConfirm(fWindow.getShell(), Messages.MergeBranchAction_1,
-                NLS.bind(Messages.MergeBranchAction_4,
-                        branchInfo.getShortName()))) {
+        int response = MessageDialog.open(MessageDialog.QUESTION,
+                fWindow.getShell(),
+                Messages.MergeBranchAction_1,
+                Messages.MergeBranchAction_5,
+                SWT.NONE,
+                Messages.MergeBranchAction_6,
+                Messages.MergeBranchAction_7,
+                Messages.MergeBranchAction_8);
+        
+        // Cancel
+        if(response == -1 || response == 2) {
             return;
         }
+
+        try {
+            if(response == 0) {
+                doOnlineMerge(fBranchInfo);
+            }
+            
+            if(response == 1) {
+                doLocalMerge(fBranchInfo);
+            }
+        }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.MergeBranchAction_1, ex);
+        }
         
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+    }
+    
+    private void doLocalMerge(BranchInfo branchToMerge) throws Exception {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -74,34 +98,70 @@ public class MergeBranchAction extends AbstractModelAction {
             }
         }
         
-        try {
-            // Do the Grafico Export first
-            getRepository().exportModelToGraficoFiles();
-            
-            // Then offer to Commit
-            if(getRepository().hasChangesToCommit()) {
-                if(!offerToCommitChanges()) {
-                    return;
-                }
+        // Do the Grafico Export first
+        getRepository().exportModelToGraficoFiles();
+
+        // Then offer to Commit
+        if(getRepository().hasChangesToCommit()) {
+            if(!offerToCommitChanges()) {
+                return;
             }
         }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.MergeBranchAction_1, ex);
-            return;
-        }
 
-        // Attempt a merge
-        try {
-            merge(branchInfo);
-        }
-        catch(Exception ex) {
-            displayErrorDialog(Messages.MergeBranchAction_1, ex);
-        }
-
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        // Merge
+        merge(branchToMerge);
     }
     
-    protected int merge(BranchInfo branchInfo) throws Exception {
+    private void doOnlineMerge(BranchInfo branchToMerge) throws Exception {
+        // Store currentBranch first
+        BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
+        
+        PushModelAction pushAction = new PushModelAction(fWindow, getRepository().locateModel());
+
+        // Init
+        UsernamePassword up = pushAction.init();
+        if(up == null) {
+            return;
+        }
+        
+        // Pull
+        int pullStatus = pushAction.pull(up);
+        
+        // Push
+        if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+            pushAction.push(up);
+        }
+        else {
+            return;
+        }
+        
+        // Switch to other branch
+        SwitchBranchAction switchBranchAction = new SwitchBranchAction(fWindow);
+        switchBranchAction.setRepository(getRepository());
+        switchBranchAction.switchBranch(branchToMerge, true);
+        
+        // Pull
+        pullStatus = pushAction.pull(up);
+        
+        // Push
+        if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+            pushAction.push(up);
+        }
+        else {
+            return;
+        }
+        
+        // Switch back
+        switchBranchAction.switchBranch(currentBranch, true);
+        
+        // Merge
+        merge(branchToMerge);
+        
+        // Final Push on this branch
+        pushAction.push(up);
+    }
+    
+    private int merge(BranchInfo branchInfo) throws Exception {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
             
@@ -185,6 +245,18 @@ public class MergeBranchAction extends AbstractModelAction {
         return MERGE_STATUS_OK;
     }
     
+    private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
+        try {
+            BranchInfo currentLocalBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
+            return currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
+        }
+        catch(IOException | GitAPIException ex) {
+            ex.printStackTrace();
+        }
+        
+        return false;
+    }
+
     public void setBranch(BranchInfo branchInfo) {
         fBranchInfo = branchInfo;
         setEnabled(shouldBeEnabled());
@@ -195,6 +267,7 @@ public class MergeBranchAction extends AbstractModelAction {
         return fBranchInfo != null
                 && !fBranchInfo.isCurrentBranch() // Not current branch
                 && fBranchInfo.isLocal() // Has to be local
+                && !isBranchRefSameAsCurrentBranchRef(fBranchInfo) // Not same ref
                 && super.shouldBeEnabled();
     }
 
