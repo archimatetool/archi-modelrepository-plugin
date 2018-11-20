@@ -86,8 +86,8 @@ public class MergeConflictHandler {
         }
     }
     
-    public boolean openConflictsDialog() {
-        Dialog dialog = new ConflictsDialog(fShell, this);
+    public boolean openConflictsDialog(String message) {
+        Dialog dialog = new ConflictsDialog(fShell, this, message);
         return dialog.open() == Window.OK ? true : false;
     }
     

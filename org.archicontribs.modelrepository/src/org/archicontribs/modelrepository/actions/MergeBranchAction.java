@@ -109,8 +109,11 @@ public class MergeBranchAction extends AbstractModelAction {
             }
         }
 
+        // Store currentBranch first
+        BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
+
         // Merge
-        merge(branchToMerge);
+        merge(currentBranch, branchToMerge);
     }
     
     private void doOnlineMerge(BranchInfo branchToMerge) throws Exception {
@@ -156,7 +159,7 @@ public class MergeBranchAction extends AbstractModelAction {
         switchBranchAction.switchBranch(currentBranch, true);
         
         // Merge
-        merge(branchToMerge);
+        merge(currentBranch, branchToMerge);
         
         // Final Push on this branch
         pushAction.push(up);
@@ -173,11 +176,11 @@ public class MergeBranchAction extends AbstractModelAction {
         }
     }
     
-    private int merge(BranchInfo branchInfo) throws Exception {
+    private int merge(BranchInfo currentBranch, BranchInfo branchToMerge) throws Exception {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            ObjectId mergeBase = git.getRepository().resolve(branchInfo.getShortName());
+            ObjectId mergeBase = git.getRepository().resolve(branchToMerge.getShortName());
             
-            String message = Messages.MergeBranchAction_2 + " '" +  branchInfo.getShortName() + "'";  //$NON-NLS-1$ //$NON-NLS-2$
+            String mergeMessage = Messages.MergeBranchAction_2 + " '" +  branchToMerge.getShortName() + "'";  //$NON-NLS-1$ //$NON-NLS-2$
             
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
@@ -185,7 +188,7 @@ public class MergeBranchAction extends AbstractModelAction {
                     .setFastForward(FastForwardMode.FF)
                     .setStrategy(MergeStrategy.RECURSIVE)
                     .setSquash(false)
-                    .setMessage(message)
+                    .setMessage(mergeMessage)
                     .call();
             
             MergeStatus status = mergeResult.getMergeStatus();
@@ -195,7 +198,7 @@ public class MergeBranchAction extends AbstractModelAction {
                 Exception[] exception = new Exception[1];
                 
                 // Try to handle the merge conflict
-                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, branchInfo.getShortName(),
+                MergeConflictHandler handler = new MergeConflictHandler(mergeResult, branchToMerge.getShortName(),
                         getRepository(), fWindow.getShell());
                 
                 IProgressService ps = PlatformUI.getWorkbench().getProgressService();
@@ -221,7 +224,11 @@ public class MergeBranchAction extends AbstractModelAction {
                     throw exception[0];
                 }
                 
-                boolean result = handler.openConflictsDialog();
+                String dialogMessage = NLS.bind(Messages.MergeBranchAction_10,
+                        branchToMerge.getShortName(), currentBranch.getShortName());
+                
+                boolean result = handler.openConflictsDialog(dialogMessage);
+                
                 if(result) {
                     handler.merge();
                 }

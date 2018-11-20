@@ -90,6 +90,8 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     private MergeConflictHandler fHandler;
     
+    private String fMessage;
+    
     private MergeObjectInfo currentSelectedMergeInfo;
     
     private TableViewer fTableViewer;
@@ -106,10 +108,11 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             Messages.ConflictsDialog_1
     };
     
-    ConflictsDialog(Shell parentShell, MergeConflictHandler handler) {
+    ConflictsDialog(Shell parentShell, MergeConflictHandler handler, String message) {
         super(parentShell, DIALOG_ID);
         setTitle(Messages.ConflictsDialog_2);
         fHandler = handler;
+        fMessage = message;
     }
     
     @Override
@@ -120,7 +123,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage(Messages.ConflictsDialog_4, IMessageProvider.WARNING);
+        setMessage(fMessage == null ? Messages.ConflictsDialog_4 : fMessage, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_IMPORT_PREF_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);

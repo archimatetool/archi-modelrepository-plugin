@@ -74,6 +74,8 @@ public class Messages extends NLS {
 
     public static String MergeBranchAction_1;
 
+    public static String MergeBranchAction_10;
+
     public static String MergeBranchAction_2;
 
     public static String MergeBranchAction_3;
@@ -103,6 +105,8 @@ public class Messages extends NLS {
     public static String RefreshModelAction_2;
 
     public static String RefreshModelAction_3;
+
+    public static String RefreshModelAction_4;
 
     public static String ResetToRemoteCommitAction_0;
 

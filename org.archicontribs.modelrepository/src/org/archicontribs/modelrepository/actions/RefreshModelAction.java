@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -192,7 +193,11 @@ public class RefreshModelAction extends AbstractModelAction {
                 throw exception[0];
             }
             
-            boolean result = handler.openConflictsDialog();
+            String dialogMessage = NLS.bind(Messages.RefreshModelAction_4,
+                    status.getCurrentRemoteBranch().getShortName(), status.getCurrentLocalBranch().getShortName());
+            
+            boolean result = handler.openConflictsDialog(dialogMessage);
+
             if(result) {
                 handler.merge();
             }
