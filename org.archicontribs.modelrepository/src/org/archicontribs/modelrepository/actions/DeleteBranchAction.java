@@ -51,6 +51,19 @@ public class DeleteBranchAction extends AbstractModelAction {
             return;
         }
         
+        try {
+            deleteBranch(branchInfo);
+        }
+        catch(IOException | GitAPIException ex) {
+            displayErrorDialog(Messages.DeleteBranchAction_0, ex);
+        }
+        finally {
+            // Notify listeners
+            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+        }
+    }
+    
+    protected void deleteBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Delete local branch and remote branch refs
             git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
@@ -74,13 +87,6 @@ public class DeleteBranchAction extends AbstractModelAction {
             pushCommand.setRefSpecs(refSpec);
             pushCommand.setRemote(IGraficoConstants.ORIGIN);
             pushCommand.call();
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.DeleteBranchAction_0, ex);
-        }
-        finally {
-            // Notify listeners
-            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         }
     }
     

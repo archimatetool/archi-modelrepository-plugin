@@ -24,6 +24,7 @@ import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -159,6 +160,17 @@ public class MergeBranchAction extends AbstractModelAction {
         
         // Final Push on this branch
         pushAction.push(up);
+        
+        // Ask user to delete branch
+        boolean doDeleteBranch = MessageDialog.openQuestion(fWindow.getShell(),
+                Messages.MergeBranchAction_1,
+                NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
+        
+        if(doDeleteBranch) {
+            DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);
+            deleteBranchAction.setRepository(getRepository());
+            deleteBranchAction.deleteBranch(branchToMerge);
+        }
     }
     
     private int merge(BranchInfo branchInfo) throws Exception {

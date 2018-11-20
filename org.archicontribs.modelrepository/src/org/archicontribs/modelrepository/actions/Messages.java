@@ -88,6 +88,8 @@ public class Messages extends NLS {
 
     public static String MergeBranchAction_8;
 
+    public static String MergeBranchAction_9;
+
     public static String OpenModelAction_0;
 
     public static String PropertiesAction_0;
