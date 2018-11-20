@@ -11,6 +11,7 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -43,16 +44,6 @@ public class SwitchBranchAction extends AbstractModelAction {
         // Keep a local reference in case of a notification event changing the current branch selection in the UI
         BranchInfo branchInfo = fBranchInfo;
         
-        // Will we require a switch to a different commit point?
-        boolean requiresReload = true;
-        try {
-            requiresReload = !isSameCommitAsCurrentBranch(branchInfo);
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.SwitchBranchAction_0, ex);
-            return;
-        }
-        
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -65,44 +56,47 @@ public class SwitchBranchAction extends AbstractModelAction {
         boolean notifyHistoryChanged = false;
         
         try {
-            // If target branch ref is different to the current ref we need to commit any changes
-            if(requiresReload) {
-                // Do the Grafico Export first
-                getRepository().exportModelToGraficoFiles();
-
-                // Then offer to Commit
-                if(getRepository().hasChangesToCommit()) {
-                    if(!offerToCommitChanges()) {
-                        return;
-                    }
-                    notifyHistoryChanged = true;
+            // Will we require a switch to a different commit point?
+            boolean isCommitSameAsCurrentBranch = isCommitSameAsCurrentBranch(branchInfo);
+            
+            // Do the Grafico Export first
+            getRepository().exportModelToGraficoFiles();
+            
+            // If there are changes to commit...
+            if(getRepository().hasChangesToCommit()) {
+                boolean doCommit = true;
+                
+                // If target branch ref is same as the current commit we don't actully need to commit changes
+                // But we should ask the user first...
+                if(isCommitSameAsCurrentBranch) {
+                    // Ask user
+                    doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0,
+                            Messages.SwitchBranchAction_1);
                 }
                 
+                // Commit dialog
+                if(doCommit && !offerToCommitChanges()) {
+                    return;
+                }
+                
+                notifyHistoryChanged = true;
             }
-        }
-        catch(IOException | GitAPIException ex) {
-            displayErrorDialog(Messages.SwitchBranchAction_0, ex);
-            return;
-        }
-        
-        // Switch branch
-        try {
-            switchBranch(branchInfo, requiresReload);
+            
+            // Switch branch
+            switchBranch(branchInfo, !isCommitSameAsCurrentBranch);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
         
         // Notify listeners last because a new UI selection will trigger an updated BranchInfo here
-        
         if(notifyHistoryChanged) {
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
-        
         notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
-    protected void switchBranch(BranchInfo branchInfo, boolean reloadGrafico) throws IOException, GitAPIException {
+    protected void switchBranch(BranchInfo branchInfo, boolean doReloadGrafico) throws IOException, GitAPIException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // If the branch is local just checkout
             if(branchInfo.isLocal()) {
@@ -123,7 +117,7 @@ public class SwitchBranchAction extends AbstractModelAction {
             }
             
             // Reload the model from the Grafico XML files
-            if(reloadGrafico) {
+            if(doReloadGrafico) {
                 new GraficoModelLoader(getRepository()).loadModel();
                 
                 // Save the checksum
@@ -132,7 +126,7 @@ public class SwitchBranchAction extends AbstractModelAction {
         }
     }
     
-    protected boolean isSameCommitAsCurrentBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
+    protected boolean isCommitSameAsCurrentBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
         BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
         
         try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
