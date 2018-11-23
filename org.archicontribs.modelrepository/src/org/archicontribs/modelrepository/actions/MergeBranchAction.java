@@ -164,15 +164,18 @@ public class MergeBranchAction extends AbstractModelAction {
         // Final Push on this branch
         pushAction.push(up);
         
-        // Ask user to delete branch
-        boolean doDeleteBranch = MessageDialog.openQuestion(fWindow.getShell(),
-                Messages.MergeBranchAction_1,
-                NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
-        
-        if(doDeleteBranch) {
-            DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);
-            deleteBranchAction.setRepository(getRepository());
-            deleteBranchAction.deleteBranch(branchToMerge);
+        // Ask user to delete branch (if not master)
+        DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);
+        deleteBranchAction.setRepository(getRepository());
+        deleteBranchAction.setBranch(branchToMerge);
+        if(deleteBranchAction.shouldBeEnabled()) {
+            boolean doDeleteBranch = MessageDialog.openQuestion(fWindow.getShell(),
+                    Messages.MergeBranchAction_1,
+                    NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
+
+            if(doDeleteBranch) {
+                deleteBranchAction.deleteBranch(branchToMerge);
+            }
         }
     }
     
@@ -267,7 +270,7 @@ public class MergeBranchAction extends AbstractModelAction {
     private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
         try {
             BranchInfo currentLocalBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
-            return currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
+            return currentLocalBranch != null && currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();

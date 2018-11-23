@@ -128,7 +128,7 @@ public class SwitchBranchAction extends AbstractModelAction {
     private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
         try {
             BranchInfo currentLocalBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
-            return currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
+            return currentLocalBranch != null && currentLocalBranch.getRef().getObjectId().equals(branchInfo.getRef().getObjectId());
         }
         catch(IOException | GitAPIException ex) {
             ex.printStackTrace();
