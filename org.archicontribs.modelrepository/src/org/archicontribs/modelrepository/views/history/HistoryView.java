@@ -136,13 +136,13 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fBranchesViewer.getControl().setLayoutData(gd);
 
         /*
-         * Listen to Branch Selections and forward on to History View
+         * Listen to Branch Selections and forward on to History Viewer
          */
         fBranchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
             @Override
             public void selectionChanged(SelectionChangedEvent event) {
                 BranchInfo branchInfo = (BranchInfo)event.getStructuredSelection().getFirstElement();
-                getHistoryViewer().setLocalBranch(branchInfo);
+                getHistoryViewer().setSelectedBranch(branchInfo);
                 updateActions();
             }
         });

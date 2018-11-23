@@ -112,7 +112,7 @@ public class HistoryTableViewer extends TableViewer {
         //}
     }
     
-    public void setLocalBranch(BranchInfo branchInfo) {
+    public void setSelectedBranch(BranchInfo branchInfo) {
         if(branchInfo != null && branchInfo.equals(fSelectedBranch)) {
             return;
         }
@@ -165,7 +165,7 @@ public class HistoryTableViewer extends TableViewer {
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
                     // Find the local branch
-                    ObjectId objectID = repository.resolve(fSelectedBranch.getFullName());
+                    ObjectId objectID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
                     if(objectID != null) {
                         fLocalCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(fLocalCommit); 

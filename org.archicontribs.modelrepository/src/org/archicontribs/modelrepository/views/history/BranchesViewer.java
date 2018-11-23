@@ -46,7 +46,7 @@ public class BranchesViewer extends ComboViewer {
                 }
                 
                 BranchStatus branchStatus = (BranchStatus)inputElement;
-                return branchStatus.getLocalBranches().toArray();
+                return branchStatus.getLocalAndUntrackedRemoteBranches().toArray();
             }
         });
         
