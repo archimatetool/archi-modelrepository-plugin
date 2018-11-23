@@ -161,11 +161,12 @@ public class RefreshModelAction extends AbstractModelAction {
             return PULL_STATUS_UP_TO_DATE;
         }
 
+        BranchStatus branchStatus = getRepository().getBranchStatus();
+
         // Merge failure
         if(!pullResult[0].isSuccessful() && pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
             // Get the remote ref name
-            BranchStatus status = getRepository().getBranchStatus();
-            String remoteRef = status.getCurrentRemoteBranch().getFullName();
+            String remoteRef = branchStatus.getCurrentRemoteBranch().getFullName();
             
             // Try to handle the merge conflict
             MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), remoteRef,
@@ -193,8 +194,7 @@ public class RefreshModelAction extends AbstractModelAction {
                 throw exception[0];
             }
             
-            String dialogMessage = NLS.bind(Messages.RefreshModelAction_4,
-                    status.getCurrentRemoteBranch().getShortName(), status.getCurrentLocalBranch().getShortName());
+            String dialogMessage = NLS.bind(Messages.RefreshModelAction_4, branchStatus.getCurrentLocalBranch().getShortName());
             
             boolean result = handler.openConflictsDialog(dialogMessage);
 
@@ -215,7 +215,7 @@ public class RefreshModelAction extends AbstractModelAction {
         
         // Do a commit if needed
         if(getRepository().hasChangesToCommit()) {
-            String commitMessage = Messages.RefreshModelAction_1;
+            String commitMessage = NLS.bind(Messages.RefreshModelAction_1, branchStatus.getCurrentLocalBranch().getShortName());
             
             // Did we restore any missing objects?
             String restoredObjects = loader.getRestoredObjectsAsString();

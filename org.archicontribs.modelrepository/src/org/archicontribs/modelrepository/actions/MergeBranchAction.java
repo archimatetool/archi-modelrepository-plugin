@@ -183,7 +183,7 @@ public class MergeBranchAction extends AbstractModelAction {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchToMerge.getShortName());
             
-            String mergeMessage = Messages.MergeBranchAction_2 + " '" +  branchToMerge.getShortName() + "'";  //$NON-NLS-1$ //$NON-NLS-2$
+            String mergeMessage = NLS.bind(Messages.MergeBranchAction_2, branchToMerge.getShortName(), currentBranch.getShortName());
             
             MergeResult mergeResult = git.merge()
                     .include(mergeBase)
@@ -249,18 +249,18 @@ public class MergeBranchAction extends AbstractModelAction {
             
             // Do a commit if needed
             if(getRepository().hasChangesToCommit()) {
-                String commitMessage = Messages.MergeBranchAction_3;
+                mergeMessage = NLS.bind(Messages.MergeBranchAction_3, branchToMerge.getShortName(), currentBranch.getShortName());
                 
                 // Did we restore any missing objects?
                 String restoredObjects = loader.getRestoredObjectsAsString();
                 
                 // Add to commit message
                 if(restoredObjects != null) {
-                    commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
+                    mergeMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
                 }
 
                 // IMPORTANT!!! "amend" has to be false after a merge conflict or else the commit will be orphaned
-                getRepository().commitChanges(commitMessage, false);
+                getRepository().commitChanges(mergeMessage, false);
             }
         }
         
