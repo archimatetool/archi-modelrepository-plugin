@@ -225,7 +225,8 @@ public class RefreshModelAction extends AbstractModelAction {
                 commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
             }
 
-            getRepository().commitChanges(commitMessage, true);
+            // TODO - not sure if amend should be false or true here?
+            getRepository().commitChanges(commitMessage, false);
         }
         
         notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
