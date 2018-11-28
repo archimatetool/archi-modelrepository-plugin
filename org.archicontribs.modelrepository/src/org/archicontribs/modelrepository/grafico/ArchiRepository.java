@@ -249,8 +249,8 @@ public class ArchiRepository implements IArchiRepository {
     }
 
     @Override
-    public String getFileContents(String path, String ref) throws IOException {
-        String str = ""; //$NON-NLS-1$
+    public byte[] getFileContents(String path, String ref) throws IOException {
+        byte[] bytes = null;
         
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
             ObjectId lastCommitId = repository.resolve(ref);
@@ -273,14 +273,14 @@ public class ArchiRepository implements IArchiRepository {
                     ObjectId objectId = treeWalk.getObjectId(0);
                     ObjectLoader loader = repository.open(objectId);
 
-                    str = new String(loader.getBytes());
+                    bytes = loader.getBytes();
                 }
 
                 revWalk.dispose();
             }
         }
         
-        return str;
+        return bytes;
     }
 
     @Override

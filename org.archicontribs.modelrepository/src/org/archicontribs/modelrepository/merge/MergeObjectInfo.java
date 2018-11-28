@@ -88,7 +88,7 @@ class MergeObjectInfo {
      */
     private EObject loadEObject(String ref) throws IOException {
         // Load the contents of the ref not the actual file because "theirs" is not an actual file
-        String contents = handler.getArchiRepository().getFileContents(xmlPath, ref);
+        byte[] contents = handler.getArchiRepository().getFileContents(xmlPath, ref);
         // Not found so was deleted by us or them
         if(contents == null) {
             return null;
@@ -100,7 +100,7 @@ class MergeObjectInfo {
         XMLResource resource = (XMLResource)resourceSet.createResource(URI.createFileURI(handler.getArchiRepository().getLocalGitFolder().toString()));
         resource.getDefaultLoadOptions().put(XMLResource.OPTION_ENCODING, "UTF-8"); //$NON-NLS-1$
 
-        resource.load(new ByteArrayInputStream(contents.getBytes()), null);
+        resource.load(new ByteArrayInputStream(contents), null);
         EObject eObject = resource.getContents().get(0);
         
         if(!(eObject instanceof IIdentifier)) {
