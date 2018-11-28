@@ -17,6 +17,7 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -232,8 +233,13 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
                 return 0;
             }
             
+            ObjectId objectID = head.getObjectId();
+            if(objectID == null) {
+                return 0;
+            }
+
             try(RevWalk revWalk = new RevWalk(repository)) {
-                RevCommit commit = revWalk.parseCommit(head.getObjectId());
+                RevCommit commit = revWalk.parseCommit(objectID);
                 revWalk.dispose();
                 return commit.getParentCount();
             }
