@@ -150,7 +150,7 @@ public class HistoryTableViewer extends TableViewer {
             fLocalCommit = null;
             fOriginCommit = null;
             
-            if(!(parent instanceof IArchiRepository)) {
+            if(!(parent instanceof IArchiRepository) || fSelectedBranch == null) {
                 return commits;
             }
             
