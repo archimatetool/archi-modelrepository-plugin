@@ -32,6 +32,7 @@ import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
@@ -47,16 +48,22 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.*;
+//import org.eclipse.jgit.transport.OpenSshConfig.Host;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+//import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.FS;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 /**
  * Representation of a local repository
@@ -70,6 +77,10 @@ public class ArchiRepository implements IArchiRepository {
      * The folder location of the local repository
      */
     private File fLocalRepoFolder;
+    
+    // TODO: Replace hard-coded location with dialog-provided config from user.
+    private String userHome = System.getProperty("user.home");
+    private String privateKey = userHome + "/.ssh/id_rsa";
     
     public ArchiRepository(File localRepoFolder) {
         fLocalRepoFolder = localRepoFolder;
@@ -177,10 +188,31 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public void cloneModel(String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
+        SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+            @Override
+            protected void configure(OpenSshConfig.Host host, Session session) {
+                session.setConfig("StrictHostKeyChecking", "no");
+            }
+
+            @Override
+            protected JSch getJSch(final OpenSshConfig.Host hc, FS fs) throws JSchException {
+            		JSch jsch = super.getJSch(hc, fs);
+            		jsch.removeAllIdentity();
+            		jsch.addIdentity(privateKey);
+            		return jsch;
+            }
+        };
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setDirectory(getLocalRepositoryFolder());
         cloneCommand.setURI(repoURL);
-        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+        cloneCommand.setTransportConfigCallback( new TransportConfigCallback() {
+            @Override
+            public void configure(Transport transport) {
+                SshTransport sshTransport = (SshTransport)transport;
+                sshTransport.setSshSessionFactory(sshSessionFactory);
+            }
+        } );
+//        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
         cloneCommand.setProgressMonitor(monitor);
             
         try(Git git = cloneCommand.call()) {
@@ -192,8 +224,29 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public Iterable<PushResult> pushToRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host host, Session session) {
+                    session.setConfig("StrictHostKeyChecking", "no");
+                }
+
+                @Override
+                protected JSch getJSch(final OpenSshConfig.Host hc, FS fs) throws JSchException {
+                		JSch jsch = super.getJSch(hc, fs);
+                		jsch.removeAllIdentity();
+                		jsch.addIdentity(privateKey);
+                		return jsch;
+                }
+            };
             PushCommand pushCommand = git.push();
-            pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+//            pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pushCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                @Override
+                public void configure(Transport transport) {
+                    SshTransport sshTransport = (SshTransport)transport;
+                    sshTransport.setSshSessionFactory(sshSessionFactory);
+                }
+            } );
             pushCommand.setProgressMonitor(monitor);
             return pushCommand.call();
         }
@@ -202,8 +255,29 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public PullResult pullFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host host, Session session) {
+                    session.setConfig("StrictHostKeyChecking", "no");
+                }
+
+                @Override
+                protected JSch getJSch(final OpenSshConfig.Host hc, FS fs) throws JSchException {
+                		JSch jsch = super.getJSch(hc, fs);
+                		jsch.removeAllIdentity();
+                		jsch.addIdentity(privateKey);
+                		return jsch;
+                }
+            };
             PullCommand pullCommand = git.pull();
-            pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+//            pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                @Override
+                public void configure(Transport transport) {
+                    SshTransport sshTransport = (SshTransport)transport;
+                    sshTransport.setSshSessionFactory(sshSessionFactory);
+                }
+            } );
             pullCommand.setRebase(false); // Merge, not rebase
             pullCommand.setProgressMonitor(monitor);
             return pullCommand.call();
@@ -215,9 +289,30 @@ public class ArchiRepository implements IArchiRepository {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             // Check and set tracked master branch
             setTrackedMasterBranch(git);
-            
+
+            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+                @Override
+                protected void configure(OpenSshConfig.Host host, Session session) {
+                    session.setConfig("StrictHostKeyChecking", "no");
+                }
+
+                @Override
+                protected JSch getJSch(final OpenSshConfig.Host hc, FS fs) throws JSchException {
+                		JSch jsch = super.getJSch(hc, fs);
+                		jsch.removeAllIdentity();
+                		jsch.addIdentity(privateKey);
+                		return jsch;
+                }
+            };
             FetchCommand fetchCommand = git.fetch();
-            fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            fetchCommand.setTransportConfigCallback(new TransportConfigCallback() {
+                @Override
+                public void configure(Transport transport) {
+                    SshTransport sshTransport = (SshTransport)transport;
+                    sshTransport.setSshSessionFactory(sshSessionFactory);
+                }
+            } );
+//            fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
             fetchCommand.setProgressMonitor(monitor);
             fetchCommand.setDryRun(isDryrun);
             return fetchCommand.call();

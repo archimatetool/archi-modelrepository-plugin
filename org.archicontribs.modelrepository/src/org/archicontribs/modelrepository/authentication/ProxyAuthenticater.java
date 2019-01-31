@@ -57,7 +57,7 @@ public class ProxyAuthenticater {
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
             
             // Test the connection - this is better to do it now
-            testConnection(repositoryURL, null);
+//            testConnection(repositoryURL, null);
             
             return;
         }
