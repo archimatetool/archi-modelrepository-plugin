@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -56,6 +57,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text fUserEmailTextField;
     
     private Text fUserRepoFolderTextField;
+    
+    private Button fSSHIdentitySelectButton;
+    private Button fSSHIdentityEnabledButton;
+    private Text fSSHIdentityFileTextField;
+    private Button fSSHIdentityRequiresPasswordButton;
+    private Text fSSHIdentityPasswordTextField;
     
     private Button fStoreCredentialsButton;
     
@@ -130,6 +137,57 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             }
         });
         
+        // SSH Identity configuration
+        fSSHIdentityEnabledButton = new Button(settingsGroup, SWT.CHECK);
+        fSSHIdentityEnabledButton.setText(Messages.ModelRepositoryPreferencePage_25);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 4;
+        fSSHIdentityEnabledButton.setLayoutData(gd);
+        fSSHIdentityEnabledButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateIdentityControls();
+            }
+        });
+        label = new Label(settingsGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_24);
+        
+        fSSHIdentityFileTextField = new Text(settingsGroup, SWT.BORDER | SWT.SINGLE);
+        fSSHIdentityFileTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fSSHIdentityFileTextField);
+        
+        fSSHIdentitySelectButton = new Button(settingsGroup, SWT.PUSH);
+        fSSHIdentitySelectButton.setText(Messages.ModelRepositoryPreferencePage_6);
+        fSSHIdentitySelectButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String identityFile = chooseIdentityFile();
+                if(identityFile != null) {
+                    fSSHIdentityFileTextField.setText(identityFile);
+                }
+            }
+        });
+        fSSHIdentityRequiresPasswordButton = new Button(settingsGroup, SWT.CHECK);
+        fSSHIdentityRequiresPasswordButton.setText(Messages.ModelRepositoryPreferencePage_22);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 4;
+        fSSHIdentityRequiresPasswordButton.setLayoutData(gd);
+        fSSHIdentityRequiresPasswordButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateIdentityControls();
+            }
+        });
+        
+        label = new Label(settingsGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_23);
+        fSSHIdentityPasswordTextField = new Text(settingsGroup, SWT.BORDER | SWT.SINGLE | SWT.PASSWORD);
+        fSSHIdentityPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fSSHIdentityPasswordTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fSSHIdentityPasswordTextField);
+
         
         // Repository Group
         Group repositoryGroup = new Group(client, SWT.NULL);
@@ -247,6 +305,17 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         return client;
     }
 
+    private String chooseIdentityFile() {
+        FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell());
+        dialog.setText(Messages.ModelRepositoryPreferencePage_20);
+//        dialog.setMessage(Messages.ModelRepositoryPreferencePage_21);
+        File file = new File(fSSHIdentityFileTextField.getText());
+        if(file.exists()) {
+            dialog.setFilterPath(fSSHIdentityFileTextField.getText());
+        }
+        return dialog.open();
+    }
+
     private String chooseFolderPath() {
         DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_17);
@@ -262,6 +331,19 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         PersonIdent result = getUserDetails();
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
+        
+        fSSHIdentityEnabledButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_ENABLED));
+        fSSHIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
+        fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
+        
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.SSH_CREDENTIALS_FILE));
+            fSSHIdentityPasswordTextField.setText(StringUtils.safeString(sc.getPassword()));
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
@@ -283,6 +365,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             ex.printStackTrace();
         }
         
+        updateIdentityControls();
         updateProxyControls();
     }
     
@@ -299,6 +382,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_ENABLED, fSSHIdentityEnabledButton.getSelection());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, fSSHIdentityRequiresPasswordButton.getSelection());
         getPreferenceStore().setValue(PREFS_FETCH_IN_BACKGROUND, fFetchInBackgroundButton.getSelection());
         
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
@@ -308,6 +394,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_PORT, fProxyPortTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
         
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.SSH_CREDENTIALS_FILE));
+            sc.store(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder().getName(), fSSHIdentityPasswordTextField.getText());
+        }
+        catch(NoSuchAlgorithmException | IOException ex) {
+            ex.printStackTrace();
+        }
+
         try {
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
@@ -325,6 +420,11 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         PersonIdent result = getUserDetails();
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
+
+        fSSHIdentityEnabledButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_IDENTITY_ENABLED));
+        fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
+        fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
+        fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_FETCH_IN_BACKGROUND));
@@ -338,7 +438,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fProxyUserNameTextField.setText(""); //$NON-NLS-1$
         fProxyUserPasswordTextField.setText(""); //$NON-NLS-1$
         
+        updateIdentityControls();
         updateProxyControls();
+    }
+    
+    private void updateIdentityControls() {
+    	fSSHIdentityFileTextField.setEnabled(fSSHIdentityEnabledButton.getSelection());
+    	fSSHIdentitySelectButton.setEnabled(fSSHIdentityEnabledButton.getSelection());
+    	fSSHIdentityRequiresPasswordButton.setEnabled(fSSHIdentityEnabledButton.getSelection());
+    	fSSHIdentityPasswordTextField.setEnabled(fSSHIdentityEnabledButton.getSelection() && fSSHIdentityRequiresPasswordButton.getSelection());
     }
     
     private void updateProxyControls() {
