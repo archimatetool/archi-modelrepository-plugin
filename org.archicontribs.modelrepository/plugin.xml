@@ -295,13 +295,13 @@
                id="org.archicontribs.modelrepository.modelRepositoryView"
                minimized="false"
                relationship="stack"
-               relative="com.archimatetool.help.hintsView">
+               relative="com.archimatetool.editor.navigatorView">
          </view>
          <view
                id="org.archicontribs.modelrepository.historyView"
                minimized="false"
                relationship="stack"
-               relative="com.archimatetool.zest.zestView">
+               relative="com.archimatetool.editor.propertiesView">
          </view>
          <view
                id="org.archicontribs.modelrepository.branchesView"
