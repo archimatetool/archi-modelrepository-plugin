@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -88,7 +88,7 @@ public class FetchJob extends Job {
             SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
             
             try {
-                ProxyAuthenticater.update(repo.getOnlineRepositoryURL());
+                ProxyAuthenticator.update(repo.getOnlineRepositoryURL());
                 repo.fetchFromRemote(scs.getUsername(), scs.getPassword(), null, false);
                 needsRefresh = true;
             }

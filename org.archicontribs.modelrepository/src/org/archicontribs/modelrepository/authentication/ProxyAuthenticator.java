@@ -28,11 +28,11 @@ import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import com.archimatetool.editor.utils.StringUtils;
 
 /**
- * ProxyAuthenticater
+ * ProxyAuthenticator
  * 
  * @author Phillip Beauvoir
  */
-public class ProxyAuthenticater {
+public class ProxyAuthenticator {
     
     // Store the default before we set ours
     static final ProxySelector DEFAULT_PROXY_SELECTOR = ProxySelector.getDefault();

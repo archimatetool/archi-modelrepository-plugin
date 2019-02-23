@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -82,7 +82,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         
         try {
             // Proxy check
-            ProxyAuthenticater.update(repoURL);
+            ProxyAuthenticator.update(repoURL);
             
             // Create a new repo
             try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {

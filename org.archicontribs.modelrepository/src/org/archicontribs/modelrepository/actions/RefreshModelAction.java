@@ -8,7 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticater;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
@@ -112,7 +112,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         
         // Proxy update
-        ProxyAuthenticater.update(getRepository().getOnlineRepositoryURL());
+        ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
 
         return up;
     }
