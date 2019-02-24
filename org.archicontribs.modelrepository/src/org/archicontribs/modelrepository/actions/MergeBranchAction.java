@@ -80,6 +80,9 @@ public class MergeBranchAction extends AbstractModelAction {
             if(response == 1) {
                 doLocalMerge(fBranchInfo);
             }
+            
+            // This needs to be called again
+            getRepository().saveChecksum();
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
