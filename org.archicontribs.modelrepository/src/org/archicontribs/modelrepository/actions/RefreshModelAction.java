@@ -146,9 +146,9 @@ public class RefreshModelAction extends AbstractModelAction {
         // Check for tracking updates
         FetchResult fetchResult = pullResult[0].getFetchResult();
         boolean newTrackingRefUpdates = fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty();
-        if(newTrackingRefUpdates) {
-            notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
-        }
+        
+        // Update branches anyway
+        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         
         // Merge is already up to date...
         if(pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {

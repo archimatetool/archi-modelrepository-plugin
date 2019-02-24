@@ -174,7 +174,8 @@ public class MergeBranchAction extends AbstractModelAction {
                     NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
 
             if(doDeleteBranch) {
-                deleteBranchAction.deleteBranch(branchToMerge);
+                // Branch will have been pushed at this point so BranchInfo is no longer valid to determine if it's just a local branch
+                deleteBranchAction.deleteBranch(branchToMerge, true);
             }
         }
     }

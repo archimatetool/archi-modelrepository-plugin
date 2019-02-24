@@ -52,7 +52,7 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
         
         try {
-            deleteBranch(branchInfo);
+            deleteBranch(branchInfo, false);
         }
         catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.DeleteBranchAction_0, ex);
@@ -63,14 +63,14 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
     }
     
-    protected void deleteBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
+    protected void deleteBranch(BranchInfo branchInfo, boolean forceRemote) throws IOException, GitAPIException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Delete local branch and remote branch refs
             git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
                     branchInfo.getRemoteBranchNameFor()).setForce(true).call();
             
-            // Was just a local branch
-            if(branchInfo.isLocal() && !branchInfo.hasTrackedRef()) {
+            // Local branch
+            if(!forceRemote && branchInfo.isLocal() && !branchInfo.hasTrackedRef()) {
                 return;
             }
             
