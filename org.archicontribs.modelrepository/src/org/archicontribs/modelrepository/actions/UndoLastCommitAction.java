@@ -14,6 +14,7 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -80,7 +81,13 @@ public class UndoLastCommitAction extends AbstractModelAction {
         try(Repository repository = Git.open(getRepository().getLocalRepositoryFolder()).getRepository()) {
             try(RevWalk revWalk = new RevWalk(repository)) {
                 // We are interested in the HEAD
-                revWalk.markStart(revWalk.parseCommit(repository.resolve(IGraficoConstants.HEAD)));
+                ObjectId objectID = repository.resolve(IGraficoConstants.HEAD);
+                if(objectID == null) { // can be null!
+                    revWalk.dispose();
+                    return false;
+                }
+                
+                revWalk.markStart(revWalk.parseCommit(objectID));
                 
                 int count = 0;
                 for(@SuppressWarnings("unused") RevCommit c : revWalk) {
