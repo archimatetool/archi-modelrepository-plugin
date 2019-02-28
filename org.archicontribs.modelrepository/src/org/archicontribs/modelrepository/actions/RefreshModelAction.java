@@ -54,6 +54,9 @@ public class RefreshModelAction extends AbstractModelAction {
     protected static final int PULL_STATUS_UP_TO_DATE = 1;
     protected static final int PULL_STATUS_MERGE_CANCEL = 2;
     
+    protected static final int USER_OK = 0;
+    protected static final int USER_CANCEL = 1;
+
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
@@ -71,9 +74,18 @@ public class RefreshModelAction extends AbstractModelAction {
     @Override
     public void run() {
         try {
-            UsernamePassword up = init();
-            if(up != null) {
-                int status = pull(up);
+            int status = init();
+            if(status == USER_OK) {
+                UsernamePassword npw = null;
+                
+                // HTTP
+                if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                    npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
+                    if(npw == null) {
+                        return;
+                    }
+                }
+                status = pull(npw);
                 if(status == PULL_STATUS_UP_TO_DATE) {
                     MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
                 }
@@ -84,13 +96,13 @@ public class RefreshModelAction extends AbstractModelAction {
         }
     }
     
-    protected UsernamePassword init() throws IOException, GitAPIException {
+    protected int init() throws IOException, GitAPIException {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
             if(!offerToSaveModel(model)) {
-                return null;
+                return USER_CANCEL;
             }
         }
         
@@ -100,24 +112,18 @@ public class RefreshModelAction extends AbstractModelAction {
         // Then offer to Commit
         if(getRepository().hasChangesToCommit()) {
             if(!offerToCommitChanges()) {
-                return null;
+                return USER_CANCEL;
             }
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
         
-        // Get User Credentials first
-        UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-        if(up == null) {
-            return null;
-        }
-        
         // Proxy update
         ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
-
-        return up;
+        
+        return USER_OK;
     }
     
-    protected int pull(UsernamePassword up) throws Exception {
+    protected int pull(UsernamePassword npw) throws Exception {
         PullResult[] pullResult = new PullResult[1];
         Exception[] exception = new Exception[1];
         
@@ -126,7 +132,7 @@ public class RefreshModelAction extends AbstractModelAction {
             @Override
             public void run(IProgressMonitor pm) {
                 try {
-                    pullResult[0] = getRepository().pullFromRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
+                    pullResult[0] = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pm));
                 }
                 catch(GitAPIException | IOException ex) {
                     exception[0] = ex;

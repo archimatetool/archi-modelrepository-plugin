@@ -41,7 +41,46 @@ public class GraficoUtilsTests {
         FileUtils.deleteFolder(GitHelper.getTempTestsFolder());
     }
     
-    
+    @Test
+    public void isSSH() {
+        // True
+        String[] trueOnes = {
+                "git@github.com:archimatetool/archi-modelrepository-plugin.git",
+                "ssh://user@host.xz/path/to/repo.git/",
+                "ssh://user@host.xz:4019/path/to/repo.git/",
+                "ssh://user:password@host.xz/path/to/repo.git/",
+                "ssh://host.xz/path/to/repo.git/",
+                "ssh://user@host.xz/path/to/repo.git/",
+                "ssh://host.xz/path/to/repo.git/",
+                "ssh://user@host.xz/~user/path/to/repo.git/",
+                "ssh://host.xz/~user/path/to/repo.git/",
+                "ssh://user@host.xz/~/path/to/repo.git",
+                "ssh://host.xz/~/path/to/repo.git",
+                "user@host.xz:/path/to/repo.git/",
+                "host.xz:/path/to/repo.git/",
+                "user@host.xz:~user/path/to/repo.git/",
+                "host.xz:~user/path/to/repo.git/",
+                "user@host.xz:path/to/repo.git",
+                "host.xz:path/to/repo.git"
+        };
+        
+        for(String url : trueOnes) {
+            assertTrue(GraficoUtils.isSSH(url));
+        }
+        
+        // False
+        String[] falseOnes = {
+                "ssh://user@host.example.com",
+                "https://githosting.org/path/archi-demo-grafico.git",
+                "http://githosting.org/path/archi-demo-grafico.git",
+                "ssh://:8888/path/to/repo.git/",
+        };
+        
+        for(String url : falseOnes) {
+            assertFalse(GraficoUtils.isSSH(url));
+        }
+    }
+
     @Test
     public void getLocalGitFolderName_ShouldReturnCorrectName() {
         String repoURL = "https://githosting.org/path/archi-demo-grafico.git";

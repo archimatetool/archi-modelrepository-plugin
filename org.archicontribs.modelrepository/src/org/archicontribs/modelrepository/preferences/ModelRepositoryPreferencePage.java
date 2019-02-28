@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.preference.PreferencePage;
@@ -28,6 +29,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -56,6 +58,11 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text fUserEmailTextField;
     
     private Text fUserRepoFolderTextField;
+    
+    private Button fSSHIdentitySelectButton;
+    private Text fSSHIdentityFileTextField;
+    private Button fSSHIdentityRequiresPasswordButton;
+    private Text fSSHIdentityPasswordTextField;
     
     private Button fStoreCredentialsButton;
     
@@ -101,24 +108,24 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Single text control so strip CRLFs
         UIUtils.conformSingleTextControl(fUserEmailTextField);
         
-        // Settings Group
-        Group settingsGroup = new Group(client, SWT.NULL);
-        settingsGroup.setText(Messages.ModelRepositoryPreferencePage_4);
-        settingsGroup.setLayout(new GridLayout(3, false));
+        // Workspace Group
+        Group workspaceGroup = new Group(client, SWT.NULL);
+        workspaceGroup.setText(Messages.ModelRepositoryPreferencePage_4);
+        workspaceGroup.setLayout(new GridLayout(3, false));
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.widthHint = 500;
-        settingsGroup.setLayoutData(gd);
+        workspaceGroup.setLayoutData(gd);
         
-        // Repo folder location
-        label = new Label(settingsGroup, SWT.NULL);
+        // Workspace folder location
+        label = new Label(workspaceGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_5);
         
-        fUserRepoFolderTextField = new Text(settingsGroup, SWT.BORDER | SWT.SINGLE);
+        fUserRepoFolderTextField = new Text(workspaceGroup, SWT.BORDER | SWT.SINGLE);
         fUserRepoFolderTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         // Single text control so strip CRLFs
         UIUtils.conformSingleTextControl(fUserRepoFolderTextField);
         
-        Button folderButton = new Button(settingsGroup, SWT.PUSH);
+        Button folderButton = new Button(workspaceGroup, SWT.PUSH);
         folderButton.setText(Messages.ModelRepositoryPreferencePage_6);
         folderButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -130,36 +137,78 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             }
         });
         
-        
-        // Repository Group
-        Group repositoryGroup = new Group(client, SWT.NULL);
-        repositoryGroup.setText(Messages.ModelRepositoryPreferencePage_7);
-        repositoryGroup.setLayout(new GridLayout(3, false));
-        repositoryGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        // Store Credentials
-        fStoreCredentialsButton = new Button(repositoryGroup, SWT.CHECK);
-        fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
+        // Fetch in background
+        fFetchInBackgroundButton = new Button(workspaceGroup, SWT.CHECK);
+        fFetchInBackgroundButton.setText(Messages.ModelRepositoryPreferencePage_19);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
-        fStoreCredentialsButton.setLayoutData(gd);
-        
-        label = new Label(repositoryGroup, SWT.NULL);
-        label.setText(Messages.ModelRepositoryPreferencePage_9);
-        label.setLayoutData(gd);
-        
-        label = new Label(repositoryGroup, SWT.NULL);
-        label.setText(Messages.ModelRepositoryPreferencePage_0);
-        label.setLayoutData(gd);
-        
-        label = new Label(repositoryGroup, SWT.NULL);
-        label.setLayoutData(gd);
-        
-        // Fetch in background
-        fFetchInBackgroundButton = new Button(repositoryGroup, SWT.CHECK);
-        fFetchInBackgroundButton.setText(Messages.ModelRepositoryPreferencePage_19);
         fFetchInBackgroundButton.setLayoutData(gd);
 
+        
+        // SSH Group
+        Group sshGroup = new Group(client, SWT.NULL);
+        sshGroup.setText(Messages.ModelRepositoryPreferencePage_7);
+        sshGroup.setLayout(new GridLayout(3, false));
+        sshGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+//        label = new Label(sshGroup, SWT.NULL);
+//        label.setText(Messages.ModelRepositoryPreferencePage_0);
+//        label.setLayoutData(gd);
+        
+        label = new Label(sshGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_24);
+        
+        fSSHIdentityFileTextField = new Text(sshGroup, SWT.BORDER | SWT.SINGLE);
+        fSSHIdentityFileTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fSSHIdentityFileTextField);
+        
+        fSSHIdentitySelectButton = new Button(sshGroup, SWT.PUSH);
+        fSSHIdentitySelectButton.setText(Messages.ModelRepositoryPreferencePage_6);
+        fSSHIdentitySelectButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                String identityFile = chooseIdentityFile();
+                if(identityFile != null) {
+                    fSSHIdentityFileTextField.setText(identityFile);
+                }
+            }
+        });
+        
+        fSSHIdentityRequiresPasswordButton = new Button(sshGroup, SWT.CHECK);
+        fSSHIdentityRequiresPasswordButton.setText(Messages.ModelRepositoryPreferencePage_22);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        gd.horizontalSpan = 4;
+        fSSHIdentityRequiresPasswordButton.setLayoutData(gd);
+        fSSHIdentityRequiresPasswordButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updateIdentityControls();
+            }
+        });
+        
+        label = new Label(sshGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_23);
+        fSSHIdentityPasswordTextField = new Text(sshGroup, SWT.BORDER | SWT.SINGLE | SWT.PASSWORD);
+        fSSHIdentityPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fSSHIdentityPasswordTextField.setEnabled(false);
+        // Single text control so strip CRLFs
+        UIUtils.conformSingleTextControl(fSSHIdentityPasswordTextField);
+        
+        // HTTP Credentials
+        Group httpGroup = new Group(client, SWT.NULL);
+        httpGroup.setText(Messages.ModelRepositoryPreferencePage_9);
+        httpGroup.setLayout(new GridLayout(1, false));
+        httpGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+//        label = new Label(httpGroup, SWT.NULL);
+//        label.setText(Messages.ModelRepositoryPreferencePage_0);
+//        label.setLayoutData(gd);
+
+        fStoreCredentialsButton = new Button(httpGroup, SWT.CHECK);
+        fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
+        gd = new GridData(GridData.FILL_HORIZONTAL);
+        fStoreCredentialsButton.setLayoutData(gd);
         
         // Proxy Group
         Group proxyGroup = new Group(client, SWT.NULL);
@@ -247,6 +296,17 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         return client;
     }
 
+    private String chooseIdentityFile() {
+        FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell());
+        dialog.setText(Messages.ModelRepositoryPreferencePage_20);
+//        dialog.setMessage(Messages.ModelRepositoryPreferencePage_21);
+        File file = new File(fSSHIdentityFileTextField.getText());
+        if(file.exists()) {
+            dialog.setFilterPath(fSSHIdentityFileTextField.getText());
+        }
+        return dialog.open();
+    }
+
     private String chooseFolderPath() {
         DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_17);
@@ -263,6 +323,18 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
         
+        fSSHIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
+        fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
+        
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.SSH_CREDENTIALS_FILE));
+            fSSHIdentityPasswordTextField.setText(StringUtils.safeString(sc.getUsernamePassword().getPassword()));
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
         
@@ -276,13 +348,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         try {
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
-            fProxyUserNameTextField.setText(StringUtils.safeString(sc.getUsername()));
-            fProxyUserPasswordTextField.setText(StringUtils.safeString(sc.getPassword()));
+            UsernamePassword npw = sc.getUsernamePassword();
+            fProxyUserNameTextField.setText(StringUtils.safeString(npw.getUsername()));
+            fProxyUserPasswordTextField.setText(StringUtils.safeString(npw.getPassword()));
         }
         catch(IOException ex) {
             ex.printStackTrace();
         }
         
+        updateIdentityControls();
         updateProxyControls();
     }
     
@@ -299,6 +373,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
+        getPreferenceStore().setValue(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, fSSHIdentityRequiresPasswordButton.getSelection());
         getPreferenceStore().setValue(PREFS_FETCH_IN_BACKGROUND, fFetchInBackgroundButton.getSelection());
         
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
@@ -308,6 +384,15 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_PORT, fProxyPortTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
         
+        try {
+            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    IGraficoConstants.SSH_CREDENTIALS_FILE));
+            sc.store(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder().getName(), fSSHIdentityPasswordTextField.getText());
+        }
+        catch(NoSuchAlgorithmException | IOException ex) {
+            ex.printStackTrace();
+        }
+
         try {
             SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
@@ -325,6 +410,10 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         PersonIdent result = getUserDetails();
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
+
+        fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
+        fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
+        fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_FETCH_IN_BACKGROUND));
@@ -338,7 +427,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fProxyUserNameTextField.setText(""); //$NON-NLS-1$
         fProxyUserPasswordTextField.setText(""); //$NON-NLS-1$
         
+        updateIdentityControls();
         updateProxyControls();
+    }
+    
+    private void updateIdentityControls() {
+    	fSSHIdentityPasswordTextField.setEnabled(fSSHIdentityRequiresPasswordButton.getSelection());
     }
     
     private void updateProxyControls() {

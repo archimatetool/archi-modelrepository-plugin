@@ -8,8 +8,10 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -17,7 +19,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -74,15 +75,18 @@ public class DeleteBranchAction extends AbstractModelAction {
                 return;
             }
             
-            // Get User Credentials first
-            UsernamePassword up = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-            if(up == null) {
-                return;
+            // Get HTTP User Credentials
+            UsernamePassword npw = null;
+            if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
+                if(npw == null) {
+                    return;
+                }
             }
             
             // Delete remote branch
             PushCommand pushCommand = git.push();
-            pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(up.getUsername(), up.getPassword()));
+            pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getRepository().getOnlineRepositoryURL(), npw));
             RefSpec refSpec = new RefSpec( ":" + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
             pushCommand.setRefSpecs(refSpec);
             pushCommand.setRemote(IGraficoConstants.ORIGIN);

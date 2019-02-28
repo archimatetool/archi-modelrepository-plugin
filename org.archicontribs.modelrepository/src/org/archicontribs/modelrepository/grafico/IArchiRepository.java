@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -77,13 +78,12 @@ public interface IArchiRepository extends IGraficoConstants {
     /**
      * Clone a model
      * @param repoURL
-     * @param userName
-     * @param userPassword
+     * @param npw
      * @param monitor
      * @throws GitAPIException
      * @throws IOException
      */
-    void cloneModel(String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException;
+    void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException;
 
     /**
      * Push to Remote
@@ -93,17 +93,16 @@ public interface IArchiRepository extends IGraficoConstants {
      * @throws IOException
      * @throws GitAPIException
      */
-    Iterable<PushResult> pushToRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException;
+    Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
      * Pull from Remote
-     * @param userName
-     * @param userPassword
+     * @param npw
      * @return 
      * @throws IOException
      * @throws GitAPIException
      */
-    PullResult pullFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException;
+    PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException;
 
     /**
      * Fetch from Remote
@@ -113,7 +112,7 @@ public interface IArchiRepository extends IGraficoConstants {
      * @throws IOException
      * @throws GitAPIException
      */
-    FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException;
+    FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException;
 
     /**
      * Create a new, local Git repository with name set to "origin"
@@ -198,12 +197,12 @@ public interface IArchiRepository extends IGraficoConstants {
      * @param email
      * @throws IOException
      */
-    public void saveUserDetails(String name, String email) throws IOException;
+    void saveUserDetails(String name, String email) throws IOException;
     
     /**
      * @return The Branch Status
      * @throws IOException
      * @throws GitAPIException
      */
-    public BranchStatus getBranchStatus() throws IOException, GitAPIException;
+    BranchStatus getBranchStatus() throws IOException, GitAPIException;
 }

@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
-import org.eclipse.jface.dialogs.IMessageProvider;
+import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -24,19 +26,18 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
-import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
- * Property Section for Authorisation
+ * Property Section for Authentication
  * 
  * @author Phillip Beauvoir
  */
@@ -51,28 +52,76 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private IArchiRepository fRepository;
     
-    private Button editButton, clearButton;
+    private Button clearButton;
+    private Button prefsButton;
+    
+    private TextListener textUserName, textPassword;
+    
+    private class TextListener {
+        Text text;
+        String oldValue;
+
+        Listener listener = new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                switch(event.type) {
+                    case SWT.FocusOut:
+                    case SWT.DefaultSelection:
+                        String newValue = text.getText();
+                        
+                        // Different value so save
+                        if(!oldValue.equals(newValue)) {
+                            oldValue = newValue;
+                            // Save
+                            saveCredentials();
+                            clearButton.setEnabled(true);
+                        }
+                        break;
+                    
+                    default:
+                        break;
+                }
+             }
+        };
+        
+        TextListener(Composite parent, int style) {
+            text = createSingleTextControl(parent, style);
+            text.addListener(SWT.DefaultSelection, listener);
+            text.addListener(SWT.FocusOut, listener);
+        }
+
+        void setText(String oldValue) {
+            this.oldValue = oldValue;
+            text.setText(oldValue);
+        }
+        
+        String getText() {
+            return text.getText().trim();
+        }
+
+        void setEnabled(boolean enabled) {
+            text.setEnabled(enabled);
+        }
+    }
     
     public AuthSection() {
     }
 
     @Override
     protected void createControls(Composite parent) {
-        Group group = getWidgetFactory().createGroup(parent, Messages.AuthSection_0);
+        Group group1 = getWidgetFactory().createGroup(parent, Messages.AuthSection_0);
         GridData gd = new GridData(GridData.FILL_BOTH);
         gd.horizontalSpan = 2;
-        group.setLayoutData(gd);
-        group.setLayout(new GridLayout(2, false));
+        group1.setLayoutData(gd);
+        group1.setLayout(new GridLayout(2, false));
         
-        editButton = getWidgetFactory().createButton(group, Messages.AuthSection_1, SWT.PUSH);
-        editButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                new EditAuthDialog(parent.getShell()).open();
-            }
-        });
+        createLabel(group1, Messages.AuthSection_6, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textUserName = new TextListener(group1, SWT.NONE);
         
-        clearButton = getWidgetFactory().createButton(group, Messages.AuthSection_2, SWT.PUSH);
+        createLabel(group1, Messages.AuthSection_7, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textPassword = new TextListener(group1, SWT.PASSWORD);
+
+        clearButton = getWidgetFactory().createButton(group1, Messages.AuthSection_2, SWT.PUSH);
         clearButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -80,7 +129,19 @@ public class AuthSection extends AbstractArchiPropertySection {
                         Messages.AuthSection_4);
                 if(answer) {
                     getCredentials().deleteCredentialsFile();
-                    clearButton.setEnabled(false);
+                    updateControls();
+                }
+            }
+        });
+        
+        prefsButton = getWidgetFactory().createButton(group1, Messages.AuthSection_8, SWT.PUSH);
+        prefsButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getPart().getSite().getShell(),
+                        ModelRepositoryPreferencePage.ID, null, null);
+                if(dialog != null) {
+                    dialog.open();
                 }
             }
         });
@@ -90,11 +151,45 @@ public class AuthSection extends AbstractArchiPropertySection {
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
             fRepository = (IArchiRepository)selection.getFirstElement();
-            clearButton.setEnabled(getCredentials().hasCredentialsFile());
+            updateControls();
         }
         else {
             System.err.println(getClass() + " failed to get element for " + selection.getFirstElement()); //$NON-NLS-1$
         }
+    }
+    
+    private void updateControls() {
+        SimpleCredentialsStorage scs = getCredentials();
+        
+        if(scs.hasCredentialsFile()) {
+            try {
+                UsernamePassword npw = scs.getUsernamePassword();
+                textUserName.setText(StringUtils.safeString(npw.getUsername()));
+                textPassword.setText(StringUtils.safeString(npw.getPassword()));
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
+                MessageDialog.openError(getPart().getSite().getShell(), Messages.AuthSection_0, ex.getMessage());
+            }
+        }
+        else {
+            textUserName.setText(""); //$NON-NLS-1$
+            textPassword.setText(""); //$NON-NLS-1$
+        }
+        
+        boolean isHTTP = true;
+        try {
+            isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        textUserName.setEnabled(isHTTP);
+        textPassword.setEnabled(isHTTP);
+        
+        clearButton.setEnabled(scs.hasCredentialsFile());
+        prefsButton.setEnabled(!isHTTP);
     }
     
     private SimpleCredentialsStorage getCredentials() {
@@ -102,81 +197,24 @@ public class AuthSection extends AbstractArchiPropertySection {
                 IGraficoConstants.REPO_CREDENTIALS_FILE)); 
     }
     
-    private class EditAuthDialog extends TitleAreaDialog {
-        private Text txtUsername;
-        private Text txtPassword;
-        
-        public EditAuthDialog(Shell parentShell) {
-            super(parentShell);
-            setTitle(Messages.AuthSection_5);
+    private void saveCredentials() {
+        try {
+            getCredentials().store(textUserName.getText(), textPassword.getText());
         }
-
-        @Override
-        protected void configureShell(Shell shell) {
-            super.configureShell(shell);
-            shell.setText(Messages.AuthSection_5);
+        catch(NoSuchAlgorithmException | IOException ex) {
+            ex.printStackTrace();
+            MessageDialog.openError(getPart().getSite().getShell(),
+                    Messages.AuthSection_11,
+                    Messages.AuthSection_12 +
+                            " " + //$NON-NLS-1$
+                            ex.getMessage());
         }
-
-        @Override
-        protected Control createDialogArea(Composite parent) {
-            setMessage(Messages.AuthSection_7, IMessageProvider.INFORMATION);
-            setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
-
-            Composite area = (Composite) super.createDialogArea(parent);
-            Composite container = new Composite(area, SWT.NONE);
-            container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-            GridLayout layout = new GridLayout(2, false);
-            container.setLayout(layout);
-
-            txtUsername = createTextField(container, Messages.AuthSection_8, SWT.NONE);
-            txtPassword = createTextField(container, Messages.AuthSection_9, SWT.PASSWORD);
-
-            try {
-                SimpleCredentialsStorage creds = getCredentials();
-                txtUsername.setText(StringUtils.safeString(creds.getUsername()));
-                txtPassword.setText(StringUtils.safeString(creds.getPassword()));
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-                MessageDialog.openError(getShell(), Messages.AuthSection_5, ex.getMessage());
-            }
-
-            return area;
-        }
-        
-        private Text createTextField(Composite container, String message, int style) {
-            Label label = new Label(container, SWT.NONE);
-            label.setText(message);
-            
-            Text txt = new Text(container, SWT.BORDER | style);
-            txt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            
-            return txt;
-        }
-
-        @Override
-        protected boolean isResizable() {
-            return true;
-        }
-
-        private void saveInput() {
-            try {
-                getCredentials().store(txtUsername.getText().trim(), txtPassword.getText().trim());
-            }
-            catch(NoSuchAlgorithmException | IOException ex) {
-                ex.printStackTrace();
-                MessageDialog.openError(getShell(),
-                        Messages.AuthSection_11,
-                        Messages.AuthSection_12 +
-                                " " + //$NON-NLS-1$
-                                ex.getMessage());
-            }
-        }
-
-        @Override
-        protected void okPressed() {
-            saveInput();
-            super.okPressed();
+    }
+    
+    @Override
+    public void dispose() {
+        if(textPassword != null) {
+            textPassword.oldValue = null;
         }
     }
 }

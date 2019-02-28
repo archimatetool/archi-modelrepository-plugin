@@ -102,7 +102,6 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         password = txtPassword.getText().trim();
         
         boolean doStoreInCredentialsFile = storeCredentialsButton.getSelection();
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS, doStoreInCredentialsFile);
         
         // Store Credentials
         if(doStoreInCredentialsFile) {

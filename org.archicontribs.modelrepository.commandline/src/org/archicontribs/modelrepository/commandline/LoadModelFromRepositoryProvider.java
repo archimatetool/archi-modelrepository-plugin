@@ -13,11 +13,13 @@ import java.nio.file.Paths;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
+import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator.SSHIdentityProvider;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.commandline.AbstractCommandLineProvider;
@@ -37,6 +39,7 @@ import com.archimatetool.model.IArchimateModel;
    --modelrepository.loadModel "cloneFolder"
    --modelrepository.userName "userName"
    --modelrepository.passFile "/pathtoPasswordFile"
+   --modelrepository.identityFile "/pathtoIdentityFile"
  * 
  * This will clone an online Archi model repository into clonefolder.
  * 
@@ -50,6 +53,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
     static final String OPTION_LOAD_MODEL = "modelrepository.loadModel"; //$NON-NLS-1$
     static final String OPTION_USERNAME = "modelrepository.userName"; //$NON-NLS-1$
     static final String OPTION_PASSFILE = "modelrepository.passFile"; //$NON-NLS-1$
+    static final String OPTION_SSH_IDENTITY_FILE = "modelrepository.identityFile"; //$NON-NLS-1$
     
     public LoadModelFromRepositoryProvider() {
     }
@@ -75,26 +79,52 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         // Clone
         if(commandLine.hasOption(OPTION_CLONE_MODEL)) {
             String url = commandLine.getOptionValue(OPTION_CLONE_MODEL);
-            String userName = commandLine.getOptionValue(OPTION_USERNAME);
+            String username = commandLine.getOptionValue(OPTION_USERNAME);
             String password = getPasswordFromFile(commandLine);
+            File identityFile = getSSHIdentityFile(commandLine);
+            
+            boolean isSSH = GraficoUtils.isSSH(url);
             
             if(!StringUtils.isSet(url)) {
                 logError(Messages.LoadModelFromRepositoryProvider_2);
                 return;
             }
             
-            if(!StringUtils.isSet(userName)) {
+            if(!isSSH && !StringUtils.isSet(username)) {
                 logError(Messages.LoadModelFromRepositoryProvider_3);
                 return;
             }
             
-            if(!StringUtils.isSet(password)) {
+            if(!isSSH && !StringUtils.isSet(password)) {
                 logError(Messages.LoadModelFromRepositoryProvider_17);
                 return;
             }
-
+            
+            if(isSSH && identityFile == null) {
+                logError(Messages.LoadModelFromRepositoryProvider_18);
+                return;
+            }
+            
             logMessage(NLS.bind(Messages.LoadModelFromRepositoryProvider_4, url, cloneFolder));
-            cloneModel(url, cloneFolder, userName, password);
+            
+            FileUtils.deleteFolder(cloneFolder);
+            
+            // Set this to return our details rather than using the defaults from App prefs
+            CredentialsAuthenticator.setSSHIdentityProvider(new SSHIdentityProvider() {
+                @Override
+                public File getIdentityFile() {
+                    return identityFile;
+                }
+
+                @Override
+                public String getIdentityPassword() {
+                    return password;
+                }
+            });
+            
+            IArchiRepository repo = new ArchiRepository(cloneFolder);
+            repo.cloneModel(url, new UsernamePassword(username, password), null);
+            
             logMessage(Messages.LoadModelFromRepositoryProvider_5);
         }
         
@@ -122,19 +152,6 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         return model;
     }
 
-    private void cloneModel(String url, File cloneFolder, String userName, String password) throws GitAPIException, IOException {
-        FileUtils.deleteFolder(cloneFolder);
-        cloneFolder.mkdirs(); // Make dir
-        
-        CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand.setDirectory(cloneFolder);
-        cloneCommand.setURI(url);
-        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, password));
-            
-        try(Git git = cloneCommand.call()) {
-        }
-    }
-
     private String getPasswordFromFile(CommandLine commandLine) throws IOException {
         String password = null;
         
@@ -148,6 +165,18 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         }
 
         return password;
+    }
+            
+    private File getSSHIdentityFile(CommandLine commandLine) {
+        String path = commandLine.getOptionValue(OPTION_SSH_IDENTITY_FILE);
+        if(StringUtils.isSet(path)) {
+            File file = new File(path);
+            if(file.exists() && file.canRead()) {
+                return file;
+            }
+        }
+        
+        return null;
     }
     
     @Override
@@ -186,6 +215,14 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
                 .build();
         options.addOption(option);
         
+        option = Option.builder()
+                .longOpt(OPTION_SSH_IDENTITY_FILE)
+                .hasArg()
+                .argName(Messages.LoadModelFromRepositoryProvider_19)
+                .desc(NLS.bind(Messages.LoadModelFromRepositoryProvider_20, OPTION_CLONE_MODEL))
+                .build();
+        options.addOption(option);
+
         return options;
     }
     

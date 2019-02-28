@@ -6,10 +6,14 @@
 package org.archicontribs.modelrepository.dialogs;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -38,6 +42,7 @@ public class CloneInputDialog extends TitleAreaDialog {
     private String URL;
     private String username;
     private String password;
+    private boolean doStoreCredentials;
 
     public CloneInputDialog(Shell parentShell) {
         super(parentShell);
@@ -62,15 +67,25 @@ public class CloneInputDialog extends TitleAreaDialog {
         container.setLayout(layout);
 
         txtURL = createTextField(container, Messages.CloneInputDialog_2, SWT.NONE);
+        
+        txtURL.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                boolean isHTTP = GraficoUtils.isHTTP(txtURL.getText());
+                txtUsername.setEnabled(isHTTP);
+                txtPassword.setEnabled(isHTTP);
+                storeCredentialsButton.setEnabled(isHTTP);
+            }
+        });
+        
         txtUsername = createTextField(container, Messages.CloneInputDialog_3, SWT.NONE);
         txtPassword = createTextField(container, Messages.CloneInputDialog_4, SWT.PASSWORD);
-        
         createPreferenceButton(container);
         
         return area;
     }
     
-    private Text createTextField(Composite container, String message, int style) {
+    protected Text createTextField(Composite container, String message, int style) {
         Label label = new Label(container, SWT.NONE);
         label.setText(message);
         
@@ -80,7 +95,7 @@ public class CloneInputDialog extends TitleAreaDialog {
         return txt;
     }
 
-    private void createPreferenceButton(Composite container) {
+    protected void createPreferenceButton(Composite container) {
         storeCredentialsButton = new Button(container, SWT.CHECK);
         storeCredentialsButton.setText(Messages.UserNamePasswordDialog_4);
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -96,12 +111,11 @@ public class CloneInputDialog extends TitleAreaDialog {
 
     // save content of the Text fields because they get disposed
     // as soon as the Dialog closes
-    private void saveInput() {
+    protected void saveInput() {
         username = txtUsername.getText().trim();
         password = txtPassword.getText().trim();
         URL = txtURL.getText().trim();
-        
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS, storeCredentialsButton.getSelection());
+        doStoreCredentials = storeCredentialsButton.getSelection();
     }
 
     @Override
@@ -110,15 +124,15 @@ public class CloneInputDialog extends TitleAreaDialog {
         super.okPressed();
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    public UsernamePassword getUsernamePassword() {
+        return new UsernamePassword(username, password);
     }
     
     public String getURL() {
         return URL;
+    }
+    
+    public boolean doStoreCredentials() {
+        return doStoreCredentials;
     }
 }

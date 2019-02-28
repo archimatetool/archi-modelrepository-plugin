@@ -32,6 +32,10 @@ public class SimpleCredentialsStorage {
         fStorageFile = storageFile;
     }
 
+    public void store(UsernamePassword npw) throws IOException, NoSuchAlgorithmException {
+        store(npw.getUsername(), npw.getPassword());
+    }
+
     public void store(String userName, String password) throws IOException, NoSuchAlgorithmException {
         File file = getCredentialsFile();
         file.getParentFile().mkdirs();
@@ -42,7 +46,11 @@ public class SimpleCredentialsStorage {
         out.close();
     }
     
-    public String getUsername() throws IOException {
+    public UsernamePassword getUsernamePassword() throws IOException {
+        return new UsernamePassword(getUsername(), getPassword());
+    }
+
+    private String getUsername() throws IOException {
         if(!hasCredentialsFile()) {
             return ""; //$NON-NLS-1$
         }
@@ -53,7 +61,7 @@ public class SimpleCredentialsStorage {
         }
     }
     
-    public String getPassword() throws IOException {
+    private String getPassword() throws IOException {
         if(!hasCredentialsFile()) {
             return ""; //$NON-NLS-1$
         }

@@ -38,6 +38,8 @@ public class Messages extends NLS {
 
     public static String CloneModelAction_0;
 
+    public static String CloneModelAction_1;
+
     public static String CloneModelAction_2;
 
     public static String CloneModelAction_3;
@@ -51,6 +53,8 @@ public class Messages extends NLS {
     public static String CreateRepoFromModelAction_1;
 
     public static String CreateRepoFromModelAction_2;
+
+    public static String CreateRepoFromModelAction_3;
 
     public static String CreateRepoFromModelAction_5;
 

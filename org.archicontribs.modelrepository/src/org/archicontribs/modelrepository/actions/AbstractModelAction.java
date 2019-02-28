@@ -7,8 +7,8 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
-import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
@@ -16,11 +16,11 @@ import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -73,11 +73,25 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     protected void displayErrorDialog(String title, Throwable ex) {
         ex.printStackTrace();
         
+        String message = ex.getMessage();
+        
+        if(ex instanceof InvocationTargetException) {
+            ex = ex.getCause();
+        }
+        
+        if(ex instanceof JGitInternalException) {
+            ex = ex.getCause();
+        }
+        
+        if(ex != null) {
+            message = ex.getMessage();
+        }
+        
         MessageDialog.openError(fWindow.getShell(),
                 title,
                 Messages.AbstractModelAction_0 +
                     " " + //$NON-NLS-1$
-                    ex.getMessage());
+                    message);
     }
 
     /**
@@ -137,14 +151,12 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @return the username and password, or null
      */
     protected UsernamePassword getUserNameAndPasswordFromCredentialsFileOrDialog(Shell shell) {
-        boolean doStoreInCredentialsFile = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS);
-        
         SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
 
         // Is it stored?
-        if(doStoreInCredentialsFile && scs.hasCredentialsFile()) {
+        if(scs.hasCredentialsFile()) {
             try {
-                return new UsernamePassword(scs.getUsername(), scs.getPassword());
+                return scs.getUsernamePassword();
             }
             catch(IOException ex) {
                 displayErrorDialog(Messages.AbstractModelAction_9, ex);

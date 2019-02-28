@@ -18,6 +18,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
+import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -50,7 +52,6 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
@@ -70,7 +71,7 @@ public class ArchiRepository implements IArchiRepository {
      * The folder location of the local repository
      */
     private File fLocalRepoFolder;
-    
+
     public ArchiRepository(File localRepoFolder) {
         fLocalRepoFolder = localRepoFolder;
     }
@@ -176,34 +177,34 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public void cloneModel(String repoURL, String userName, String userPassword, ProgressMonitor monitor) throws GitAPIException, IOException {
+    public void cloneModel(String repoURL, UsernamePassword npw, ProgressMonitor monitor) throws GitAPIException, IOException {
         CloneCommand cloneCommand = Git.cloneRepository();
         cloneCommand.setDirectory(getLocalRepositoryFolder());
         cloneCommand.setURI(repoURL);
-        cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+        cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(repoURL, npw));
         cloneCommand.setProgressMonitor(monitor);
-            
+
         try(Git git = cloneCommand.call()) {
             // Use the same line endings
-            setConfigLineEndings(git);
+            setConfigLineEndings(git.getRepository());
         }
     }
 
     @Override
-    public Iterable<PushResult> pushToRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public Iterable<PushResult> pushToRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             PushCommand pushCommand = git.push();
-            pushCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             pushCommand.setProgressMonitor(monitor);
             return pushCommand.call();
         }
     }
     
     @Override
-    public PullResult pullFromRemote(String userName, String userPassword, ProgressMonitor monitor) throws IOException, GitAPIException {
+    public PullResult pullFromRemote(UsernamePassword npw, ProgressMonitor monitor) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             PullCommand pullCommand = git.pull();
-            pullCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            pullCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             pullCommand.setRebase(false); // Merge, not rebase
             pullCommand.setProgressMonitor(monitor);
             return pullCommand.call();
@@ -211,13 +212,12 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public FetchResult fetchFromRemote(String userName, String userPassword, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
+    public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             // Check and set tracked master branch
-            setTrackedMasterBranch(git);
-            
+            setTrackedMasterBranch(git.getRepository());
             FetchCommand fetchCommand = git.fetch();
-            fetchCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, userPassword));
+            fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             fetchCommand.setProgressMonitor(monitor);
             fetchCommand.setDryRun(isDryrun);
             return fetchCommand.call();
@@ -240,10 +240,10 @@ public class ArchiRepository implements IArchiRepository {
         remoteAddCommand.call();
         
         // Use the same line endings
-        setConfigLineEndings(git);
+        setConfigLineEndings(git.getRepository());
         
         // Set tracked master branch
-        setTrackedMasterBranch(git);
+        setTrackedMasterBranch(git.getRepository());
         
         return git;
     }
@@ -446,22 +446,22 @@ public class ArchiRepository implements IArchiRepository {
     /**
      * Set Line endings in the config file to autocrlf=input
      * This ensures that files are not seen as different
-     * @param git
+     * @param repository
      * @throws IOException
      */
-    private void setConfigLineEndings(Git git) throws IOException {
-        StoredConfig config = git.getRepository().getConfig();
+    private void setConfigLineEndings(Repository repository) throws IOException {
+        StoredConfig config = repository.getConfig();
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input"); //$NON-NLS-1$
         config.save();
     }
     
     /**
      * Set the tracked master branch to "origin"
-     * @param git
+     * @param repository
      * @throws IOException
      */
-    private void setTrackedMasterBranch(Git git) throws IOException {
-        StoredConfig config = git.getRepository().getConfig();
+    private void setTrackedMasterBranch(Repository repository) throws IOException {
+        StoredConfig config = repository.getConfig();
         String branchName = IGraficoConstants.MASTER;
         String remoteName = IGraficoConstants.ORIGIN;
         

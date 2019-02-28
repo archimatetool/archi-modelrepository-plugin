@@ -30,6 +30,14 @@ public class Messages extends NLS {
 
     public static String ModelRepositoryPreferencePage_19;
 
+    public static String ModelRepositoryPreferencePage_20;
+
+    public static String ModelRepositoryPreferencePage_22;
+
+    public static String ModelRepositoryPreferencePage_23;
+
+    public static String ModelRepositoryPreferencePage_24;
+
     public static String ModelRepositoryPreferencePage_2;
 
     public static String ModelRepositoryPreferencePage_3;
@@ -45,6 +53,7 @@ public class Messages extends NLS {
     public static String ModelRepositoryPreferencePage_8;
 
     public static String ModelRepositoryPreferencePage_9;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

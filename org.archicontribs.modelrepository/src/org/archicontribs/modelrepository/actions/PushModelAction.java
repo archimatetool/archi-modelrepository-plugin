@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -44,14 +45,24 @@ public class PushModelAction extends RefreshModelAction {
     @Override
     public void run() {
         try {
-            // Init
-            UsernamePassword up = init();
-            if(up != null) {
-                // Pull
-                int status = pull(up);
+            int status = init();
+            
+            if(status == USER_OK) {
+                UsernamePassword npw = null;
+                
+                // HTTP
+                if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                    npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
+                    if(npw == null) {
+                        return;
+                    }
+                }
+                
+                status = pull(npw);
+                
                 if(status == PULL_STATUS_OK || status == PULL_STATUS_UP_TO_DATE) {
                     // Push
-                    push(up);
+                    push(npw);
                 }
             }
         }
@@ -60,7 +71,7 @@ public class PushModelAction extends RefreshModelAction {
         }
     }
     
-    protected void push(UsernamePassword up) throws InvocationTargetException, InterruptedException {
+    protected void push(UsernamePassword npw) throws InvocationTargetException, InterruptedException {
         Exception[] exception = new Exception[1];
         
         IProgressService ps = PlatformUI.getWorkbench().getProgressService();
@@ -68,7 +79,7 @@ public class PushModelAction extends RefreshModelAction {
             @Override
             public void run(IProgressMonitor pm) {
                 try {
-                    getRepository().pushToRemote(up.getUsername(), up.getPassword(), new ProgressMonitorWrapper(pm));
+                    getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                 }
                 catch(GitAPIException | IOException ex) {
                     exception[0] = ex;

@@ -11,6 +11,8 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -83,13 +85,17 @@ public class FetchJob extends Job {
             if(!canRun()) {
                 return Status.OK_STATUS;
             }
-
-            // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
-            SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
             
             try {
+                UsernamePassword npw = null;
+                if(GraficoUtils.isHTTP(repo.getOnlineRepositoryURL())) {
+                    // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
+                    SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                    npw = scs.getUsernamePassword();
+                }
+
                 ProxyAuthenticator.update(repo.getOnlineRepositoryURL());
-                repo.fetchFromRemote(scs.getUsername(), scs.getPassword(), null, false);
+                repo.fetchFromRemote(npw, null, false);
                 needsRefresh = true;
             }
             catch(IOException ex) {
@@ -127,7 +133,7 @@ public class FetchJob extends Job {
         }
 
         if(canRun()) {
-            schedule(20000); // Schedule again in 20 seconds if possible
+            schedule(30000); // Schedule again in 30 seconds if possible
         }
         
         return Status.OK_STATUS;

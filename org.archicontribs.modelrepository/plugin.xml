@@ -354,6 +354,12 @@
                id="user.tab"
                label="%userTab">
          </propertyTab>
+         <propertyTab
+               afterTab="user.tab"
+               category="main.category"
+               id="auth.tab"
+               label="%authTab">
+         </propertyTab>
       </propertyTabs>
    </extension>
    <extension
@@ -377,7 +383,7 @@
                class="org.archicontribs.modelrepository.propertysections.AuthSection"
                filter="org.archicontribs.modelrepository.propertysections.AuthSection$Filter"
                id="authSection"
-               tab="user.tab">
+               tab="auth.tab">
          </propertySection>
       </propertySections>
    </extension>

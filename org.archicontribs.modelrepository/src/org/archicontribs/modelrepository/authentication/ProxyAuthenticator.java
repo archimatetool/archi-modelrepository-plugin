@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 
@@ -56,8 +57,11 @@ public class ProxyAuthenticator {
             Authenticator.setDefault(null);
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
             
+            // TODO - deosn't work with SSH
             // Test the connection - this is better to do it now
-            testConnection(repositoryURL, null);
+            if(GraficoUtils.isHTTP(repositoryURL)) {
+                testConnection(repositoryURL, null);
+            }
             
             return;
         }
@@ -68,17 +72,16 @@ public class ProxyAuthenticator {
             final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
             
-            final String userName = sc.getUsername();
-            final String password = sc.getPassword();
+            final UsernamePassword npw = sc.getUsernamePassword();
             
-            if(!StringUtils.isSet(userName) || !StringUtils.isSet(password)) {
+            if(!StringUtils.isSet(npw.getUsername()) || !StringUtils.isSet(npw.getPassword())) {
                 return;
             }
             
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(userName, password.toCharArray());
+                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
                 }
             });
         }
@@ -95,7 +98,7 @@ public class ProxyAuthenticator {
         
         InetAddress addr = InetAddress.getByName(hostName);
         if(!addr.isReachable(2000)) {
-            throw new IOException(Messages.ProxyAuthenticater_0 + " " + hostName); //$NON-NLS-1$
+            throw new IOException(Messages.ProxyAuthenticator_0 + " " + hostName); //$NON-NLS-1$
         }
         
         final InetSocketAddress socketAddress = new InetSocketAddress(addr, port);

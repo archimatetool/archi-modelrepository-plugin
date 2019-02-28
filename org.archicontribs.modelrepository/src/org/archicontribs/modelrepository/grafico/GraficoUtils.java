@@ -7,16 +7,20 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.jgit.util.SystemReader;
 
@@ -29,6 +33,38 @@ import com.archimatetool.model.IArchimateModel;
  * @author Phillip Beauvoir
  */
 public class GraficoUtils {
+    
+    private static List<String> sshSchemeNames = Arrays.asList(new String[] {"ssh", "ssh+git", "git+ssh"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+
+    /**
+     * Adapted from org.eclipse.jgit.transport.TransportGitSsh
+     * @param url
+     * @return
+     */
+    public static boolean isSSH(String url) {
+        URIish uri = null;
+        
+        try {
+            uri = new URIish(url);
+        }
+        catch(URISyntaxException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+        
+        if(uri.getScheme() == null) {
+            return StringUtils.isSet(uri.getHost())
+                    && StringUtils.isSet(uri.getPath());
+        }
+        
+        return sshSchemeNames.contains(uri.getScheme()) 
+                && StringUtils.isSet(uri.getHost())
+                && StringUtils.isSet(uri.getPath());
+    }
+    
+    public static boolean isHTTP(String url) {
+        return !isSSH(url);
+    }
 
     /**
      * Get a local git folder name based on the repo's URL

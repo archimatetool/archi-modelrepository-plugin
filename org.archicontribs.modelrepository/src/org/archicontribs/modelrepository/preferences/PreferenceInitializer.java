@@ -29,8 +29,10 @@ implements IPreferenceConstants {
         
         store.setDefault(PREFS_COMMIT_USER_NAME, System.getProperty("user.name")); //$NON-NLS-1$
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, ""); //$NON-NLS-1$
+		store.setDefault(PREFS_SSH_IDENTITY_FILE, new File(System.getProperty("user.home"), "/.ssh/id_rsa").getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
+		store.setDefault(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, true);
 		store.setDefault(PREFS_REPOSITORY_FOLDER, new File(ArchiPlugin.INSTANCE.getUserDataFolder(), "model-repository").getAbsolutePath()); //$NON-NLS-1$
-		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, false);
+		store.setDefault(PREFS_STORE_REPO_CREDENTIALS, true);
 		
 		store.setDefault(PREFS_PROXY_USE, false);
 		store.setDefault(PREFS_PROXY_REQUIRES_AUTHENTICATION, false);

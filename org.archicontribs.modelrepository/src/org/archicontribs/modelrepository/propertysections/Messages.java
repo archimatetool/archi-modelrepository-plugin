@@ -22,11 +22,11 @@ public class Messages extends NLS {
 
     public static String AuthSection_5;
 
+    public static String AuthSection_6;
+
     public static String AuthSection_7;
 
     public static String AuthSection_8;
-
-    public static String AuthSection_9;
 
     public static String RepoInfoSection_0;
 

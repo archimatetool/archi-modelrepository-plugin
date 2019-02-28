@@ -11,6 +11,7 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -126,17 +127,27 @@ public class MergeBranchAction extends AbstractModelAction {
         PushModelAction pushAction = new PushModelAction(fWindow, getRepository().locateModel());
 
         // Init
-        UsernamePassword up = pushAction.init();
-        if(up == null) {
+        int status = pushAction.init();
+        if(status == RefreshModelAction.USER_CANCEL) {
             return;
         }
         
+        UsernamePassword npw = null;
+
+        // HTTP
+        if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+            npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
+            if(npw == null) {
+                return;
+            }
+        }
+        
         // Pull
-        int pullStatus = pushAction.pull(up);
+        int pullStatus = pushAction.pull(npw);
         
         // Push
         if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
-            pushAction.push(up);
+            pushAction.push(npw);
         }
         else {
             return;
@@ -148,11 +159,11 @@ public class MergeBranchAction extends AbstractModelAction {
         switchBranchAction.switchBranch(branchToMerge, true);
         
         // Pull
-        pullStatus = pushAction.pull(up);
+        pullStatus = pushAction.pull(npw);
         
         // Push
         if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
-            pushAction.push(up);
+            pushAction.push(npw);
         }
         else {
             return;
@@ -165,7 +176,7 @@ public class MergeBranchAction extends AbstractModelAction {
         merge(currentBranch, branchToMerge);
         
         // Final Push on this branch
-        pushAction.push(up);
+        pushAction.push(npw);
         
         // Ask user to delete branch (if not master)
         DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);

@@ -12,11 +12,11 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
-import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -58,10 +58,18 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         }
         
         final String repoURL = dialog.getURL();
-        final String userName = dialog.getUsername();
-        final String userPassword = dialog.getPassword();
+        final boolean storeCredentials = dialog.doStoreCredentials();
+        final UsernamePassword npw = dialog.getUsernamePassword();
         
-        if(!StringUtils.isSet(repoURL) && !StringUtils.isSet(userName) && !StringUtils.isSet(userPassword)) {
+        if(!StringUtils.isSet(repoURL)) {
+            return;
+        }
+        
+        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && !StringUtils.isSet(npw.getPassword())) {
+            MessageDialog.openError(fWindow.getShell(), 
+                    Messages.CreateRepoFromModelAction_0,
+                    Messages.CreateRepoFromModelAction_3);
+
             return;
         }
         
@@ -110,7 +118,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
-                        getRepository().pushToRemote(userName, userPassword, new ProgressMonitorWrapper(pm));
+                        getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(GitAPIException | IOException ex) {
                         exception[0] = ex;
@@ -122,10 +130,10 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 throw exception[0];
             }
 
-            // Store repo credentials if option is set
-            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS)) {
-                SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                sc.store(userName, userPassword);
+            // Store repo credentials if HTTP and option is set
+            if(GraficoUtils.isHTTP(repoURL) && storeCredentials) {
+                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+                scs.store(npw);
             }
             
             // Save the checksum
