@@ -30,4 +30,5 @@ public interface IPreferenceConstants {
     String PREFS_EXPORT_MAX_THREADS = "exportMaxThreads";  //$NON-NLS-1$
     
     String PREFS_FETCH_IN_BACKGROUND = "fetchInBackground";  //$NON-NLS-1$
+    String PREFS_FETCH_IN_BACKGROUND_INTERVAL = "fetchInBackgroundInterval";  //$NON-NLS-1$
  }

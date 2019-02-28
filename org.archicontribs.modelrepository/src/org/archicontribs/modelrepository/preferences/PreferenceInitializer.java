@@ -42,5 +42,6 @@ implements IPreferenceConstants {
 		store.setDefault(PREFS_EXPORT_MAX_THREADS, 10);
 		
 		store.setDefault(PREFS_FETCH_IN_BACKGROUND, true);
+		store.setDefault(PREFS_FETCH_IN_BACKGROUND_INTERVAL, 60);
     }
 }

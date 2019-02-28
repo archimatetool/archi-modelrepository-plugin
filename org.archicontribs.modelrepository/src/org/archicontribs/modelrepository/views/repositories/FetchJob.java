@@ -133,7 +133,8 @@ public class FetchJob extends Job {
         }
 
         if(canRun()) {
-            schedule(30000); // Schedule again in 30 seconds if possible
+            int seconds = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND_INTERVAL);
+            schedule(seconds * 1000); // Schedule again in x milliseconds if possible
         }
         
         return Status.OK_STATUS;

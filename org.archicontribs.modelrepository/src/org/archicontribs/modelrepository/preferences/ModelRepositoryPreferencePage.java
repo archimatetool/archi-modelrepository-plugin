@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -67,6 +68,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Button fStoreCredentialsButton;
     
     private Button fFetchInBackgroundButton;
+    private Spinner fFetchInBackgroundIntervalSpinner;
     
     private Button fUseProxyButton, fRequiresProxyAuthenticationButton;
     private Text fProxyHostTextField;
@@ -143,6 +145,14 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         fFetchInBackgroundButton.setLayoutData(gd);
+        
+        // Refresh interval
+        label = new Label(workspaceGroup, SWT.NULL);
+        label.setText(Messages.ModelRepositoryPreferencePage_21);
+
+        fFetchInBackgroundIntervalSpinner = new Spinner(workspaceGroup, SWT.BORDER);
+        fFetchInBackgroundIntervalSpinner.setMinimum(30);
+        fFetchInBackgroundIntervalSpinner.setMaximum(3000);
 
         
         // SSH Group
@@ -336,7 +346,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
+        
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
+        fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
         
         fStoreCredentialsButton.setSelection(getPreferenceStore().getBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
@@ -375,7 +387,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, fSSHIdentityRequiresPasswordButton.getSelection());
+        
         getPreferenceStore().setValue(PREFS_FETCH_IN_BACKGROUND, fFetchInBackgroundButton.getSelection());
+        getPreferenceStore().setValue(PREFS_FETCH_IN_BACKGROUND_INTERVAL, fFetchInBackgroundIntervalSpinner.getSelection());
         
         getPreferenceStore().setValue(PREFS_STORE_REPO_CREDENTIALS, fStoreCredentialsButton.getSelection());
         
@@ -416,7 +430,9 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
+        
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_FETCH_IN_BACKGROUND));
+        fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getDefaultInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
         
         fStoreCredentialsButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
