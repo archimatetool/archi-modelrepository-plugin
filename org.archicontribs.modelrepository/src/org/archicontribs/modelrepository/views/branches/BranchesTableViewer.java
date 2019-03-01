@@ -96,21 +96,23 @@ public class BranchesTableViewer extends TableViewer {
         
         @Override
         public Object[] getElements(Object parent) {
-            IArchiRepository repo = (IArchiRepository)parent;
-            
-            // Local Repo was deleted
-            if(!repo.getLocalRepositoryFolder().exists()) {
-                return new Object[0];
-            }
-            
-            try {
-                BranchStatus status = repo.getBranchStatus();
-                if(status != null) {
-                    return status.getLocalAndUntrackedRemoteBranches().toArray();
+            if(parent instanceof IArchiRepository) {
+                IArchiRepository repo = (IArchiRepository)parent;
+                
+                // Local Repo was deleted
+                if(!repo.getLocalRepositoryFolder().exists()) {
+                    return new Object[0];
                 }
-            }
-            catch(IOException | GitAPIException ex) {
-                ex.printStackTrace();
+                
+                try {
+                    BranchStatus status = repo.getBranchStatus();
+                    if(status != null) {
+                        return status.getLocalAndUntrackedRemoteBranches().toArray();
+                    }
+                }
+                catch(IOException | GitAPIException ex) {
+                    ex.printStackTrace();
+                }
             }
             
             return new Object[0];
