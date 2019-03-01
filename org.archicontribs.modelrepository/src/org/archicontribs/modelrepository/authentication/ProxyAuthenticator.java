@@ -57,11 +57,8 @@ public class ProxyAuthenticator {
             Authenticator.setDefault(null);
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
             
-            // TODO - deosn't work with SSH
             // Test the connection - this is better to do it now
-            if(GraficoUtils.isHTTP(repositoryURL)) {
-                testConnection(repositoryURL, null);
-            }
+            testConnection(repositoryURL, null);
             
             return;
         }
@@ -126,6 +123,11 @@ public class ProxyAuthenticator {
      * @throws IOException 
      */
     private static void testConnection(String repositoryURL, Proxy proxy) throws IOException {
+        // TODO - deosn't work with SSH
+        if(GraficoUtils.isSSH(repositoryURL)) {
+            return;
+        }
+        
         URL testURL = new URL(repositoryURL);
         
         // TODO: localhost https connections throw certificate exceptions
