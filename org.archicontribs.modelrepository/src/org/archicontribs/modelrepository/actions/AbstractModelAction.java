@@ -16,6 +16,7 @@ import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -168,6 +169,15 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
 
         return null;
+    }
+    
+    /**
+     * Save checksum and then notify listeners
+     */
+    protected void saveChecksumAndNotifyListeners() throws IOException {
+        getRepository().saveChecksum(); // This first
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
     /**

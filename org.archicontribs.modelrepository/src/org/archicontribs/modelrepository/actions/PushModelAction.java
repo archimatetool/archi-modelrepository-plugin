@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
-import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -77,6 +76,14 @@ public class PushModelAction extends RefreshModelAction {
                                     pmDialog.getShell().setVisible(false);
                                     displayErrorDialog(Messages.RefreshModelAction_0, ex);
                                 }
+                                finally {
+                                    try {
+                                        saveChecksumAndNotifyListeners();
+                                    }
+                                    catch(IOException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                }
                             }
                         });
                     }
@@ -95,6 +102,5 @@ public class PushModelAction extends RefreshModelAction {
         pmDialog.getProgressMonitor().subTask(Messages.PushModelAction_2);
         Display.getCurrent().readAndDispatch();  // update dialog
         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pmDialog.getProgressMonitor()));
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
     }
 }

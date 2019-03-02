@@ -105,6 +105,14 @@ public class RefreshModelAction extends AbstractModelAction {
                                     pmDialog.getShell().setVisible(false);
                                     displayErrorDialog(Messages.RefreshModelAction_0, ex);
                                 }
+                                finally {
+                                    try {
+                                        saveChecksumAndNotifyListeners();
+                                    }
+                                    catch(IOException ex) {
+                                        ex.printStackTrace();
+                                    }
+                                }
                             }
                         });
                     }
@@ -170,14 +178,10 @@ public class RefreshModelAction extends AbstractModelAction {
         FetchResult fetchResult = pullResult.getFetchResult();
         boolean newTrackingRefUpdates = fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty();
         
-        // Update branches anyway
-        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
-        
         // Merge is already up to date...
         if(pullResult.getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
             // Check if any tracked refs were updated
             if(newTrackingRefUpdates) {
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 return PULL_STATUS_OK;
             }
             
@@ -224,7 +228,6 @@ public class RefreshModelAction extends AbstractModelAction {
             // User cancelled - we assume they committed all changes so we can reset
             else {
                 handler.resetToLocalState();
-                notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                 return PULL_STATUS_MERGE_CANCEL;
             }
         }
@@ -253,8 +256,6 @@ public class RefreshModelAction extends AbstractModelAction {
             getRepository().commitChanges(commitMessage, false);
         }
         
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-
         return PULL_STATUS_OK;
     }
 }

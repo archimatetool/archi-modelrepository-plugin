@@ -12,7 +12,6 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
-import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -129,7 +128,7 @@ public class MergeBranchAction extends AbstractModelAction {
                             }
                             finally {
                                 try {
-                                    notifyAndSaveChecksum();
+                                    saveChecksumAndNotifyListeners();
                                 }
                                 catch(IOException ex) {
                                     ex.printStackTrace();
@@ -236,7 +235,7 @@ public class MergeBranchAction extends AbstractModelAction {
                             }
                             finally {
                                 try {
-                                    notifyAndSaveChecksum();
+                                    saveChecksumAndNotifyListeners();
                                 }
                                 catch(IOException ex) {
                                     ex.printStackTrace();
@@ -333,13 +332,6 @@ public class MergeBranchAction extends AbstractModelAction {
         }
         
         return MERGE_STATUS_OK;
-    }
-    
-    private void notifyAndSaveChecksum() throws IOException {
-        getRepository().saveChecksum(); // This first
-        
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
     private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
