@@ -13,6 +13,7 @@ import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
@@ -21,7 +22,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -146,25 +146,23 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     
     /**
      * Get user name and password from credentials file if prefs set or from dialog
-     * @param storageFileName
-     * @param shell
-     * @return the username and password, or null
      */
-    protected UsernamePassword getUserNameAndPasswordFromCredentialsFileOrDialog(Shell shell) {
-        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
+    protected UsernamePassword getUsernamePassword() throws IOException {
+        // SSH
+        if(GraficoUtils.isSSH(getRepository().getOnlineRepositoryURL())) {
+            return null;
+        }
+        
+        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(),
+                IGraficoConstants.REPO_CREDENTIALS_FILE));
 
         // Is it stored?
         if(scs.hasCredentialsFile()) {
-            try {
-                return scs.getUsernamePassword();
-            }
-            catch(IOException ex) {
-                displayErrorDialog(Messages.AbstractModelAction_9, ex);
-            }
+            return scs.getUsernamePassword();
         }
         
         // Else ask the user
-        UserNamePasswordDialog dialog = new UserNamePasswordDialog(shell, scs);
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), scs);
         if(dialog.open() == Window.OK) {
             return new UsernamePassword(dialog.getUsername(), dialog.getPassword());
         }

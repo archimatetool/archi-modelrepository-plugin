@@ -11,16 +11,19 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 /**
  * Delete Branch Action
@@ -53,9 +56,26 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
         
         try {
-            deleteBranch(branchInfo, false);
+            Exception[] exception = new Exception[1];
+            IProgressService ps = PlatformUI.getWorkbench().getProgressService();
+            ps.busyCursorWhile(new IRunnableWithProgress() {
+                @Override
+                public void run(IProgressMonitor pm) {
+                    try {
+                        pm.beginTask(Messages.DeleteBranchAction_2, -1);
+                        deleteBranch(branchInfo, false);
+                    }
+                    catch(GitAPIException | IOException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+            
+            if(exception[0] != null) {
+                throw exception[0];
+            }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.DeleteBranchAction_0, ex);
         }
         finally {
@@ -75,14 +95,7 @@ public class DeleteBranchAction extends AbstractModelAction {
                 return;
             }
             
-            // Get HTTP User Credentials
-            UsernamePassword npw = null;
-            if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
-                npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-                if(npw == null) {
-                    return;
-                }
-            }
+            UsernamePassword npw = getUsernamePassword();
             
             // Delete remote branch
             PushCommand pushCommand = git.push();

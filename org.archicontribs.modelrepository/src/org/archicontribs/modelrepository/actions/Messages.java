@@ -44,6 +44,8 @@ public class Messages extends NLS {
 
     public static String CloneModelAction_3;
 
+    public static String CloneModelAction_4;
+
     public static String CommitModelAction_0;
 
     public static String CommitModelAction_2;
@@ -56,6 +58,8 @@ public class Messages extends NLS {
 
     public static String CreateRepoFromModelAction_3;
 
+    public static String CreateRepoFromModelAction_4;
+
     public static String CreateRepoFromModelAction_5;
 
     public static String CreateRepoFromModelAction_7;
@@ -63,6 +67,8 @@ public class Messages extends NLS {
     public static String DeleteBranchAction_0;
 
     public static String DeleteBranchAction_1;
+
+    public static String DeleteBranchAction_2;
 
     public static String DeleteModelAction_0;
 
@@ -79,6 +85,14 @@ public class Messages extends NLS {
     public static String MergeBranchAction_1;
 
     public static String MergeBranchAction_10;
+
+    public static String MergeBranchAction_11;
+
+    public static String MergeBranchAction_12;
+
+    public static String MergeBranchAction_13;
+
+    public static String MergeBranchAction_14;
 
     public static String MergeBranchAction_2;
 
@@ -102,6 +116,10 @@ public class Messages extends NLS {
 
     public static String PushModelAction_0;
 
+    public static String PushModelAction_1;
+
+    public static String PushModelAction_2;
+
     public static String RefreshModelAction_0;
 
     public static String RefreshModelAction_1;
@@ -111,6 +129,16 @@ public class Messages extends NLS {
     public static String RefreshModelAction_3;
 
     public static String RefreshModelAction_4;
+
+    public static String RefreshModelAction_5;
+
+    public static String RefreshModelAction_6;
+
+    public static String RefreshModelAction_7;
+
+    public static String RefreshModelAction_8;
+
+    public static String RefreshModelAction_9;
 
     public static String ResetToRemoteCommitAction_0;
 

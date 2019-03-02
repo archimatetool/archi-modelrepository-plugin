@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
@@ -18,6 +19,7 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.PullResult;
@@ -26,9 +28,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -56,7 +57,7 @@ public class RefreshModelAction extends AbstractModelAction {
     
     protected static final int USER_OK = 0;
     protected static final int USER_CANCEL = 1;
-
+    
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
         setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_REFRESH));
@@ -75,23 +76,46 @@ public class RefreshModelAction extends AbstractModelAction {
     public void run() {
         try {
             int status = init();
-            if(status == USER_OK) {
-                UsernamePassword npw = null;
-                
-                // HTTP
-                if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
-                    npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-                    if(npw == null) {
-                        return;
+            if(status != USER_OK) {
+                return;
+            }
+            
+            // Do this before opening the progress dialog
+            UsernamePassword npw = getUsernamePassword();
+
+            // Do main action with PM dialog
+            Display.getCurrent().asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
+                        
+                        pmDialog.run(false, true, new IRunnableWithProgress() {
+                            @Override
+                            public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                                try {
+                                    monitor.beginTask(Messages.RefreshModelAction_5, -1);
+                                    int status = pull(npw, pmDialog);
+                                    if(status == PULL_STATUS_UP_TO_DATE) {
+                                        pmDialog.getShell().setVisible(false);
+                                        MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
+                                    }
+                                }
+                                catch(Exception ex) {
+                                    pmDialog.getShell().setVisible(false);
+                                    displayErrorDialog(Messages.RefreshModelAction_0, ex);
+                                }
+                            }
+                        });
+                    }
+                    catch(InvocationTargetException | InterruptedException ex) {
+                        ex.printStackTrace();
                     }
                 }
-                status = pull(npw);
-                if(status == PULL_STATUS_UP_TO_DATE) {
-                    MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
-                }
-            }
+            });
+            
         }
-        catch(Exception ex) {
+        catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);
         }
     }
@@ -123,41 +147,34 @@ public class RefreshModelAction extends AbstractModelAction {
         return USER_OK;
     }
     
-    protected int pull(UsernamePassword npw) throws Exception {
-        PullResult[] pullResult = new PullResult[1];
-        Exception[] exception = new Exception[1];
+    protected int pull(UsernamePassword npw, ProgressMonitorDialog pmDialog) throws IOException, GitAPIException  {
+        PullResult pullResult = null;
         
-        IProgressService ps = PlatformUI.getWorkbench().getProgressService();
-        ps.busyCursorWhile(new IRunnableWithProgress() {
-            @Override
-            public void run(IProgressMonitor pm) {
-                try {
-                    pullResult[0] = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pm));
-                }
-                catch(GitAPIException | IOException ex) {
-                    exception[0] = ex;
-                }
-            }
-        });
+        pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_6);
+        Display.getCurrent().readAndDispatch(); // update dialog
         
-        if(exception[0] != null) {
-            // If this exception is thrown then the remote is empty with no master ref, so quietly absorb this and return
-            if(exception[0] instanceof RefNotAdvertisedException) {
+        try {
+            pullResult = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pmDialog.getProgressMonitor()));
+        }
+        catch(IOException | GitAPIException ex) {
+            // If this exception is thrown then the remote doesn't have the ref which can happen when pulling on a branch,
+            // So quietly absorb this and return OK
+            if(ex instanceof RefNotAdvertisedException) {
                 return PULL_STATUS_OK;
             }
             
-            throw exception[0];
+            throw ex;
         }
         
         // Check for tracking updates
-        FetchResult fetchResult = pullResult[0].getFetchResult();
+        FetchResult fetchResult = pullResult.getFetchResult();
         boolean newTrackingRefUpdates = fetchResult != null && !fetchResult.getTrackingRefUpdates().isEmpty();
         
         // Update branches anyway
         notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
         
         // Merge is already up to date...
-        if(pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
+        if(pullResult.getMergeResult().getMergeStatus() == MergeStatus.ALREADY_UP_TO_DATE) {
             // Check if any tracked refs were updated
             if(newTrackingRefUpdates) {
                 notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
@@ -166,43 +183,40 @@ public class RefreshModelAction extends AbstractModelAction {
             
             return PULL_STATUS_UP_TO_DATE;
         }
-
+        
+        pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_7);
+        
         BranchStatus branchStatus = getRepository().getBranchStatus();
 
         // Merge failure
-        if(!pullResult[0].isSuccessful() && pullResult[0].getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
+        if(!pullResult.isSuccessful() && pullResult.getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
             // Get the remote ref name
             String remoteRef = branchStatus.getCurrentRemoteBranch().getFullName();
             
             // Try to handle the merge conflict
-            MergeConflictHandler handler = new MergeConflictHandler(pullResult[0].getMergeResult(), remoteRef,
+            MergeConflictHandler handler = new MergeConflictHandler(pullResult.getMergeResult(), remoteRef,
                     getRepository(), fWindow.getShell());
             
-            ps.busyCursorWhile(new IRunnableWithProgress() {
-                @Override
-                public void run(IProgressMonitor pm) {
-                    try {
-                        handler.init(pm);
-                    }
-                    catch(IOException | GitAPIException ex) {
-                        exception[0] = ex;
-                    }
-                }
-            });
-            
-            if(exception[0] != null) {
+            try {
+                handler.init(pmDialog.getProgressMonitor());
+            }
+            catch(IOException | GitAPIException ex) {
                 handler.resetToLocalState(); // Clean up
 
-                if(exception[0] instanceof CanceledException) {
+                if(ex instanceof CanceledException) {
                     return PULL_STATUS_MERGE_CANCEL;
                 }
-                
-                throw exception[0];
+
+                throw ex;
             }
             
             String dialogMessage = NLS.bind(Messages.RefreshModelAction_4, branchStatus.getCurrentLocalBranch().getShortName());
             
+            pmDialog.getShell().setVisible(false);
+            
             boolean result = handler.openConflictsDialog(dialogMessage);
+            
+            pmDialog.getShell().setVisible(true);
 
             if(result) {
                 handler.merge();
@@ -215,12 +229,16 @@ public class RefreshModelAction extends AbstractModelAction {
             }
         }
         
+        pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_8);
+        
         // Reload the model from the Grafico XML files
         GraficoModelLoader loader = new GraficoModelLoader(getRepository());
         loader.loadModel();
         
         // Do a commit if needed
         if(getRepository().hasChangesToCommit()) {
+            pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_9);
+            
             String commitMessage = NLS.bind(Messages.RefreshModelAction_1, branchStatus.getCurrentLocalBranch().getShortName());
             
             // Did we restore any missing objects?

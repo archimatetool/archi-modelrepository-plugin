@@ -98,6 +98,7 @@ public class CloneModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        pm.beginTask(Messages.CloneModelAction_4, -1);
                         getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(GitAPIException | IOException ex) {

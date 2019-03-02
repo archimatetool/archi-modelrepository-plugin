@@ -118,6 +118,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        pm.beginTask(Messages.CreateRepoFromModelAction_4, -1);
                         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(GitAPIException | IOException ex) {

@@ -6,16 +6,17 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
@@ -27,9 +28,8 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -81,19 +81,13 @@ public class MergeBranchAction extends AbstractModelAction {
             if(response == 1) {
                 doLocalMerge(fBranchInfo);
             }
-            
-            // This needs to be called again
-            getRepository().saveChecksum();
         }
-        catch(Exception ex) {
+        catch(IOException | GitAPIException ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
-        
-        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
-    private void doLocalMerge(BranchInfo branchToMerge) throws Exception {
+    private void doLocalMerge(BranchInfo branchToMerge) throws IOException, GitAPIException {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -113,14 +107,45 @@ public class MergeBranchAction extends AbstractModelAction {
             }
         }
 
-        // Store currentBranch first
-        BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
-
-        // Merge
-        merge(currentBranch, branchToMerge);
+        // Do main action with PM dialog
+        Display.getCurrent().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
+                try {
+                    pmDialog.run(false, true, new IRunnableWithProgress() {
+                        @Override
+                        public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                            try {
+                                monitor.beginTask(Messages.MergeBranchAction_11, -1);
+                                
+                                // Store currentBranch first
+                                BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
+                                merge(currentBranch, branchToMerge, pmDialog);
+                            }
+                            catch(Exception ex) {
+                                pmDialog.getShell().setVisible(false);
+                                displayErrorDialog(Messages.MergeBranchAction_1, ex);
+                            }
+                            finally {
+                                try {
+                                    notifyAndSaveChecksum();
+                                }
+                                catch(IOException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+                catch(InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
     }
     
-    private void doOnlineMerge(BranchInfo branchToMerge) throws Exception {
+    private void doOnlineMerge(BranchInfo branchToMerge) throws IOException, GitAPIException {
         // Store currentBranch first
         BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
         
@@ -132,69 +157,106 @@ public class MergeBranchAction extends AbstractModelAction {
             return;
         }
         
-        UsernamePassword npw = null;
+        // Do this before opening the progress dialog
+        UsernamePassword npw = getUsernamePassword();
+        
+        // Do main action with PM dialog
+        Display.getCurrent().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                ProgressMonitorDialog pmDialog = new ProgressMonitorDialog(fWindow.getShell());
+                
+                try {
+                    pmDialog.run(false, true, new IRunnableWithProgress() {
+                        @Override
+                        public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+                            try {
+                                monitor.beginTask(Messages.MergeBranchAction_11, -1);
+                                
+                                // Pull
+                                int pullStatus = pushAction.pull(npw, pmDialog);
+                                
+                                // Push
+                                if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+                                    pushAction.push(npw, pmDialog);
+                                }
+                                else {
+                                    return;
+                                }
+                                
+                                // Switch to other branch
+                                pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_14);
+                                SwitchBranchAction switchBranchAction = new SwitchBranchAction(fWindow);
+                                switchBranchAction.setRepository(getRepository());
+                                switchBranchAction.switchBranch(branchToMerge, true);
+                                
+                                // Pull again
+                                pullStatus = pushAction.pull(npw, pmDialog);
+                                
+                                // Push
+                                if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
+                                    pushAction.push(npw, pmDialog);
+                                }
+                                else {
+                                    return;
+                                }
+                                
+                                // Switch back
+                                pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_14);
+                                switchBranchAction.switchBranch(currentBranch, true);
+                                
+                                // Merge
+                                merge(currentBranch, branchToMerge, pmDialog);
+                                
+                                // Final Push on this branch
+                                pushAction.push(npw, pmDialog);
+                                
+                                // Ask user to delete branch (if not master)
+                                DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);
+                                deleteBranchAction.setRepository(getRepository());
+                                deleteBranchAction.setBranch(branchToMerge);
+                                
+                                if(deleteBranchAction.shouldBeEnabled()) {
+                                    pmDialog.getShell().setVisible(false);
+                                    boolean doDeleteBranch = MessageDialog.openQuestion(fWindow.getShell(),
+                                            Messages.MergeBranchAction_1,
+                                            NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
 
-        // HTTP
-        if(GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
-            npw = getUserNameAndPasswordFromCredentialsFileOrDialog(fWindow.getShell());
-            if(npw == null) {
-                return;
+                                    if(doDeleteBranch) {
+                                        pmDialog.getShell().setVisible(true);
+                                        pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_12);
+                                        // Branch will have been pushed at this point so BranchInfo is no longer valid to determine if it's just a local branch
+                                        deleteBranchAction.deleteBranch(branchToMerge, true);
+                                    }
+                                }
+                            }
+                            catch(Exception ex) {
+                                pmDialog.getShell().setVisible(false);
+                                displayErrorDialog(Messages.MergeBranchAction_1, ex);
+                            }
+                            finally {
+                                try {
+                                    notifyAndSaveChecksum();
+                                }
+                                catch(IOException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+                catch(InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
             }
-        }
-        
-        // Pull
-        int pullStatus = pushAction.pull(npw);
-        
-        // Push
-        if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
-            pushAction.push(npw);
-        }
-        else {
-            return;
-        }
-        
-        // Switch to other branch
-        SwitchBranchAction switchBranchAction = new SwitchBranchAction(fWindow);
-        switchBranchAction.setRepository(getRepository());
-        switchBranchAction.switchBranch(branchToMerge, true);
-        
-        // Pull
-        pullStatus = pushAction.pull(npw);
-        
-        // Push
-        if(pullStatus == RefreshModelAction.PULL_STATUS_OK || pullStatus == RefreshModelAction.PULL_STATUS_UP_TO_DATE) {
-            pushAction.push(npw);
-        }
-        else {
-            return;
-        }
-        
-        // Switch back
-        switchBranchAction.switchBranch(currentBranch, true);
-        
-        // Merge
-        merge(currentBranch, branchToMerge);
-        
-        // Final Push on this branch
-        pushAction.push(npw);
-        
-        // Ask user to delete branch (if not master)
-        DeleteBranchAction deleteBranchAction = new DeleteBranchAction(fWindow);
-        deleteBranchAction.setRepository(getRepository());
-        deleteBranchAction.setBranch(branchToMerge);
-        if(deleteBranchAction.shouldBeEnabled()) {
-            boolean doDeleteBranch = MessageDialog.openQuestion(fWindow.getShell(),
-                    Messages.MergeBranchAction_1,
-                    NLS.bind(Messages.MergeBranchAction_9, branchToMerge.getShortName()));
+        });
 
-            if(doDeleteBranch) {
-                // Branch will have been pushed at this point so BranchInfo is no longer valid to determine if it's just a local branch
-                deleteBranchAction.deleteBranch(branchToMerge, true);
-            }
-        }
     }
     
-    private int merge(BranchInfo currentBranch, BranchInfo branchToMerge) throws Exception {
+    private int merge(BranchInfo currentBranch, BranchInfo branchToMerge, ProgressMonitorDialog pmDialog) throws GitAPIException, IOException {
+        pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_13);
+        Display.getCurrent().readAndDispatch();  // update dialog
+
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             ObjectId mergeBase = git.getRepository().resolve(branchToMerge.getShortName());
             
@@ -213,39 +275,31 @@ public class MergeBranchAction extends AbstractModelAction {
             
             // Conflict
             if(status == MergeStatus.CONFLICTING) {
-                Exception[] exception = new Exception[1];
-                
                 // Try to handle the merge conflict
                 MergeConflictHandler handler = new MergeConflictHandler(mergeResult, branchToMerge.getShortName(),
                         getRepository(), fWindow.getShell());
                 
-                IProgressService ps = PlatformUI.getWorkbench().getProgressService();
-                ps.busyCursorWhile(new IRunnableWithProgress() {
-                    @Override
-                    public void run(IProgressMonitor pm) {
-                        try {
-                            handler.init(pm);
-                        }
-                        catch(IOException | GitAPIException ex) {
-                            exception[0] = ex;
-                        }
-                    }
-                });
-                
-                if(exception[0] != null) {
+                try {
+                    handler.init(pmDialog.getProgressMonitor());
+                }
+                catch(IOException | GitAPIException ex) {
                     handler.resetToLocalState(); // Clean up
 
-                    if(exception[0] instanceof CanceledException) {
+                    if(ex instanceof CanceledException) {
                         return MERGE_STATUS_MERGE_CANCEL;
                     }
-                    
-                    throw exception[0];
+
+                    throw ex;
                 }
                 
                 String dialogMessage = NLS.bind(Messages.MergeBranchAction_10,
                         branchToMerge.getShortName(), currentBranch.getShortName());
                 
+                pmDialog.getShell().setVisible(false);
+                
                 boolean result = handler.openConflictsDialog(dialogMessage);
+                
+                pmDialog.getShell().setVisible(true);
                 
                 if(result) {
                     handler.merge();
@@ -253,7 +307,6 @@ public class MergeBranchAction extends AbstractModelAction {
                 // User cancelled - so we reset
                 else {
                     handler.resetToLocalState();
-                    notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
                     return MERGE_STATUS_MERGE_CANCEL;
                 }
             }
@@ -280,6 +333,13 @@ public class MergeBranchAction extends AbstractModelAction {
         }
         
         return MERGE_STATUS_OK;
+    }
+    
+    private void notifyAndSaveChecksum() throws IOException {
+        getRepository().saveChecksum(); // This first
+        
+        notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
+        notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
     }
     
     private boolean isBranchRefSameAsCurrentBranchRef(BranchInfo branchInfo) {
