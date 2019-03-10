@@ -22,7 +22,8 @@ public class ShowHistoryViewHandler extends AbstractHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ViewManager.toggleViewPart(HistoryView.ID, true);
+        // activate = false to keep originating part in focus so we can update based on current selection
+        ViewManager.toggleViewPart(HistoryView.ID, false);
         return null;
     }
 

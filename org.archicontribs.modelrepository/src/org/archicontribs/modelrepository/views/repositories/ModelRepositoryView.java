@@ -17,6 +17,8 @@ import org.archicontribs.modelrepository.actions.PushModelAction;
 import org.archicontribs.modelrepository.actions.RefreshModelAction;
 import org.archicontribs.modelrepository.actions.ShowInBranchesViewAction;
 import org.archicontribs.modelrepository.actions.ShowInHistoryAction;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.archicontribs.modelrepository.views.repositories.ModelRepositoryTreeViewer.ModelRepoTreeLabelProvider;
@@ -49,7 +51,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
@@ -58,6 +62,7 @@ import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributo
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -65,7 +70,7 @@ import com.archimatetool.editor.model.IEditorModelManager;
  */
 public class ModelRepositoryView
 extends ViewPart
-implements IContextProvider, ITabbedPropertySheetPageContributor {
+implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContributor {
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
@@ -118,6 +123,13 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
                 updateStatusBar(event.getSelection());
             }
         });
+        
+        // Listen to workbench selections
+        getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
+        
+        // Initialise with whatever is selected in the workbench
+        selectionChanged(getSite().getWorkbenchWindow().getPartService().getActivePart(),
+                getSite().getWorkbenchWindow().getSelectionService().getSelection());
         
         /*
          * Listen to Double-click Action
@@ -316,6 +328,22 @@ implements IContextProvider, ITabbedPropertySheetPageContributor {
             manager.add(fActionDelete);
             manager.add(new Separator());
             manager.add(fActionProperties);
+        }
+    }
+
+    @Override
+    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+        if(part == null || part == this) {
+            return;
+        }
+        
+        // Model selected, but is it in a git repo?
+        IArchimateModel model = part.getAdapter(IArchimateModel.class);
+        if(model != null) {
+            if(GraficoUtils.isModelInLocalRepository(model)) {
+                IArchiRepository selectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
+                getViewer().setSelection(new StructuredSelection(selectedRepository));
+            }
         }
     }
 

@@ -22,7 +22,8 @@ public class ShowBranchesViewHandler extends AbstractHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ViewManager.toggleViewPart(BranchesView.ID, true);
+        // activate = false to keep originating part in focus so we can update based on current selection
+        ViewManager.toggleViewPart(BranchesView.ID, false);
         return null;
     }
 

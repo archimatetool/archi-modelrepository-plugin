@@ -88,10 +88,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         PlatformUI.getWorkbench().getHelpSystem().setHelp(getBranchesViewer().getControl(), HELP_ID);
         
         // Initialise with whatever is selected in the workbench
-        IWorkbenchPart part = getSite().getWorkbenchWindow().getPartService().getActivePart();
-        if(part != null) {
-            selectionChanged(part, getSite().getWorkbenchWindow().getSelectionService().getSelection());
-        }
+        selectionChanged(getSite().getWorkbenchWindow().getPartService().getActivePart(),
+                getSite().getWorkbenchWindow().getSelectionService().getSelection());
         
         // Add listener
         RepositoryListenerManager.INSTANCE.addListener(this);
@@ -227,7 +225,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == this || selection == null) {
+        if(part == null || part == this || selection == null) {
             return;
         }
         
