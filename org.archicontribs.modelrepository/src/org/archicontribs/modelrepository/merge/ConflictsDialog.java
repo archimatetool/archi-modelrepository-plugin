@@ -176,6 +176,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 public void widgetSelected(SelectionEvent e) {
                     if(currentSelectedMergeInfo != null) {
                         currentSelectedMergeInfo.setUserChoice((int)e.widget.getData());
+                        fTableViewer.cancelEditing();
                         fTableViewer.update(currentSelectedMergeInfo, null);
                         updateButtons(currentSelectedMergeInfo);
                     }
@@ -729,8 +730,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
 
         @Override
         protected void setValue(Object element, Object value) {
+            // Check for -1 value. On Mac this happens if Mod key is down when selecting from conbo box
+            Integer index = (Integer)value;
+            if(index == -1) {
+                return;
+            }
+            
             MergeObjectInfo info = (MergeObjectInfo)element;
-            info.setUserChoice((int)value);
+            info.setUserChoice(index);
             fTableViewer.update(element, null);
             updateButtons(info);
         }
