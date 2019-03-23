@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
@@ -34,9 +35,12 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         }
     }
     
-    private Text fTextFile;
-    private Text fTextURL;
-    private Text fTextCurrentBranch;
+    private Text fTextFile, fTextURL, fTextCurrentBranch;
+    
+    // Store these because of the Mac focus bug
+    String fFile, fURL, fBranch;
+    
+    private IArchiRepository fArchiRepo;
 
     public RepoInfoSection() {
     }
@@ -51,37 +55,46 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
         
         createLabel(parent, Messages.RepoInfoSection_2, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextCurrentBranch = createSingleTextControl(parent, SWT.READ_ONLY);
-        
-        // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
-        // But causes ModelRepositoryView to lose focus when selecting
-        // addHiddenTextFieldToForm(parent);
     }
 
     @Override
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
-            IArchiRepository archiRepo = (IArchiRepository)selection.getFirstElement();
-            
-            fTextFile.setText(archiRepo.getLocalRepositoryFolder().getAbsolutePath());
+            fArchiRepo = (IArchiRepository)selection.getFirstElement();
             
             try {
-                fTextURL.setText(archiRepo.getOnlineRepositoryURL());
+                fFile = fArchiRepo.getLocalRepositoryFolder().getAbsolutePath();
+                fTextFile.setText(fFile);
                 
-                String branch = ""; //$NON-NLS-1$
+                fURL = fArchiRepo.getOnlineRepositoryURL();
+                fTextURL.setText(fURL);
                 
-                BranchStatus status = archiRepo.getBranchStatus();
+                fBranch = ""; //$NON-NLS-1$
+                
+                BranchStatus status = fArchiRepo.getBranchStatus();
                 if(status != null) {
                     BranchInfo branchInfo = status.getCurrentLocalBranch();
                     if(branchInfo != null) {
-                        branch = branchInfo.getShortName();
+                        fBranch = branchInfo.getShortName();
                     }
                 }
                 
-                fTextCurrentBranch.setText(branch);
+                fTextCurrentBranch.setText(fBranch);
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
             }
+        }
+    }
+    
+    // Mac kludge
+    @Override
+    protected void focusGained(Control control) {
+        if(control == fTextURL) {
+            fTextURL.setText(fURL);
+        }
+        else if(control == fTextCurrentBranch) {
+            fTextCurrentBranch.setText(fBranch);
         }
     }
 }

@@ -21,6 +21,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
@@ -104,11 +105,21 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             text.addListener(SWT.DefaultSelection, listener);
             text.addListener(SWT.FocusIn, listener);
             text.addListener(SWT.FocusOut, listener);
+            
+            text.addDisposeListener((event) -> {
+                text.removeListener(SWT.DefaultSelection, listener);
+                text.removeListener(SWT.FocusIn, listener);
+                text.removeListener(SWT.FocusOut, listener);
+            });
         }
 
         void setText(String globalValue, String localValue) {
             this.globalValue = globalValue;
             this.localValue = localValue;
+            refresh();
+        }
+        
+        void refresh() {
             text.setText(localValue);
             updateColor();
         }
@@ -139,10 +150,6 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         
         createLabel(group, Messages.UserDetailsSection_1, STANDARD_LABEL_WIDTH, SWT.CENTER);
         fTextEmail = new UserText(group, ConfigConstants.CONFIG_KEY_EMAIL);
-        
-        // Because of bug https://bugs.eclipse.org/bugs/show_bug.cgi?id=383750
-        // But causes ModelRepositoryView to lose focus when selecting
-        //addHiddenTextFieldToForm(parent);
     }
     
     @Override
@@ -200,4 +207,13 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
             ex.printStackTrace();
         }
     }
+    
+    // Mac kludge
+    @Override
+    protected void focusGained(Control control) {
+        if(control == fTextEmail.text) {
+            fTextEmail.refresh();
+        }
+    }
+
 }
