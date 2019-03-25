@@ -43,6 +43,9 @@ public class ProxyAuthenticator {
         // "Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""
         // It needs to be set before any JGit operations, because it can't be set again
         System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        
+        // Added this one too. I thnk it's for HTTP
+        System.setProperty("jdk.http.auth.proxying.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
     /**
