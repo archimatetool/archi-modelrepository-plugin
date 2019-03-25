@@ -42,6 +42,10 @@ public class GraficoUtils {
      * @return
      */
     public static boolean isSSH(String url) {
+        if(!StringUtils.isSet(url)) {
+            return false;
+        }
+        
         URIish uri = null;
         
         try {
