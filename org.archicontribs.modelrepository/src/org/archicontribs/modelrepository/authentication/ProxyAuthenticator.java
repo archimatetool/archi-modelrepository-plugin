@@ -8,7 +8,6 @@ package org.archicontribs.modelrepository.authentication;
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
@@ -25,6 +24,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.core.runtime.IStatus;
 
 import com.archimatetool.editor.utils.StringUtils;
 
@@ -74,10 +74,6 @@ public class ProxyAuthenticator {
             
             final UsernamePassword npw = sc.getUsernamePassword();
             
-            if(!StringUtils.isSet(npw.getUsername()) || !StringUtils.isSet(npw.getPassword())) {
-                return;
-            }
-            
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
@@ -96,12 +92,14 @@ public class ProxyAuthenticator {
             return;
         }
         
-        InetAddress addr = InetAddress.getByName(hostName);
-        if(!addr.isReachable(2000)) {
-            throw new IOException(Messages.ProxyAuthenticator_0 + " " + hostName); //$NON-NLS-1$
-        }
-        
-        final InetSocketAddress socketAddress = new InetSocketAddress(addr, port);
+        // Test the connection is reachable
+        // Removed 26/3/19 - do we need to do this? Does it always work without a port?
+//        InetAddress addr = InetAddress.getByName(hostName);
+//        if(!addr.isReachable(2000)) {
+//            throw new IOException(Messages.ProxyAuthenticator_0 + " " + hostName); //$NON-NLS-1$
+//        }
+
+        final InetSocketAddress socketAddress = new InetSocketAddress(hostName, port);
         final Proxy proxy = new Proxy(Type.HTTP, socketAddress);
         
         ProxySelector.setDefault(new ProxySelector() {
@@ -111,7 +109,9 @@ public class ProxyAuthenticator {
             }
 
             @Override
-            public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+            public void connectFailed(URI uri, SocketAddress sa, IOException ex) {
+                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
+                ex.printStackTrace();
             }
         });      
 
@@ -126,7 +126,7 @@ public class ProxyAuthenticator {
      * @throws IOException 
      */
     private static void testConnection(String repositoryURL, Proxy proxy) throws IOException {
-        // TODO - deosn't work with SSH
+        // TODO - doesn't work with SSH
         if(GraficoUtils.isSSH(repositoryURL)) {
             return;
         }

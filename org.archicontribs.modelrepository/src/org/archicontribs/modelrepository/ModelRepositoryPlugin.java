@@ -19,6 +19,8 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -105,5 +107,10 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
                 RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
             }
         }
+    }
+    
+    public void log(int severity, String message, Throwable ex) {
+        getLog().log(
+                new Status(severity, INSTANCE.getBundle().getSymbolicName(), IStatus.OK, message, ex));
     }
 }
