@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -23,6 +24,8 @@ import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
+import com.archimatetool.editor.model.compatibility.ModelCompatibility;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
@@ -124,8 +127,20 @@ public class GraficoModelImporter {
         // Load the Model from files (it will contain unresolved proxies)
     	fModel = loadModel(modelFolder);
     	
+    	// Get the Resource
+    	Resource resource = fResourceSet.getResource(URI.createFileURI((new File(modelFolder, IGraficoConstants.FOLDER_XML)).getAbsolutePath()), true);
+    	
+        // Fix any backward compatibility issues
+    	// This has to be done here because GraficoModelLoader#loadModel() will save with latest metamodel version number
+    	// And then the ModelCompatibility won't be able to tell the version number
+        try {
+            new ModelCompatibility(resource).fixCompatibility();
+        }
+        catch(CompatibilityHandlerException ex) {
+        }
+
     	// Remove model from its resource (needed to save it back to a .archimate file)
-    	fResourceSet.getResource(URI.createFileURI((new File(modelFolder, IGraficoConstants.FOLDER_XML)).getAbsolutePath()), true).getContents().remove(fModel);
+        resource.getContents().remove(fModel);
     	
     	// Resolve proxies
     	fUnresolvedObjects = null;
