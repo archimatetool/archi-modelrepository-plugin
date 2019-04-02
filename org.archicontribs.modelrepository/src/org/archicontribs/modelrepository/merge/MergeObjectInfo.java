@@ -8,12 +8,8 @@ package org.archicontribs.modelrepository.merge;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.eclipse.emf.common.util.URI;
+import org.archicontribs.modelrepository.grafico.GraficoResourceLoader;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IIdentifier;
@@ -94,21 +90,12 @@ class MergeObjectInfo {
             return null;
         }
         
-        ResourceSet resourceSet = new ResourceSetImpl();
-        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("*", new XMLResourceFactoryImpl()); //$NON-NLS-1$
-
-        XMLResource resource = (XMLResource)resourceSet.createResource(URI.createFileURI(handler.getArchiRepository().getLocalGitFolder().toString()));
-        resource.getDefaultLoadOptions().put(XMLResource.OPTION_ENCODING, "UTF-8"); //$NON-NLS-1$
-
-        resource.load(new ByteArrayInputStream(contents), null);
-        EObject eObject = resource.getContents().get(0);
+        ByteArrayInputStream bis = new ByteArrayInputStream(contents);
         
-        if(!(eObject instanceof IIdentifier)) {
-            throw new IOException("EObject has no ID"); //$NON-NLS-1$
-        }
+        IIdentifier eObject = GraficoResourceLoader.loadEObject(bis);
         
         // Get the ID
-        String id = ((IIdentifier)eObject).getId();
+        String id = eObject.getId();
         
         // Now get the full object from the appropriate model
         IArchimateModel model = null;

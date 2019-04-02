@@ -14,14 +14,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
@@ -75,11 +74,6 @@ public class GraficoModelImporter {
     private List<UnresolvedObject> fUnresolvedObjects;
     
     /**
-     * Resource Set
-     */
-    private ResourceSet fResourceSet;
-    
-    /**
      * Model
      */
     private IArchimateModel fModel;
@@ -117,33 +111,33 @@ public class GraficoModelImporter {
     	    return null;
     	}
     	
-    	// Create ResourceSet
-    	fResourceSet = new ResourceSetImpl();
-    	fResourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("*", new XMLResourceFactoryImpl()); //$NON-NLS-1$
-    	
     	// Reset the ID -> Object lookup table
     	fIDLookup = new HashMap<String, IIdentifier>();
     	
         // Load the Model from files (it will contain unresolved proxies)
     	fModel = loadModel(modelFolder);
     	
-    	// Get the Resource
-    	Resource resource = fResourceSet.getResource(URI.createFileURI((new File(modelFolder, IGraficoConstants.FOLDER_XML)).getAbsolutePath()), true);
+    	// Create a new Resource for the model object so we can work with it in the ModelCompatibility class
+    	Resource resource = new XMLResourceImpl();
+    	resource.getContents().add(fModel);
+    	
+    	// New model compatibility
+        ModelCompatibility modelCompatibility = new ModelCompatibility(resource);
     	
         // Fix any backward compatibility issues
     	// This has to be done here because GraficoModelLoader#loadModel() will save with latest metamodel version number
     	// And then the ModelCompatibility won't be able to tell the version number
         try {
-            new ModelCompatibility(resource).fixCompatibility();
+            modelCompatibility.fixCompatibility();
         }
         catch(CompatibilityHandlerException ex) {
+            ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
         }
 
-    	// Remove model from its resource (needed to save it back to a .archimate file)
+    	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
         resource.getContents().remove(fModel);
     	
     	// Resolve proxies
-    	fUnresolvedObjects = null;
     	resolveProxies();
 
     	// Load images
@@ -185,6 +179,8 @@ public class GraficoModelImporter {
      * Iterate through all model objects, and resolve proxies on known classes
      */
     private void resolveProxies() {
+        fUnresolvedObjects = null;
+        
         for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
 
@@ -303,17 +299,14 @@ public class GraficoModelImporter {
      * 
      * @param file
      * @return
+     * @throws IOException 
      */
-    private EObject loadElement(File file) {
-        // Create a new resource for selected file and add object to persist
-        XMLResource resource = (XMLResource)fResourceSet.getResource(URI.createFileURI(file.getAbsolutePath()), true);
-        resource.getDefaultLoadOptions().put(XMLResource.OPTION_ENCODING, "UTF-8"); //$NON-NLS-1$
+    private EObject loadElement(File file) throws IOException {
+        IIdentifier eObject = GraficoResourceLoader.loadEObject(file);
         
-        IIdentifier element = (IIdentifier)resource.getContents().get(0);
-
         // Update an ID -> Object mapping table (used as a cache to resolve proxies)
-        fIDLookup.put(element.getId(), element);
+        fIDLookup.put(eObject.getId(), eObject);
 
-        return element;
+        return eObject;
     }
 }
