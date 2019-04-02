@@ -133,9 +133,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         });
         
         fBranchesTableViewer.addDoubleClickListener((event) -> {
-//            if(fActionSwitchBranch.isEnabled()) {
-//                fActionSwitchBranch.run();
-//            }
+            if(fActionSwitchBranch.isEnabled()) {
+                fActionSwitchBranch.run();
+            }
         });
     }
     
