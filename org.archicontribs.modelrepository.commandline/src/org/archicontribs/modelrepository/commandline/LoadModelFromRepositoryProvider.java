@@ -138,6 +138,10 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         GraficoModelImporter importer = new GraficoModelImporter(folder);
         IArchimateModel model = importer.importAsModel();
         
+        if(model == null) {
+            throw new IOException(NLS.bind(Messages.LoadModelFromRepositoryProvider_21, folder));
+        }
+        
         if(importer.getUnresolvedObjects() != null) {
             throw new IOException(Messages.LoadModelFromRepositoryProvider_8);
         }
