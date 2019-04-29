@@ -121,6 +121,9 @@ public class GraficoModelImporter {
     	Resource resource = new XMLResourceImpl();
     	resource.getContents().add(fModel);
     	
+        // Resolve proxies
+        resolveProxies();
+
     	// New model compatibility
         ModelCompatibility modelCompatibility = new ModelCompatibility(resource);
     	
@@ -137,9 +140,6 @@ public class GraficoModelImporter {
     	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
         resource.getContents().remove(fModel);
     	
-    	// Resolve proxies
-    	resolveProxies();
-
     	// Load images
     	loadImages(imagesFolder);
 
