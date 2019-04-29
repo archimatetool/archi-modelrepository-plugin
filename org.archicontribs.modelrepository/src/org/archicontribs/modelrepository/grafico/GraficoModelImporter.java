@@ -194,15 +194,11 @@ public class GraficoModelImporter {
                 // Resolve proxies for Elements
                 IDiagramModelArchimateObject element = (IDiagramModelArchimateObject)eObject;
                 element.setArchimateElement((IArchimateElement)resolve(element.getArchimateElement(), element));
-                // Update cross-references
-                element.getArchimateElement().getReferencingDiagramObjects().add(element);
             }
             else if(eObject instanceof IDiagramModelArchimateConnection) {
                 // Resolve proxies for Connections
                 IDiagramModelArchimateConnection archiConnection = (IDiagramModelArchimateConnection)eObject;
                 archiConnection.setArchimateRelationship((IArchimateRelationship)resolve(archiConnection.getArchimateRelationship(), archiConnection));
-                // Update cross-reference
-                archiConnection.getArchimateRelationship().getReferencingDiagramConnections().add(archiConnection);
             }
             else if(eObject instanceof IDiagramModelReference) {
                 // Resolve proxies for Model References
