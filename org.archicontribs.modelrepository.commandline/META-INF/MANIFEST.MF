@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Archi Repository Command Line
+Bundle-Name: Archi Model Repository Command Line
 Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
 Bundle-Version: 0.5.1.qualifier
