@@ -20,6 +20,7 @@ import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.commandline.AbstractCommandLineProvider;
@@ -151,6 +152,10 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         model.setAdapter(IArchiveManager.class, archiveManager);
         archiveManager.loadImages();
         
+        // Add a Command Stack
+        CommandStack cmdStack = new CommandStack();
+        model.setAdapter(CommandStack.class, cmdStack);
+
         CommandLineState.setModel(model);
         
         return model;
