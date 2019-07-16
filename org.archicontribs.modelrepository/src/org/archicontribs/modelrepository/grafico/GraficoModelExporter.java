@@ -237,7 +237,7 @@ public class GraficoModelExporter {
         
         // Make the produced XML easy to read
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_FORMATTED, Boolean.TRUE);
-        resource.getDefaultSaveOptions().put(XMLResource.OPTION_LINE_WIDTH, new Integer(5));
+        resource.getDefaultSaveOptions().put(XMLResource.OPTION_LINE_WIDTH, Integer.valueOf(5));
         
         // Don't use encoded attribute. Needed to have proper references inside Diagrams
         resource.getDefaultSaveOptions().put(XMLResource.OPTION_USE_ENCODED_ATTRIBUTE_STYLE, Boolean.FALSE);
