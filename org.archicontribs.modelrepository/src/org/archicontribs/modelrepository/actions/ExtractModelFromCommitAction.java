@@ -45,6 +45,12 @@ public class ExtractModelFromCommitAction extends AbstractModelAction {
     
     @Override
     public void run() {
+        boolean confirm = MessageDialog.openConfirm(fWindow.getShell(), Messages.ExtractModelFromCommitAction_1, Messages.ExtractModelFromCommitAction_3);
+        
+        if(!confirm) {
+            return;
+        }
+        
         File tempOutputFolder = getTempFolder();
         
         deleteFolder(tempOutputFolder);

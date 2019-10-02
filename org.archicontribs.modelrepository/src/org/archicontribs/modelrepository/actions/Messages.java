@@ -80,6 +80,8 @@ public class Messages extends NLS {
 
     public static String ExtractModelFromCommitAction_2;
 
+    public static String ExtractModelFromCommitAction_3;
+
     public static String MergeBranchAction_0;
 
     public static String MergeBranchAction_1;
