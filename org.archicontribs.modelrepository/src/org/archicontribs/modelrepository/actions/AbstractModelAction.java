@@ -100,20 +100,21 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @param model
      */
     protected boolean offerToSaveModel(IArchimateModel model) {
-        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
+        boolean doSave = MessageDialog.openConfirm(fWindow.getShell(),
                 Messages.AbstractModelAction_1,
                 Messages.AbstractModelAction_2);
 
-        if(response) {
+        if(doSave) {
             try {
-                IEditorModelManager.INSTANCE.saveModel(model);
+                doSave = IEditorModelManager.INSTANCE.saveModel(model);
             }
             catch(IOException ex) {
+                doSave = false;
                 displayErrorDialog(Messages.AbstractModelAction_1, ex);
             }
         }
         
-        return response;
+        return doSave;
     }
     
     /**
