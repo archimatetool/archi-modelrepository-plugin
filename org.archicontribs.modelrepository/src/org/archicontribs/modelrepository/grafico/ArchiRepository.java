@@ -36,6 +36,7 @@ import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
@@ -49,6 +50,8 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
@@ -172,6 +175,44 @@ public class ArchiRepository implements IArchiRepository {
             commitCommand.setAuthor(userDetails);
             commitCommand.setMessage(commitMessage);
             commitCommand.setAmend(amend);
+            
+            // If using GPG signing...
+            String passPhrase = "secret"; // get this from somewhere
+            
+            commitCommand.setCredentialsProvider(new CredentialsProvider() {
+                @Override
+                public boolean get(URIish uri, CredentialItem... items) throws UnsupportedCredentialItem {
+                    for(CredentialItem i : items) {
+                        if(i instanceof CredentialItem.InformationalMessage) {
+                            String promptText = ((CredentialItem.InformationalMessage)i).getPromptText();
+                            // Display this to the user and get passphrase
+                            continue;
+                        }
+                        if(i instanceof CredentialItem.CharArrayType) {
+                            // Set Passphrase
+                            ((CredentialItem.CharArrayType)i).setValue(passPhrase.toCharArray());
+                            continue;
+                        }
+                    }
+                    return true;
+                }
+
+                @Override
+                public boolean isInteractive() {
+                    return true;
+                }
+
+                @Override
+                public boolean supports(CredentialItem... items) {
+                    for(CredentialItem i : items) {
+                        if(i instanceof CredentialItem.InformationalMessage) continue;
+                        else if(i instanceof CredentialItem.CharArrayType) continue;
+                        else return false;
+                    }
+                    return true;
+                }
+            });
+            
             return commitCommand.call();
         }
     }
