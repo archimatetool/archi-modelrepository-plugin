@@ -93,7 +93,7 @@ public class PushModelAction extends RefreshModelAction {
                 }
             });
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.PushModelAction_0, ex);
         }
     }

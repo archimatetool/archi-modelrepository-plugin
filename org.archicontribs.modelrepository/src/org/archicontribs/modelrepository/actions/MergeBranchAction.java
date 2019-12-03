@@ -81,7 +81,7 @@ public class MergeBranchAction extends AbstractModelAction {
                 doLocalMerge(fBranchInfo);
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
     }

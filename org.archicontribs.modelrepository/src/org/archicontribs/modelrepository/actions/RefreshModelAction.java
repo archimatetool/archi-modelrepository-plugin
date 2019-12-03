@@ -123,7 +123,7 @@ public class RefreshModelAction extends AbstractModelAction {
             });
             
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);
         }
     }

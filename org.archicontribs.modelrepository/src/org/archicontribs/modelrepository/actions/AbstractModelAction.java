@@ -21,7 +21,6 @@ import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -135,7 +134,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 // Save the checksum
                 getRepository().saveChecksum();
             }
-            catch(IOException | GitAPIException ex) {
+            catch(Exception ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);
                 return false;
             }

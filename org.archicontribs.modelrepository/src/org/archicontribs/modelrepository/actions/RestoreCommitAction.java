@@ -15,7 +15,6 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Repository;
@@ -115,7 +114,7 @@ public class RestoreCommitAction extends AbstractModelAction {
                 return;
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.RestoreCommitAction_0, ex);
         }
         
@@ -126,7 +125,7 @@ public class RestoreCommitAction extends AbstractModelAction {
             // Save the checksum
             getRepository().saveChecksum();
         }
-        catch(GitAPIException | IOException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.RestoreCommitAction_0, ex);
         }
         

@@ -84,7 +84,7 @@ public class SwitchBranchAction extends AbstractModelAction {
             // Switch branch
             switchBranch(branchInfo, !isCurrentPositionSameAsCurrentBranch);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
         
