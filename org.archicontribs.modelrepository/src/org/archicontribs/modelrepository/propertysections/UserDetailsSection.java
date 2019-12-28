@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.ui.ColorFactory;
+import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.utils.StringUtils;
 
 
@@ -49,13 +50,16 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     
     private UserText fTextName;
     private UserText fTextEmail;
+ 
+    private static final Color lightGrey = ColorFactory.get(188, 188, 188);
+    private static final Color darkGrey = ColorFactory.get(112, 112, 112);
     
     private class UserText {
-        private Color greyColor = ColorFactory.get(148, 148, 148);
         Text text;
         String field;
         String localValue;
         String globalValue;
+        private Color originalForeGroundColor;
 
         Listener listener = new Listener() {
             @Override
@@ -69,9 +73,9 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
                 
                 switch(event.type) {
                     case SWT.FocusIn:
-                        // If global value == new value, set to empty and grey
+                        // If global value == new value, set to empty
                         if(globalValue.equals(newValue)) {
-                            text.setForeground(null);
+                            text.setForeground(originalForeGroundColor);
                             text.setText(""); //$NON-NLS-1$
                         }
                         break;
@@ -124,11 +128,26 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         }
         
         void updateColor() {
-            if(globalValue.equals(localValue)) {
-                text.setForeground(greyColor);
+            // The foreground of the text control is set later if we are using a theme
+            if(originalForeGroundColor == null) {
+                text.getDisplay().asyncExec(() -> {
+                    if(!text.isDisposed()) {
+                        originalForeGroundColor = text.getForeground();
+                        _updateColor();
+                    }
+                });
             }
             else {
-                text.setForeground(null);
+                _updateColor();
+            }
+        }
+        
+        void _updateColor() {
+            if(globalValue.equals(localValue)) {
+                text.setForeground(ThemeUtils.isDarkTheme() ? darkGrey : lightGrey);
+            }
+            else {
+                text.setForeground(originalForeGroundColor);
             }
         }
     }
