@@ -117,20 +117,16 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_2);
         
-        fTextUserName = new Text(container, SWT.BORDER);
+        fTextUserName = UIUtils.createSingleTextControl(container, SWT.BORDER, false);
         fTextUserName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fTextUserName.setText(userName);
-        // Single text control so strip CRLFs
-        UIUtils.conformSingleTextControl(fTextUserName);
         
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_3);
         
-        fTextUserEmail = new Text(container, SWT.BORDER);
+        fTextUserEmail = UIUtils.createSingleTextControl(container, SWT.BORDER, false);
         fTextUserEmail.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fTextUserEmail.setText(userEmail);
-        // Single text control so strip CRLFs
-        UIUtils.conformSingleTextControl(fTextUserEmail);
         
         label = new Label(container, SWT.NONE);
         label.setText(Messages.CommitDialog_4);
