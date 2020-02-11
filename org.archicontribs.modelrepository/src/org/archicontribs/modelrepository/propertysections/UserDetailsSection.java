@@ -17,18 +17,14 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
-import com.archimatetool.editor.ui.ColorFactory;
-import com.archimatetool.editor.ui.ThemeUtils;
 import com.archimatetool.editor.utils.StringUtils;
 
 
@@ -47,71 +43,34 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     }
     
     private IArchiRepository fRepository;
-    
     private UserText fTextName;
     private UserText fTextEmail;
  
-    private static final Color lightGrey = ColorFactory.get(188, 188, 188);
-    private static final Color darkGrey = ColorFactory.get(112, 112, 112);
-    
     private class UserText {
         Text text;
         String field;
-        String localValue;
-        String globalValue;
-        private Color originalForeGroundColor;
+        String localValue, globalValue;
 
-        Listener listener = new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                String newValue = text.getText();
-                
-                // If it's an empty string set to global value
-                if(!StringUtils.isSet(newValue)) {
-                    newValue = globalValue;
-                }
-                
-                switch(event.type) {
-                    case SWT.FocusIn:
-                        // If global value == new value, set to empty
-                        if(globalValue.equals(newValue)) {
-                            text.setForeground(originalForeGroundColor);
-                            text.setText(""); //$NON-NLS-1$
-                        }
-                        break;
+        Listener listener = (e) -> {
+            String newValue = text.getText();
 
-                    case SWT.FocusOut:
-                        text.setText(newValue);
-                        // Fall through...
-
-                    case SWT.DefaultSelection:
-                        // Different value so save and store
-                        if(!localValue.equals(newValue)) {
-                            localValue = newValue;
-                            saveToLocalConfig(field, globalValue, localValue);
-                        }
-                        
-                        updateColor();
-                        break;
-                    
-                    default:
-                        break;
-                }
-             }
+            // Different value so save and store
+            if(!localValue.equals(newValue)) {
+                localValue = newValue;
+                saveToLocalConfig(field, globalValue, localValue);
+            }
         };
-        
+
         UserText(Composite parent, String field) {
             this.field = field;
             
             text = createSingleTextControl(parent, SWT.NONE);
             
             text.addListener(SWT.DefaultSelection, listener);
-            text.addListener(SWT.FocusIn, listener);
             text.addListener(SWT.FocusOut, listener);
             
             text.addDisposeListener((event) -> {
                 text.removeListener(SWT.DefaultSelection, listener);
-                text.removeListener(SWT.FocusIn, listener);
                 text.removeListener(SWT.FocusOut, listener);
             });
         }
@@ -119,35 +78,15 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
         void setText(String globalValue, String localValue) {
             this.globalValue = globalValue;
             this.localValue = localValue;
-            refresh();
-        }
-        
-        void refresh() {
-            text.setText(localValue);
-            updateColor();
-        }
-        
-        void updateColor() {
-            // The foreground of the text control is set later if we are using a theme
-            if(originalForeGroundColor == null) {
-                text.getDisplay().asyncExec(() -> {
-                    if(!text.isDisposed()) {
-                        originalForeGroundColor = text.getForeground();
-                        _updateColor();
-                    }
-                });
+            
+            // Hint
+            text.setMessage(globalValue);
+            
+            if(!globalValue.equals(localValue)) {
+                text.setText(localValue);
             }
             else {
-                _updateColor();
-            }
-        }
-        
-        void _updateColor() {
-            if(globalValue.equals(localValue)) {
-                text.setForeground(ThemeUtils.isDarkTheme() ? darkGrey : lightGrey);
-            }
-            else {
-                text.setForeground(originalForeGroundColor);
+                text.setText(""); //$NON-NLS-1$
             }
         }
     }
