@@ -139,6 +139,19 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd.horizontalSpan = 2;
         fTextCommitMessage.setLayoutData(gd);
         
+        // TODO: After Archi 4.7 remove this code and use 
+        //UIUtils.applyTraverseListener(fTextCommitMessage, SWT.TRAVERSE_TAB_NEXT | SWT.TRAVERSE_TAB_PREVIOUS | SWT.TRAVERSE_RETURN);
+        fTextCommitMessage.addTraverseListener((e) -> {
+            // Ctrl + Enter
+            if(e.detail == SWT.TRAVERSE_RETURN && (e.stateMask & SWT.MOD1) != 0) {
+                e.doit = true;
+            }
+            // Tabs and other SWT.TRAVERSE_* flags
+            else if(e.detail == SWT.TRAVERSE_TAB_NEXT || e.detail == SWT.TRAVERSE_TAB_PREVIOUS) {
+                e.doit = true;
+            }
+        });
+        
         fAmendLastCommitCheckbox = new Button(container, SWT.CHECK);
         fAmendLastCommitCheckbox.setText(Messages.CommitDialog_5);
         gd = new GridData(GridData.FILL_HORIZONTAL);
