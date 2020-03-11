@@ -276,6 +276,9 @@ public class GraficoModelExporter {
                 String imagePath = imageProvider.getImagePath();
                 if(imagePath != null && !added.contains(imagePath)) {
                     bytes = archiveManager.getBytesFromEntry(imagePath);
+                    if(bytes == null) {
+                        throw new IOException("Could not get image bytes from image path: " + imagePath); //$NON-NLS-1$
+                    }
                     Files.write(Paths.get(fLocalRepoFolder.getAbsolutePath() + File.separator + imagePath), bytes, StandardOpenOption.CREATE);
                     added.add(imagePath);
                 }
