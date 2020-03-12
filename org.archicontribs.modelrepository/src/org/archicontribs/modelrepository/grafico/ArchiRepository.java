@@ -185,8 +185,7 @@ public class ArchiRepository implements IArchiRepository {
         cloneCommand.setProgressMonitor(monitor);
 
         try(Git git = cloneCommand.call()) {
-            // Use the same line endings
-            setConfigLineEndings(git.getRepository());
+            setDefaultConfigSettings(git.getRepository());
         }
     }
 
@@ -239,8 +238,7 @@ public class ArchiRepository implements IArchiRepository {
         remoteAddCommand.setUri(new URIish(URL));
         remoteAddCommand.call();
         
-        // Use the same line endings
-        setConfigLineEndings(git.getRepository());
+        setDefaultConfigSettings(git.getRepository());
         
         // Set tracked master branch
         setTrackedMasterBranch(git.getRepository());
@@ -444,14 +442,25 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set Line endings in the config file to autocrlf=input
-     * This ensures that files are not seen as different
+     * Set default settings in the config file 
      * @param repository
      * @throws IOException
      */
-    private void setConfigLineEndings(Repository repository) throws IOException {
+    private void setDefaultConfigSettings(Repository repository) throws IOException {
         StoredConfig config = repository.getConfig();
+        
+        /*
+         * Set Line endings in the config file to autocrlf=input
+         * This ensures that files are not seen as different
+         */
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input"); //$NON-NLS-1$
+        
+        /*
+         * Set longpaths=true because garbage collection is not possible otherwise
+         * See https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
+         */
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "longpaths", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+        
         config.save();
     }
     
