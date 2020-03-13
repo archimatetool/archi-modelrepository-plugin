@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
+import org.eclipse.gef.commands.CommandStack;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
@@ -139,9 +140,17 @@ public class GraficoModelImporter {
 
     	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
         resource.getContents().remove(fModel);
+        
+        // Add Archive Manager and CommandStack so we can save the model
+        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
+        fModel.setAdapter(IArchiveManager.class, archiveManager);
+        
+        // TODO: After Archi 4.7 we don't need a CommandStack
+        CommandStack cmdStack = new CommandStack();
+        fModel.setAdapter(CommandStack.class, cmdStack);
     	
     	// Load images
-    	loadImages(imagesFolder);
+    	loadImages(imagesFolder, archiveManager);
 
     	return fModel;
     }
@@ -155,13 +164,8 @@ public class GraficoModelImporter {
     
     /**
      * Read images from images subfolder and load them into the model
-     * 
-     * @param model
-     * @param folder
-     * @throws IOException
      */
-    private void loadImages(File folder) throws IOException {
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
+    private void loadImages(File folder, IArchiveManager archiveManager) throws IOException {
         byte[] bytes;
 
         // Add all images files

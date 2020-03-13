@@ -105,16 +105,15 @@ public class GraficoModelLoader {
             graficoModel[0] = restoreProblemObjects(unresolvedObjects);
         }
         
-        // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
-        // Note - we have to open it even if it was closed in order to save it
-        IEditorModelManager.INSTANCE.openModel(graficoModel[0]);
-        
-        // And Save it to the temp file
+        // Save it
         IEditorModelManager.INSTANCE.saveModel(graficoModel[0]);
         
-        // Re-open editors, if any
-        reopenEditors(graficoModel[0], openModelIDs);
-
+        // And re-open it if we already had it open
+        if(model != null) {
+            IEditorModelManager.INSTANCE.openModel(graficoModel[0]);
+            reopenEditors(graficoModel[0], openModelIDs);
+        }
+        
         return graficoModel[0];
     }
     
