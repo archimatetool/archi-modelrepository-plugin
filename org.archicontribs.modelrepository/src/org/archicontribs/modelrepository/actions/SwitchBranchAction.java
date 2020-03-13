@@ -55,9 +55,6 @@ public class SwitchBranchAction extends AbstractModelAction {
         boolean notifyHistoryChanged = false;
         
         try {
-            // Will we require a switch to a different commit point?
-            boolean isCurrentPositionSameAsCurrentBranch = isBranchRefSameAsCurrentBranchRef(branchInfo);
-            
             // Do the Grafico Export first
             getRepository().exportModelToGraficoFiles();
             
@@ -67,7 +64,8 @@ public class SwitchBranchAction extends AbstractModelAction {
                 
                 // If target branch ref is same as the current commit we don't actully need to commit changes
                 // But we should ask the user first...
-                if(isCurrentPositionSameAsCurrentBranch) {
+                // Will we require a switch to a different commit point?
+                if(isBranchRefSameAsCurrentBranchRef(branchInfo)) {
                     // Ask user
                     doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0,
                             Messages.SwitchBranchAction_1);
@@ -82,7 +80,7 @@ public class SwitchBranchAction extends AbstractModelAction {
             }
             
             // Switch branch
-            switchBranch(branchInfo, !isCurrentPositionSameAsCurrentBranch);
+            switchBranch(branchInfo, !isBranchRefSameAsCurrentBranchRef(branchInfo));
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
