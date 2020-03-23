@@ -89,14 +89,13 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public String getName() {
         String[] result = new String[1];
-        result[0] = fLocalRepoFolder.getName();
         
         // Find the "folder.xml" file and read it from there
         File file = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER + "/" + IGraficoConstants.FOLDER_XML); //$NON-NLS-1$
         if(file.exists()) {
             try(Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
                 stream.forEach(s -> {
-                    if(s.indexOf("name=") != -1) { //$NON-NLS-1$
+                    if(result[0] != null && s.indexOf("name=") != -1) { //$NON-NLS-1$
                         String segments[] = s.split("\""); //$NON-NLS-1$
                         if(segments.length == 2) {
                             result[0] = segments[1];
@@ -109,7 +108,7 @@ public class ArchiRepository implements IArchiRepository {
             }
         }
         
-        return result[0];
+        return result[0] != null ? result[0] : fLocalRepoFolder.getName();
     }
 
     @Override
