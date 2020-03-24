@@ -8,11 +8,12 @@ package org.archicontribs.modelrepository.grafico;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -40,6 +41,7 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelImageProvider;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFolderContainer;
 import com.archimatetool.model.IIdentifier;
@@ -199,7 +201,17 @@ public class GraficoModelExporter {
                         tmpElement);
             }
         }
+        
         if(folderContainer instanceof IArchimateModel) {
+            // Remove image features
+            IArchimateModel model = (IArchimateModel)folderContainer;
+            for(IFeature feature : new ArrayList<>(model.getFeatures())) {
+                String featureName = feature.getName();
+                if(featureName.startsWith("images/")) { //$NON-NLS-1$
+                    model.getFeatures().remove(featureName);
+                }
+            }
+            
             createAndSaveResource(new File(folder, IGraficoConstants.FOLDER_XML), folderContainer);
         }
     }
@@ -253,33 +265,30 @@ public class GraficoModelExporter {
     }
     
     /**
-     * Extract and save images used inside a model
-     * 
-     * @param model
-     * @param folder
-     * @throws IOException
+     * Extract and save images used inside a model as separate image files
      */
     private void saveImages() throws IOException {
-        List<String> added = new ArrayList<String>();
+        Set<String> added = new HashSet<>();
 
         IArchiveManager archiveManager = (IArchiveManager)fModel.getAdapter(IArchiveManager.class);
         if(archiveManager == null) {
             archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         }
         
-        byte[] bytes;
-
         for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
             if(eObject instanceof IDiagramModelImageProvider) {
                 IDiagramModelImageProvider imageProvider = (IDiagramModelImageProvider)eObject;
                 String imagePath = imageProvider.getImagePath();
+                
                 if(imagePath != null && !added.contains(imagePath)) {
-                    bytes = archiveManager.getBytesFromEntry(imagePath);
+                    byte[] bytes = archiveManager.getBytesFromEntry(imagePath);
                     if(bytes == null) {
                         throw new IOException("Could not get image bytes from image path: " + imagePath); //$NON-NLS-1$
                     }
-                    Files.write(Paths.get(fLocalRepoFolder.getAbsolutePath() + File.separator + imagePath), bytes, StandardOpenOption.CREATE);
+                    
+                    File file = new File(fLocalRepoFolder, imagePath);
+                    Files.write(file.toPath(), bytes, StandardOpenOption.CREATE);
                     added.add(imagePath);
                 }
             }

@@ -166,14 +166,10 @@ public class GraficoModelImporter {
      * Read images from images subfolder and load them into the model
      */
     private void loadImages(File folder, IArchiveManager archiveManager) throws IOException {
-        byte[] bytes;
-
         // Add all images files
         for(File imageFile : folder.listFiles()) {
             if(imageFile.isFile()) {
-                bytes = Files.readAllBytes(imageFile.toPath());
-                // /!\ This must match the prefix used in
-                // ArchiveManager.createArchiveImagePathname
+                byte[] bytes = Files.readAllBytes(imageFile.toPath());
                 archiveManager.addByteContentEntry("images/" + imageFile.getName(), bytes); //$NON-NLS-1$
             }
         }

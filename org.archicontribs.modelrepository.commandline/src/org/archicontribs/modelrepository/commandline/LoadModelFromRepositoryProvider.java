@@ -148,6 +148,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         }
         
         // Add an Archive Manager and load images
+        // TODO: Remove this at some point as it does nothing
         IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(model);
         model.setAdapter(IArchiveManager.class, archiveManager);
         archiveManager.loadImages();
