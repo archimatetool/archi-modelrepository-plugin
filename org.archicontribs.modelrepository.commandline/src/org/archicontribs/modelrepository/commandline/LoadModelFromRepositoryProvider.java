@@ -20,12 +20,10 @@ import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelImporter;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.commandline.AbstractCommandLineProvider;
 import com.archimatetool.commandline.CommandLineState;
-import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
@@ -147,16 +145,6 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             throw new IOException(Messages.LoadModelFromRepositoryProvider_8);
         }
         
-        // Add an Archive Manager and load images
-        // TODO: Remove this at some point as it does nothing
-        IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(model);
-        model.setAdapter(IArchiveManager.class, archiveManager);
-        archiveManager.loadImages();
-        
-        // Add a Command Stack
-        CommandStack cmdStack = new CommandStack();
-        model.setAdapter(CommandStack.class, cmdStack);
-
         CommandLineState.setModel(model);
         
         return model;
