@@ -154,6 +154,9 @@ public class ArchiRepository implements IArchiRepository {
                 return null;
             }
             
+            // Check lock file is deleted
+            checkDeleteLockFile();
+            
             // Add modified files to index
             AddCommand addCommand = git.add();
             addCommand.addFilepattern("."); //$NON-NLS-1$
@@ -298,6 +301,9 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public void resetToRef(String ref) throws IOException, GitAPIException {
+        // Check lock file is deleted
+        checkDeleteLockFile();
+        
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             // Reset to master
             ResetCommand resetCommand = git.reset();
@@ -374,6 +380,9 @@ public class ArchiRepository implements IArchiRepository {
         
         GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
         exporter.exportModel();
+        
+        // Check lock file is deleted
+        checkDeleteLockFile();
         
         // Stage modified files to index
         // This will clear any different line endings
@@ -561,5 +570,15 @@ public class ArchiRepository implements IArchiRepository {
         }
         
         return sb.toString();
+    }
+    
+    /**
+     * In some cases the lock file exists and leads to an error, so we delete it
+     */
+    private void checkDeleteLockFile() {
+        File lockFile = new File(getLocalGitFolder(), "index.lock"); //$NON-NLS-1$
+        if(lockFile.exists() && lockFile.canWrite()) {
+            lockFile.delete();
+        }
     }
 }
