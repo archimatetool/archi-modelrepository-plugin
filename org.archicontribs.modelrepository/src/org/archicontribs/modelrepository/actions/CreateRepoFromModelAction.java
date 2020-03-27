@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -22,7 +21,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -121,7 +119,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                         pm.beginTask(Messages.CreateRepoFromModelAction_4, -1);
                         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                     }
-                    catch(GitAPIException | IOException ex) {
+                    catch(Exception ex) {
                         exception[0] = ex;
                     }
                 }

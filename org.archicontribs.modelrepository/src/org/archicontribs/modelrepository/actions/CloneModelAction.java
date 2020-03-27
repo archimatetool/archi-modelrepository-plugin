@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -23,7 +22,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -101,7 +99,7 @@ public class CloneModelAction extends AbstractModelAction {
                         pm.beginTask(Messages.CloneModelAction_4, -1);
                         getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));
                     }
-                    catch(GitAPIException | IOException ex) {
+                    catch(Exception ex) {
                         exception[0] = ex;
                     }
                 }

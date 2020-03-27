@@ -65,7 +65,7 @@ public class DeleteBranchAction extends AbstractModelAction {
                         pm.beginTask(Messages.DeleteBranchAction_2, -1);
                         deleteBranch(branchInfo, false);
                     }
-                    catch(GitAPIException | IOException ex) {
+                    catch(Exception ex) {
                         exception[0] = ex;
                     }
                 }

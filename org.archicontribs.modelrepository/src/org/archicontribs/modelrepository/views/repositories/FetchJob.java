@@ -23,7 +23,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -98,9 +97,7 @@ public class FetchJob extends Job {
                 repo.fetchFromRemote(npw, null, false);
                 needsRefresh = true;
             }
-            catch(IOException ex) {
-            }
-            catch(GitAPIException ex) {
+            catch(Exception ex) {
                 if(ex instanceof TransportException) {
                     // Seems to be the only way to trap these exceptions :-(
                     if(ex.getMessage().contains("not authorized") || //$NON-NLS-1$
@@ -124,6 +121,9 @@ public class FetchJob extends Job {
 
                         return Status.OK_STATUS;
                     }
+                }
+                else {
+                    ex.printStackTrace();
                 }
             }
         }

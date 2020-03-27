@@ -164,7 +164,7 @@ public class RefreshModelAction extends AbstractModelAction {
         try {
             pullResult = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pmDialog.getProgressMonitor()));
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             // If this exception is thrown then the remote doesn't have the ref which can happen when pulling on a branch,
             // So quietly absorb this and return OK
             if(ex instanceof RefNotAdvertisedException) {
