@@ -87,10 +87,19 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             message = ex.getMessage();
         }
         
+        displayErrorDialog(title, message);
+    }
+
+    /**
+     * Display an errror dialog
+     * @param title
+     * @param message
+     */
+    protected void displayErrorDialog(String title, String message) {
         MessageDialog.openError(fWindow.getShell(),
                 title,
                 Messages.AbstractModelAction_0 +
-                    " " + //$NON-NLS-1$
+                    "\n" + //$NON-NLS-1$
                     message);
     }
 
