@@ -41,7 +41,6 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelImageProvider;
-import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFolderContainer;
 import com.archimatetool.model.IIdentifier;
@@ -201,17 +200,7 @@ public class GraficoModelExporter {
                         tmpElement);
             }
         }
-        
         if(folderContainer instanceof IArchimateModel) {
-            // Remove image features
-            IArchimateModel model = (IArchimateModel)folderContainer;
-            for(IFeature feature : new ArrayList<>(model.getFeatures())) {
-                String featureName = feature.getName();
-                if(featureName.startsWith("images/")) { //$NON-NLS-1$
-                    model.getFeatures().remove(featureName);
-                }
-            }
-            
             createAndSaveResource(new File(folder, IGraficoConstants.FOLDER_XML), folderContainer);
         }
     }
