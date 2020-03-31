@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Model Repository Command Line
 Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.6.1.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: com.archimatetool.commandline;bundle-version="4.6.0",
  org.archicontribs.modelrepository;bundle-version="0.6.0"
