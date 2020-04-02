@@ -95,7 +95,7 @@ public class ArchiRepository implements IArchiRepository {
         if(file.exists()) {
             try(Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
                 stream.forEach(s -> {
-                    if(result[0] != null && s.indexOf("name=") != -1) { //$NON-NLS-1$
+                    if(result[0] == null && s.indexOf("name=") != -1) { //$NON-NLS-1$
                         String segments[] = s.split("\""); //$NON-NLS-1$
                         if(segments.length == 2) {
                             result[0] = segments[1];
