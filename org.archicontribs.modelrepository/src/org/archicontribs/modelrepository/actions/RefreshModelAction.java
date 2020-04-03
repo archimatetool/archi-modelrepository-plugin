@@ -191,6 +191,9 @@ public class RefreshModelAction extends AbstractModelAction {
         pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_7);
         
         BranchStatus branchStatus = getRepository().getBranchStatus();
+        
+        // Setup the Graphico Model Loader
+        GraficoModelLoader loader = new GraficoModelLoader(getRepository());
 
         // Merge failure
         if(!pullResult.isSuccessful() && pullResult.getMergeResult().getMergeStatus() == MergeStatus.CONFLICTING) {
@@ -230,13 +233,23 @@ public class RefreshModelAction extends AbstractModelAction {
                 handler.resetToLocalState();
                 return PULL_STATUS_MERGE_CANCEL;
             }
+            
+            // We now have to check if model can be reloaded
+            pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_8);
+            
+            // Reload the model from the Grafico XML files
+            try {
+            	loader.loadModel();
+            }
+            catch(IOException ex) {
+            	handler.resetToLocalState(); // Clean up
+            	throw ex;
+            }
+        } else { 
+		    // Reload the model from the Grafico XML files
+		    pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_8);
+			loader.loadModel();
         }
-        
-        pmDialog.getProgressMonitor().subTask(Messages.RefreshModelAction_8);
-        
-        // Reload the model from the Grafico XML files
-        GraficoModelLoader loader = new GraficoModelLoader(getRepository());
-        loader.loadModel();
         
         // Do a commit if needed
         if(getRepository().hasChangesToCommit()) {
