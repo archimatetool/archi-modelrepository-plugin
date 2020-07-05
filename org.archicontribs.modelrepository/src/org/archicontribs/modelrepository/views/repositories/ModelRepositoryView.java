@@ -382,6 +382,11 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         return super.getAdapter(adapter);
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
+    }
 
     // =================================================================================
     //                       Contextual Help support
