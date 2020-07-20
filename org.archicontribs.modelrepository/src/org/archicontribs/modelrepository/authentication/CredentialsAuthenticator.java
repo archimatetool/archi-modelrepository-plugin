@@ -88,6 +88,8 @@ public final class CredentialsAuthenticator {
             return new TransportConfigCallback() {
                 @Override
                 public void configure(Transport transport) {
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
+                    
                     if(transport instanceof SshTransport) {
                         ((SshTransport)transport).setSshSessionFactory(getSshSessionFactory());
                     }
@@ -138,6 +140,7 @@ public final class CredentialsAuthenticator {
                 @Override
                 public void configure(Transport transport) {
                     transport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(npw.getUsername(), npw.getPassword()));
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
                 };
             };
         }
