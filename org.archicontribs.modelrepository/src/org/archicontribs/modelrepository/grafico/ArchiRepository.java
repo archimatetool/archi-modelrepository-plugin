@@ -197,7 +197,13 @@ public class ArchiRepository implements IArchiRepository {
             PushCommand pushCommand = git.push();
             pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             pushCommand.setProgressMonitor(monitor);
-            return pushCommand.call();
+            
+            Iterable<PushResult> result = pushCommand.call();
+            
+            // After a successful push, ensure we are tracking the current branch
+            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
+            
+            return result;
         }
     }
     
@@ -216,7 +222,7 @@ public class ArchiRepository implements IArchiRepository {
     public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             // Check and set tracked master branch
-            setTrackedMasterBranch(git.getRepository());
+            setTrackedBranch(git.getRepository(), IGraficoConstants.MASTER);
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             fetchCommand.setProgressMonitor(monitor);
@@ -243,7 +249,7 @@ public class ArchiRepository implements IArchiRepository {
         setDefaultConfigSettings(git.getRepository());
         
         // Set tracked master branch
-        setTrackedMasterBranch(git.getRepository());
+        setTrackedBranch(git.getRepository(), IGraficoConstants.MASTER);
         
         return git;
     }
@@ -473,17 +479,17 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set the tracked master branch to "origin"
-     * @param repository
-     * @throws IOException
+     * Set the given branchName to track "origin"
      */
-    private void setTrackedMasterBranch(Repository repository) throws IOException {
-        StoredConfig config = repository.getConfig();
-        String branchName = IGraficoConstants.MASTER;
-        String remoteName = IGraficoConstants.ORIGIN;
+    private void setTrackedBranch(Repository repository, String branchName) throws IOException {
+        if(branchName == null) {
+            return;
+        }
         
-        if(!remoteName.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
+        StoredConfig config = repository.getConfig();
+        
+        if(!IGraficoConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, IGraficoConstants.ORIGIN);
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }
