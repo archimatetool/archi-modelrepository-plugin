@@ -36,7 +36,6 @@ import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -350,28 +349,6 @@ public class ArchiRepository implements IArchiRepository {
             }
             
             return headRef.getObjectId().equals(remoteRef.getObjectId());
-        }
-    }
-    
-    @Override
-    public boolean hasUnpushedCommits(String branch) throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
-            if(trackingStatus != null) {
-                return trackingStatus.getAheadCount() > 0;
-            }
-            return false;
-        }
-    }
-
-    @Override
-    public boolean hasRemoteCommits(String branch) throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
-            if(trackingStatus != null) {
-                return trackingStatus.getBehindCount() > 0;
-            }
-            return false;
         }
     }
     

@@ -25,9 +25,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -63,6 +61,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private SwitchBranchAction fActionSwitchBranch;
     private MergeBranchAction fActionMergeBranch;
     private DeleteBranchAction fActionDeleteBranch;
+    //private DeleteLocalTrackedBranchesAction fActionDeleteLocalTrackedBranches;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -125,11 +124,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         /*
          * Listen to Table Selections to update local Actions
          */
-        fBranchesTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                updateActions();
-            }
+        fBranchesTableViewer.addSelectionChangedListener((event) -> {
+            updateActions();
         });
         
         fBranchesTableViewer.addDoubleClickListener((event) -> {
@@ -154,6 +150,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
         fActionDeleteBranch.setEnabled(false);
+        
+        //fActionDeleteLocalTrackedBranches = new DeleteLocalTrackedBranchesAction(getViewSite().getWorkbenchWindow());
+        //fActionDeleteLocalTrackedBranches.setEnabled(false);
     }
 
     /**
@@ -188,6 +187,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
+        //manager.add(fActionDeleteLocalTrackedBranches);
     }
     
     /**
@@ -200,6 +200,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionAddBranch.setBranch(branchInfo);
         fActionMergeBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);
+        //fActionDeleteLocalTrackedBranches.update();
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -210,6 +211,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
+        //manager.add(fActionDeleteLocalTrackedBranches);
     }
 
     @Override
@@ -261,6 +263,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionSwitchBranch.setRepository(selectedRepository);
             fActionMergeBranch.setRepository(selectedRepository);
             fActionDeleteBranch.setRepository(selectedRepository);
+            //fActionDeleteLocalTrackedBranches.setRepository(selectedRepository);
         }
     }
     
