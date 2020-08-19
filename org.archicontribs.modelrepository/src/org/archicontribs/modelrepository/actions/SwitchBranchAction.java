@@ -13,8 +13,10 @@ import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -60,32 +62,31 @@ public class SwitchBranchAction extends AbstractModelAction {
             
             // If there are changes to commit...
             if(getRepository().hasChangesToCommit()) {
-                boolean doCommit = true;
-                
-                // If target branch ref is same as the current commit we don't actully need to commit changes
-                // But we should ask the user first...
-                // Will we require a switch to a different commit point?
-                if(isBranchRefSameAsCurrentBranchRef(branchInfo)) {
-                    // Ask user
-                    doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0,
-                            Messages.SwitchBranchAction_1);
-                }
-                
+                // Ask user
+                boolean doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0, Messages.SwitchBranchAction_1);
+
                 // Commit dialog
                 if(doCommit && !offerToCommitChanges()) {
                     return;
                 }
-                
+
                 notifyHistoryChanged = true;
             }
             
             // Switch branch
             switchBranch(branchInfo, !isBranchRefSameAsCurrentBranchRef(branchInfo));
         }
+        // There was a conflict...
+        catch(CheckoutConflictException ex) {
+            MessageDialog.open(MessageDialog.ERROR, fWindow.getShell(),
+                    Messages.SwitchBranchAction_0,
+                    "There was a conflict when trying to switch branches.\nEither abort or commit any changes before switching branches.",
+                    SWT.NONE);
+        }
         catch(Exception ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
-        
+
         // Notify listeners last because a new UI selection will trigger an updated BranchInfo here
         if(notifyHistoryChanged) {
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
@@ -99,7 +100,7 @@ public class SwitchBranchAction extends AbstractModelAction {
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();
             }
-            // If the branch is remote and not tracked we need create the local branch and switch to that
+            // If the branch is remote and not tracked we need to create the local branch and switch to that
             else if(branchInfo.isRemote() && !branchInfo.hasTrackedRef()) {
                 String branchName = branchInfo.getShortName();
                 
