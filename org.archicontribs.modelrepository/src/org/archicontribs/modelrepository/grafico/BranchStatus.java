@@ -24,9 +24,6 @@ import org.eclipse.jgit.lib.Repository;
  */
 public class BranchStatus {
     
-    public final static String localPrefix = "refs/heads/"; //$NON-NLS-1$
-    public final static String remotePrefix = "refs/remotes/origin/"; //$NON-NLS-1$
-    
     private Map<String, BranchInfo> infos = new HashMap<String, BranchInfo>();
     
     private BranchInfo currentLocalBranch;

@@ -7,9 +7,9 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchConfig;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
@@ -25,6 +25,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
  */
 public class BranchInfo {
     
+    private final static String LOCAL_PREFIX = Constants.R_HEADS;
+    private final static String REMOTE_PREFIX = Constants.R_REMOTES + IGraficoConstants.ORIGIN + "/"; //$NON-NLS-1$
+
     private Ref ref;
     
     private String shortName;
@@ -41,8 +44,6 @@ public class BranchInfo {
     
     private File repoDir; 
     
-    private final static String REMOTE = Constants.R_REMOTES + IGraficoConstants.ORIGIN + "/"; //$NON-NLS-1$
-
     BranchInfo(Repository repository, Ref ref) throws IOException, GitAPIException {
         this.ref = ref;
         
@@ -76,11 +77,11 @@ public class BranchInfo {
     }
     
     public boolean isLocal() {
-        return getFullName().startsWith(BranchStatus.localPrefix);
+        return getFullName().startsWith(LOCAL_PREFIX);
     }
 
     public boolean isRemote() {
-        return getFullName().startsWith(BranchStatus.remotePrefix);
+        return getFullName().startsWith(REMOTE_PREFIX);
     }
 
     public boolean hasLocalRef() {
@@ -104,11 +105,11 @@ public class BranchInfo {
     }
     
     public String getRemoteBranchNameFor() {
-        return BranchStatus.remotePrefix + getShortName();
+        return REMOTE_PREFIX + getShortName();
     }
     
     public String getLocalBranchNameFor() {
-        return BranchStatus.localPrefix + getShortName();
+        return LOCAL_PREFIX + getShortName();
     }
     
     public RevCommit getLatestCommit() {
@@ -166,20 +167,26 @@ public class BranchInfo {
     }
     
     private String getShortName(String branchName) {
-        if(branchName.startsWith(Constants.R_HEADS)) {
-            return branchName.substring(Constants.R_HEADS.length());
+        if(branchName.startsWith(LOCAL_PREFIX)) {
+            return branchName.substring(LOCAL_PREFIX.length());
         }
         
-        if(branchName.startsWith(REMOTE)) {
-            return branchName.substring(REMOTE.length());
+        if(branchName.startsWith(REMOTE_PREFIX)) {
+            return branchName.substring(REMOTE_PREFIX.length());
         }
         
         return branchName;
     }
     
     private RevCommit getLatestCommit(Repository repository) throws GitAPIException, IOException {
-        LogCommand log = Git.wrap(repository).log().add(ref.getObjectId());
-        return log.call().iterator().next();
+        Iterator<RevCommit> it = Git.wrap(repository)
+                .log()
+                .setMaxCount(1)
+                .add(ref.getObjectId())
+                .call()
+                .iterator();
+        
+        return it.hasNext() ? it.next() : null;
     }
     
     private void getCommitStatus(Repository repository) throws IOException {
