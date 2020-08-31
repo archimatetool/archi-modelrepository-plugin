@@ -71,19 +71,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        File localRepoFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                GraficoUtils.getLocalGitFolderName(repoURL));
-        
-        // Folder is not empty
-        if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.CreateRepoFromModelAction_1,
-                    Messages.CreateRepoFromModelAction_2 +
-                    " " + localRepoFolder.getAbsolutePath()); //$NON-NLS-1$
-
-            return;
-        }
-        
+        // Create a new local folder
+        File localRepoFolder = GraficoUtils.getUniqueLocalFolder(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), repoURL);
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {
