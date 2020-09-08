@@ -10,13 +10,12 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -48,9 +47,24 @@ public class SwitchBranchAction extends AbstractModelAction {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
+//        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
+//            if(!offerToSaveModel(model)) {
+//                return;
+//            }
+//        }
+        
+        // Offer to save the model if open and dirty using IEditorModelManager#close
+        // This ensures we can proceed without saving the model
+        // The downside is that any open Views will not be re-opened because GraficoModelLoader takes care of that
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            if(!offerToSaveModel(model)) {
-                return;
+            try {
+                boolean result = IEditorModelManager.INSTANCE.closeModel(model);
+                if(!result) {
+                    return;
+                }
+            }
+            catch(IOException ex) {
+                ex.printStackTrace();
             }
         }
         
@@ -63,25 +77,32 @@ public class SwitchBranchAction extends AbstractModelAction {
             // If there are changes to commit...
             if(getRepository().hasChangesToCommit()) {
                 // Ask user
-                boolean doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0, Messages.SwitchBranchAction_1);
+                boolean doCommit = MessageDialog.openQuestion(fWindow.getShell(),
+                        Messages.SwitchBranchAction_0,
+                        Messages.SwitchBranchAction_1);
 
                 // Commit dialog
                 if(doCommit && !offerToCommitChanges()) {
                     return;
                 }
 
+                // User chose "no" to commit so let's make sure we proceed
+                boolean proceed = MessageDialog.openQuestion(fWindow.getShell(),
+                        Messages.SwitchBranchAction_0,
+                        "All uncommitted changes will be lost. Are you sure you want to continue?");
+                
+                if(!proceed) {
+                    return;
+                }
+                
+                // Abort changes by resetting to HEAD
+                getRepository().resetToRef(IGraficoConstants.HEAD);
+                
                 notifyHistoryChanged = true;
             }
             
             // Switch branch
             switchBranch(branchInfo, !isBranchRefSameAsCurrentBranchRef(branchInfo));
-        }
-        // There was a conflict...
-        catch(CheckoutConflictException ex) {
-            MessageDialog.open(MessageDialog.ERROR, fWindow.getShell(),
-                    Messages.SwitchBranchAction_0,
-                    "There was a conflict when trying to switch branches.\nEither abort or commit any changes before switching branches.",
-                    SWT.NONE);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
