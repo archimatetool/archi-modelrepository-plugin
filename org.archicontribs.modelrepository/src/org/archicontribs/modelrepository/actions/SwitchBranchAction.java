@@ -16,6 +16,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -47,24 +48,43 @@ public class SwitchBranchAction extends AbstractModelAction {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
-//        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-//            if(!offerToSaveModel(model)) {
-//                return;
-//            }
-//        }
-        
-        // Offer to save the model if open and dirty using IEditorModelManager#close
-        // This ensures we can proceed without saving the model
-        // The downside is that any open Views will not be re-opened because GraficoModelLoader takes care of that
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            int response = MessageDialog.open(MessageDialog.CONFIRM,
+                    fWindow.getShell(),
+                    Messages.AbstractModelAction_1,
+                    Messages.AbstractModelAction_2,
+                    SWT.NONE,
+                    "Yes", "No", "Cancel");
+            
+            // Cancel
+            if(response == 2) {
+                return;
+            }
+            
+            // Save anyway
             try {
-                boolean result = IEditorModelManager.INSTANCE.closeModel(model);
-                if(!result) {
-                    return;
-                }
+                IEditorModelManager.INSTANCE.saveModel(model);
             }
             catch(IOException ex) {
-                ex.printStackTrace();
+                displayErrorDialog(Messages.AbstractModelAction_1, ex);
+                return;
+            }
+
+            // If "no" to save then don't commit
+            if(response == 1) {
+                try {
+                    // Abort changes by resetting to HEAD
+                    getRepository().resetToRef(IGraficoConstants.HEAD);
+                    
+                    // Switch branch
+                    switchBranch(branchInfo, !isBranchRefSameAsCurrentBranchRef(branchInfo));
+                    notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+                    
+                    return;
+                }
+                catch(IOException | GitAPIException ex) {
+                    displayErrorDialog(Messages.SwitchBranchAction_0, ex);
+                }
             }
         }
         
