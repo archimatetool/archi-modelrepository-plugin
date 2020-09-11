@@ -66,8 +66,12 @@ public class BranchesTableViewer extends TableViewer {
         
         column = new TableViewerColumn(this, SWT.NONE, 4);
         column.getColumn().setText("Commit Status");
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(15, false));
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
+        column = new TableViewerColumn(this, SWT.NONE, 5);
+        column.getColumn().setText("Merge Status");
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+
         setContentProvider(new BranchesContentProvider());
         setLabelProvider(new BranchesLabelProvider());
         
@@ -195,6 +199,11 @@ public class BranchesTableViewer extends TableViewer {
                     }
                     
                     return text;
+                    
+                case 5:
+                    if(!branchInfo.isMasterBranch() && !branchInfo.isMerged()) {
+                        return "Not merged";
+                    }
                     
                 default:
                     return ""; //$NON-NLS-1$

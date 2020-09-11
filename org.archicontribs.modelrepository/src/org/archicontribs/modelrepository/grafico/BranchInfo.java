@@ -39,6 +39,7 @@ public class BranchInfo {
     private boolean hasRemoteRef;
     private boolean hasUnpushedCommits;
     private boolean hasRemoteCommits;
+    private boolean isMerged;
     
     private RevCommit latestCommit;
     
@@ -59,6 +60,7 @@ public class BranchInfo {
         isCurrentBranch = getIsCurrentBranch(repository);
         
         latestCommit = getLatestCommit(repository);
+        isMerged = getIsMerged(repository);
     }
     
     public Ref getRef() {
@@ -124,6 +126,14 @@ public class BranchInfo {
         return hasUnpushedCommits;
     }
     
+    public boolean isMerged() {
+        return isMerged;
+    }
+    
+    public boolean isMasterBranch() {
+        return IGraficoConstants.MASTER.equals(getShortName());
+    }
+    
     private boolean getHasLocalRef(Repository repository) throws IOException {
         return repository.findRef(getLocalBranchNameFor()) != null;
     }
@@ -187,6 +197,19 @@ public class BranchInfo {
                 .iterator();
         
         return it.hasNext() ? it.next() : null;
+    }
+    
+    /**
+     * True if the latest commit of this branch has been merged into another branch
+     */
+    private boolean getIsMerged(Repository repository) {
+        // Doesn't apply to master branch
+        if(isMasterBranch()) {
+            return true;
+        }
+        
+        // If there is more than 1 parent then it has been merged
+        return latestCommit.getParentCount() > 1;
     }
     
     private void getCommitStatus(Repository repository) throws IOException {
