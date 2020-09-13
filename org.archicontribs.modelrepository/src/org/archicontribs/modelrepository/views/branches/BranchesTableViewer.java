@@ -126,9 +126,7 @@ public class BranchesTableViewer extends TableViewer {
                 
                 try {
                     BranchStatus status = repo.getBranchStatus();
-                    if(status != null) {
-                        return status.getLocalAndUntrackedRemoteBranches().toArray();
-                    }
+                    return status.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
@@ -201,9 +199,7 @@ public class BranchesTableViewer extends TableViewer {
                     return text;
                     
                 case 5:
-                    if(!branchInfo.isMasterBranch() && !branchInfo.isMerged()) {
-                        return "Not merged";
-                    }
+                    return branchInfo.isMerged() ? "OK" : "Not merged";
                     
                 default:
                     return ""; //$NON-NLS-1$

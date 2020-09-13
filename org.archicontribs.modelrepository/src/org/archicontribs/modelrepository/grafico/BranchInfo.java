@@ -7,7 +7,6 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +16,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 /**
  * BranchInfo
@@ -59,8 +59,7 @@ public class BranchInfo {
         isRemoteDeleted = getIsRemoteDeleted(repository);
         isCurrentBranch = getIsCurrentBranch(repository);
         
-        latestCommit = getLatestCommit(repository);
-        isMerged = getIsMerged(repository);
+        getRevWalkStatus(repository);
     }
     
     public Ref getRef() {
@@ -188,28 +187,40 @@ public class BranchInfo {
         return branchName;
     }
     
-    private RevCommit getLatestCommit(Repository repository) throws GitAPIException, IOException {
-        Iterator<RevCommit> it = Git.wrap(repository)
-                .log()
-                .setMaxCount(1)
-                .add(ref.getObjectId())
-                .call()
-                .iterator();
-        
-        return it.hasNext() ? it.next() : null;
-    }
-    
     /**
-     * True if the latest commit of this branch has been merged into another branch
+     * Get status of this branch from a RevWalk
+     * This will get the latest commit for this branch
+     * and whether this branch is merged into another
      */
-    private boolean getIsMerged(Repository repository) {
-        // Doesn't apply to master branch
-        if(isMasterBranch()) {
-            return true;
+    private void getRevWalkStatus(Repository repository) throws GitAPIException, IOException {
+        try(RevWalk revWalk = new RevWalk(repository)) {
+            // Get the latest commit for this branch
+            latestCommit = revWalk.parseCommit(ref.getObjectId());
+            
+            // If this is the master branch isMerged is true
+            if(isMasterBranch()) {
+                isMerged = true;
+            }
+            // Else this is another branch
+            else {
+                // Iterate though all other local branches
+                for(Ref otherRef : Git.wrap(repository).branchList().call()) {
+                    // Ignore this branch
+                    if(!otherRef.equals(ref)) {
+                        // Get the other branch's latest commit
+                        RevCommit otherHead = revWalk.parseCommit(otherRef.getObjectId());
+                        
+                        // If this head is an ancestor of, or the same as, the other head
+                        if(revWalk.isMergedInto(latestCommit, otherHead)) {
+                            isMerged = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            revWalk.dispose();
         }
-        
-        // If there is more than 1 parent then it has been merged
-        return latestCommit.getParentCount() > 1;
     }
     
     private void getCommitStatus(Repository repository) throws IOException {
