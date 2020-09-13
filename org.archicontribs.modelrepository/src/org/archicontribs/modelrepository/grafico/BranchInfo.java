@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.grafico;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +18,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.RevWalkUtils;
 
 /**
  * BranchInfo
@@ -203,20 +205,25 @@ public class BranchInfo {
             }
             // Else this is another branch
             else {
-                // Iterate though all other local branches
-                for(Ref otherRef : Git.wrap(repository).branchList().call()) {
-                    // Ignore this branch
-                    if(!otherRef.equals(ref)) {
-                        // Get the other branch's latest commit
-                        RevCommit otherHead = revWalk.parseCommit(otherRef.getObjectId());
-                        
-                        // If this head is an ancestor of, or the same as, the other head
-                        if(revWalk.isMergedInto(latestCommit, otherHead)) {
-                            isMerged = true;
-                            break;
-                        }
+                // Get all other branch refs
+                List<Ref> otherRefs = Git.wrap(repository).branchList().call();
+                otherRefs.remove(ref); // remove this one
+                
+                // In-built method
+                List<Ref> refs = RevWalkUtils.findBranchesReachableFrom(latestCommit, revWalk, otherRefs);
+                isMerged = !refs.isEmpty(); // If there are other reachable branches then this is merged
+                
+                /* Another method to do this...
+                for(Ref otherRef : otherRefs) {
+                    // Get the other branch's latest commit
+                    RevCommit otherHead = revWalk.parseCommit(otherRef.getObjectId());
+
+                    // If this head is an ancestor of, or the same as, the other head then this is merged
+                    if(revWalk.isMergedInto(latestCommit, otherHead)) {
+                        isMerged = true;
+                        break;
                     }
-                }
+                } */
             }
             
             revWalk.dispose();
