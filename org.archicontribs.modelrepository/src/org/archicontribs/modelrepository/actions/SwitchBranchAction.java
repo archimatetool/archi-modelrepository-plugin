@@ -141,8 +141,8 @@ public class SwitchBranchAction extends AbstractModelAction {
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();
             }
-            // If the branch is remote and not tracked we need to create the local branch and switch to that
-            else if(branchInfo.isRemote() && !branchInfo.hasTrackedRef()) {
+            // If the branch is remote and has no local ref we need to create the local branch and switch to that
+            else if(branchInfo.isRemote() && !branchInfo.hasLocalRef()) {
                 String branchName = branchInfo.getShortName();
                 
                 // Create local branch at point of remote branch ref

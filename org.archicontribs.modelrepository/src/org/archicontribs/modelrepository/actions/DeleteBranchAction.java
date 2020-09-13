@@ -90,8 +90,8 @@ public class DeleteBranchAction extends AbstractModelAction {
             git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
                     branchInfo.getRemoteBranchNameFor()).setForce(true).call();
             
-            // Local branch
-            if(!forceRemote && branchInfo.isLocal() && !branchInfo.hasTrackedRef()) {
+            // Local branch with no remote ref
+            if(!forceRemote && branchInfo.isLocal() && !branchInfo.hasRemoteRef()) {
                 return;
             }
             

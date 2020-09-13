@@ -36,7 +36,6 @@ public class BranchInfo {
     
     private boolean isRemoteDeleted;
     private boolean isCurrentBranch;
-    private boolean hasTrackedRef;
     private boolean hasLocalRef;
     private boolean hasRemoteRef;
     private boolean hasUnpushedCommits;
@@ -49,12 +48,10 @@ public class BranchInfo {
     
     BranchInfo(Repository repository, Ref ref) throws IOException, GitAPIException {
         this.ref = ref;
-        
         repoDir = repository.getDirectory();
         
         hasLocalRef = getHasLocalRef(repository);
         hasRemoteRef = getHasRemoteRef(repository);
-        hasTrackedRef = getHasTrackedRef(repository);
 
         getCommitStatus(repository);
         
@@ -103,10 +100,6 @@ public class BranchInfo {
         return isCurrentBranch;
     }
     
-    public boolean hasTrackedRef() {
-        return hasTrackedRef;
-    }
-    
     public String getRemoteBranchNameFor() {
         return REMOTE_PREFIX + getShortName();
     }
@@ -143,14 +136,6 @@ public class BranchInfo {
         return repository.findRef(getRemoteBranchNameFor()) != null;
     }
 
-    private boolean getHasTrackedRef(Repository repository) throws IOException {
-        if(isRemote()) {
-            return getHasLocalRef(repository);
-        }
-        
-        return getHasRemoteRef(repository);
-    }
-    
     /*
      * Figure out whether the remote branch has been deleted
      * 1. We have a local branch ref

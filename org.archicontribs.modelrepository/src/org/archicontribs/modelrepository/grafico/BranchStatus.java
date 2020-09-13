@@ -67,7 +67,7 @@ public class BranchStatus {
                 list.add(branch);
             }
             // All remote branches that don't have a local ref
-            else if(branch.isRemote() && !branch.hasTrackedRef()) {
+            else if(branch.isRemote() && !branch.hasLocalRef()) {
                 list.add(branch);
             }
         }
