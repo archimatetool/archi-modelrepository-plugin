@@ -6,8 +6,8 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
@@ -52,19 +52,14 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
     
     private void deleteBranches() throws IOException, GitAPIException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            // Delete one branch at a time and after it's deleted get the stale branches again
-            // This is because deleting a branch can affect the merge status of another branch
-            List<BranchInfo> staleBranches;
-            do {
-                staleBranches = getStaleBranches();
-                if(!staleBranches.isEmpty()) {
-                    BranchInfo branchInfo = staleBranches.get(0);
+            for(BranchInfo branchInfo : getStaleBranches()) {
+                branchInfo.refresh(); // Refresh branch info in case of a change in the merge status since the last delete
+                if(isStaleBranch(branchInfo)) {
                     git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(), // Delete local branch
                             branchInfo.getRemoteBranchNameFor())                          // Delete remote ref
                             .setForce(true).call();                                       // Force delete in case of not merged 
                 }
             }
-            while(!staleBranches.isEmpty());
         }
     }
     
@@ -85,26 +80,20 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
     }
     
     private List<BranchInfo> getStaleBranches() throws IOException, GitAPIException {
-        List<BranchInfo> list = new ArrayList<BranchInfo>();
-        
         BranchStatus status = getRepository().getBranchStatus();
-        
-        for(BranchInfo branchInfo : status.getAllBranches()) {
-            if(isStaleBranch(branchInfo)) {
-                list.add(branchInfo);
-            }
-        }
-        
-        return list;
+
+        return status.getAllBranches().stream()
+                .filter(branchInfo -> isStaleBranch(branchInfo))
+                .collect(Collectors.toList());
     }
     
     /**
-     * 1. A Local branch
-     * 4. Is not current branch
-     * 5. Is not master branch
-     * 2. Is being tracked to remote and has no remote ref
-     * 6. Is merged
-     * 7. Has no unpushed commits
+     * 1. Is a Local branch
+     * 2. Is not the current branch
+     * 3. Is not the master branch
+     * 4. Is being tracked to remote and has no remote ref
+     * 5. Is merged
+     * 6. Has no unpushed commits
      */
     private boolean isStaleBranch(BranchInfo branchInfo) {
         return branchInfo.isLocal() &&

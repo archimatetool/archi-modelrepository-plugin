@@ -47,8 +47,15 @@ public class BranchInfo {
     private File repoDir; 
     
     BranchInfo(Repository repository, Ref ref) throws IOException, GitAPIException {
+        repoDir = repository.getWorkTree();
+        init(repository, ref);
+    }
+    
+    /**
+     * Initialise this BranchInfo from the Repository and the Ref
+     */
+    private void init(Repository repository, Ref ref) throws IOException, GitAPIException {
         this.ref = ref;
-        repoDir = repository.getDirectory();
         
         hasLocalRef = getHasLocalRef(repository);
         hasRemoteRef = getHasRemoteRef(repository);
@@ -59,6 +66,18 @@ public class BranchInfo {
         isCurrentBranch = getIsCurrentBranch(repository);
         
         getRevWalkStatus(repository);
+    }
+    
+    /**
+     * Refresh this BranchInfo with updated information
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public void refresh() throws IOException, GitAPIException {
+        try(Git git = Git.open(repoDir)) {
+            Ref ref = git.getRepository().findRef(getFullName());  // Ref will be a different object with a new Repository instance so renew it
+            init(git.getRepository(), ref);
+        }
     }
     
     public Ref getRef() {
@@ -225,8 +244,7 @@ public class BranchInfo {
 
     @Override
     public boolean equals(Object obj) {
-        return (obj != null) &&
-                (obj instanceof BranchInfo) &&
+        return (obj instanceof BranchInfo) &&
                 repoDir.equals(((BranchInfo)obj).repoDir) &&
                 getFullName().equals(((BranchInfo)obj).getFullName());
     }
