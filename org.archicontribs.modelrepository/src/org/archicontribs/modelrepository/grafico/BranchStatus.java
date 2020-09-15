@@ -56,6 +56,13 @@ public class BranchStatus {
     }
     
     /**
+     * @return All branches
+     */
+    public List<BranchInfo> getAllBranches() {
+        return new ArrayList<BranchInfo>(infos.values());
+    }
+
+    /**
      * @return A union of local branches and remote branches that we are not tracking
      */
     public List<BranchInfo> getLocalAndUntrackedRemoteBranches() {
