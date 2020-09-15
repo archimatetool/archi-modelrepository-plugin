@@ -31,10 +31,6 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
 
     @Override
     public void run() {
-        if(!shouldBeEnabled()) {
-            return;
-        }
-        
         boolean response = MessageDialog.openConfirm(fWindow.getShell(),
                 "Delete Stale Branches",
                 "Are you sure you want to delete these branches?");

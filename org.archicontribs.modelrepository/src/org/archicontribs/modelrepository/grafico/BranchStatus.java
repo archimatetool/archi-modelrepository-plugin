@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -66,50 +67,28 @@ public class BranchStatus {
      * @return A union of local branches and remote branches that we are not tracking
      */
     public List<BranchInfo> getLocalAndUntrackedRemoteBranches() {
-        List<BranchInfo> list = new ArrayList<BranchInfo>();
-        
-        for(BranchInfo branch : infos.values()) {
-            // All local branches
-            if(branch.isLocal()) {
-                list.add(branch);
-            }
-            // All remote branches that don't have a local ref
-            else if(branch.isRemote() && !branch.hasLocalRef()) {
-                list.add(branch);
-            }
-        }
-        
-        return list;
+        return infos.values().stream()
+                .filter(info -> info.isLocal()                         // All local branches or
+                        || (info.isRemote() && !info.hasLocalRef() ))  // All remote branches that don't have a local ref
+                .collect(Collectors.toList());
     }
     
     /**
      * @return All local branches
      */
     public List<BranchInfo> getLocalBranches() {
-        List<BranchInfo> list = new ArrayList<BranchInfo>();
-        
-        for(BranchInfo branch : infos.values()) {
-            if(branch.isLocal()) {
-                list.add(branch);
-            }
-        }
-        
-        return list;
+        return infos.values().stream()
+                .filter(info -> info.isLocal())
+                .collect(Collectors.toList());
     }
     
     /**
      * @return All remote branches
      */
     public List<BranchInfo> getRemoteBranches() {
-        List<BranchInfo> list = new ArrayList<BranchInfo>();
-        
-        for(BranchInfo branch : infos.values()) {
-            if(branch.isRemote()) {
-                list.add(branch);
-            }
-        }
-        
-        return list;
+        return infos.values().stream()
+                .filter(info -> info.isRemote())
+                .collect(Collectors.toList());
     }
     
     public BranchInfo getCurrentLocalBranch() {

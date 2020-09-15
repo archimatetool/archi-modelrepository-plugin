@@ -327,11 +327,6 @@ public class ArchiRepository implements IArchiRepository {
     public boolean isHeadAndRemoteSame() throws IOException, GitAPIException {
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
             // Get remote branch ref
-            BranchStatus status = getBranchStatus();
-            if(status == null) {
-                return false;
-            }
-            
             BranchInfo currentRemoteBranch = getBranchStatus().getCurrentRemoteBranch();
             if(currentRemoteBranch == null) {
                 return false;
