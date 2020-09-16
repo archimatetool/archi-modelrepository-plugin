@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,6 +21,8 @@ import java.util.stream.Stream;
 
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -53,6 +56,7 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
@@ -349,26 +353,55 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public void exportModelToGraficoFiles() throws IOException, GitAPIException {
-        // Open the model
+        // Open the model before showing the progress monitor
         IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
         
         if(model == null) {
             throw new IOException(Messages.ArchiRepository_0);
         }
         
-        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
-        exporter.exportModel();
+        final Exception[] exception = new Exception[1];
+
+        try {
+            // When using this be careful that no UI operations are called as this could lead to an SWT Invalid thread access exception
+            // This will show a Cancel button which will not cancel, but this progress monitor is the only one which does not freeze the UI
+            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+                @Override
+                public void run(IProgressMonitor pm) {
+                    try {
+                        // Export
+                        pm.beginTask("Creating files...", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
+                        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
+                        exporter.exportModel();
+                        
+                        // Check lock file is deleted
+                        checkDeleteLockFile();
+                        
+                        // Stage modified files to index - this can take a long time!
+                        // This will clear any different line endings and calls to git.status() will be faster
+                        pm.beginTask("Adding files...", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
+                        try(Git git = Git.open(getLocalRepositoryFolder())) {
+                            AddCommand addCommand = git.add();
+                            addCommand.addFilepattern("."); //$NON-NLS-1$
+                            addCommand.setUpdate(false);
+                            addCommand.call();
+                        }
+                    }
+                    catch(IOException | GitAPIException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+        }
+        catch(InvocationTargetException | InterruptedException ex) {
+            throw new IOException(ex);
+        }
         
-        // Check lock file is deleted
-        checkDeleteLockFile();
-        
-        // Stage modified files to index
-        // This will clear any different line endings
-        try (Git git = Git.open(getLocalRepositoryFolder())) {
-            AddCommand addCommand = git.add();
-            addCommand.addFilepattern("."); //$NON-NLS-1$
-            addCommand.setUpdate(false);
-            addCommand.call();
+        if(exception[0] instanceof IOException) {
+            throw (IOException)exception[0];
+        }
+        if(exception[0] instanceof GitAPIException) {
+            throw (GitAPIException)exception[0];
         }
     }
     
