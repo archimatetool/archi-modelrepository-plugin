@@ -292,6 +292,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     return;
                 }
                 
+                // Clear this first
+                cell.setForeground(null);
+                
                 StatusCache sc = cache.get(repo);
                 if(sc != null) {
                     // Repository name and current branch
@@ -304,7 +307,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 }
                 else {
                     cell.setText(repo.getName());
-                    cell.setForeground(null);
                 }
 
                 // Image
