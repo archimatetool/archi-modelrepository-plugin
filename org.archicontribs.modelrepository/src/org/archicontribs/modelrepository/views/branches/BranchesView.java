@@ -201,7 +201,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionAddBranch.setBranch(branchInfo);
         fActionMergeBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);
-        fActionDeleteStaleBranches.update();
+        fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
     }
     
     private void fillContextMenu(IMenuManager manager) {
