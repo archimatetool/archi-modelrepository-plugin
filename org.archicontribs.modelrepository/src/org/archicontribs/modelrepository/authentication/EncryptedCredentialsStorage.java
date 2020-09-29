@@ -211,16 +211,26 @@ public class EncryptedCredentialsStorage {
         File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
         
         if(file.exists()) {
-            Cipher cipher = makeCipherWithPassword(password, Cipher.DECRYPT_MODE);
-            
             byte[] bytes = null;
             
-            try(CipherInputStream cis = new CipherInputStream(new FileInputStream(file), cipher)) {
-                bytes = cis.readAllBytes();
+            // Read in all bytes
+            try(FileInputStream fis = new FileInputStream(file)) {
+                bytes = fis.readAllBytes();
             }
             
             if(bytes != null) {
-                return new SecretKeySpec(bytes, "AES");
+                // Get the salt from the first 8 bytes
+                byte[] salt = Arrays.copyOfRange(bytes, 0, 8);
+                
+                // Get the remaining encrypted key bytes
+                byte[] keybytes = Arrays.copyOfRange(bytes, 8, bytes.length);
+                
+                // Decrypt the key bytes
+                Cipher cipher = makeCipherWithPassword(password, Cipher.DECRYPT_MODE, salt);
+                keybytes = cipher.doFinal(keybytes);
+                
+                // Return the key
+                return new SecretKeySpec(keybytes, "AES");
             }
         }
         
@@ -233,10 +243,19 @@ public class EncryptedCredentialsStorage {
     private static void savePrimaryKey(SecretKey key, String password) throws GeneralSecurityException, IOException {
         File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
         
-        Cipher cipher = makeCipherWithPassword(password, Cipher.ENCRYPT_MODE);
+        // Generate a new random salt
+        byte[] salt = generateSalt();
         
-        try(CipherOutputStream cos = new CipherOutputStream(new FileOutputStream(file), cipher)) {
-            cos.write(key.getEncoded());
+        // Encrypt the key
+        Cipher cipher = makeCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
+        byte[] keybytes = cipher.doFinal(key.getEncoded());
+        
+        try(FileOutputStream fos = new FileOutputStream(file)) {
+            // Store the password salt
+            fos.write(salt);
+            
+            // Store the encypted key
+            fos.write(keybytes);
         }
     }
     
@@ -249,18 +268,22 @@ public class EncryptedCredentialsStorage {
         return keyGenerator.generateKey();
     }
     
-    // Arbitrarily selected 8-byte salt sequence
-    private static final byte[] salt = {
-        (byte) 0x21, (byte) 0x52, (byte) 0x95, (byte) 0xc7,
-        (byte) 0x7b, (byte) 0xd6, (byte) 0x41, (byte) 0x18 
-    };
-
+    /**
+     * Generate a new random salt
+     */
+    private static byte[] generateSalt() {
+        byte[] salt = new byte[8];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(salt);
+        return salt;
+    }
+    
     /**
      * Create a Cipher using a password rather than a key
-     * The key is created from the password
+     * The key is generated from the the password
      * See https://stackoverflow.com/questions/13673556/using-password-based-encryption-on-a-file-in-java
      */
-    private static Cipher makeCipherWithPassword(String password, int mode) throws GeneralSecurityException {
+    private static Cipher makeCipherWithPassword(String password, int mode, byte[] salt) throws GeneralSecurityException {
         // Use a KeyFactory to derive the corresponding key from the password
         PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
