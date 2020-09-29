@@ -27,7 +27,9 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -174,9 +176,13 @@ public class EncryptedCredentialsStorage {
     private static SecretKey storedPrimaryKey;
     
     public static String askUserForPrimaryPassword() {
+        IInputValidator validator = newText -> {
+            return newText.length() < 1 ? "" : null;
+        };
+        
         InputDialog dialog = new InputDialog(Display.getCurrent().getActiveShell(),
                 "Primary Password",
-                "Enter Primary Password", null, null) {
+                "Enter Primary Password", null, validator) {
             
             @Override
             protected int getInputTextStyle() {
@@ -191,15 +197,31 @@ public class EncryptedCredentialsStorage {
         return null;
     }
     
+    public static String askUserToCreatePrimaryPassword() {
+        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+        
+        if(dialog.open() == Window.OK) {
+            return dialog.getPassword();
+        }
+        
+        return null;
+    }
+    
     private static SecretKey getStoredPrimaryKey() throws GeneralSecurityException, IOException {
         if(storedPrimaryKey == null) {
-            // Get password from user
-            String password = askUserForPrimaryPassword();
+            File primaryKeyFile = getPrimaryKeyFile();
             
-            if(password != null) {
-                storedPrimaryKey = getStoredPrimaryKey(password);
-                
-                if(storedPrimaryKey == null) {
+            // If the key file exists just ask user for password
+            if(primaryKeyFile.exists()) {
+                String password = askUserForPrimaryPassword();
+                if(password != null) {
+                    storedPrimaryKey = getStoredPrimaryKey(password);
+                }
+            }
+            // Else create a new file key with password
+            else {
+                String password = askUserToCreatePrimaryPassword();
+                if(password != null) {
                     storedPrimaryKey = generatePrimaryKey();
                     savePrimaryKey(storedPrimaryKey, password);
                 }
@@ -246,8 +268,6 @@ public class EncryptedCredentialsStorage {
      * Save the primary key encrypted with a password
      */
     private static void savePrimaryKey(SecretKey key, String password) throws GeneralSecurityException, IOException {
-        File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
-        
         // Generate a new random salt
         byte[] salt = generateSalt();
         
@@ -255,13 +275,21 @@ public class EncryptedCredentialsStorage {
         Cipher cipher = makeCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
         byte[] keybytes = cipher.doFinal(key.getEncoded());
         
-        try(FileOutputStream fos = new FileOutputStream(file)) {
+        // Save it
+        try(FileOutputStream fos = new FileOutputStream(getPrimaryKeyFile())) {
             // Store the password salt
             fos.write(salt);
             
             // Store the encypted key
             fos.write(keybytes);
         }
+    }
+    
+    /**
+     * @return The primary key file
+     */
+    private static File getPrimaryKeyFile() {
+        return new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
     }
     
     /**
