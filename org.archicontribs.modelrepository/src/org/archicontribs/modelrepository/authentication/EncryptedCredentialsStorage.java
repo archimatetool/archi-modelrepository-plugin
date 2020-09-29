@@ -81,12 +81,16 @@ public class EncryptedCredentialsStorage {
         }
         
         // Get username and password as bytes
-        byte[] bytes = new String(userName + password).getBytes("UTF-8");
+        // Must use UTF-8
+        byte[] userNameBytes = userName.getBytes("UTF-8");
+        byte[] passwordBytes = password.getBytes("UTF-8");
         
-        // Prepend a single byte for the length of the user name
-        bytes = ByteBuffer.allocate(bytes.length + 1)
-                         .put((byte)userName.length())
-                         .put(bytes)
+        // Prepend a single byte for the length of the user name and append username and password bytes
+        // The userName length is taken from the bytes length not the String length in case of a different encoding
+        byte[] bytes = ByteBuffer.allocate(userNameBytes.length + passwordBytes.length + 1)
+                         .put((byte)userNameBytes.length)
+                         .put(userNameBytes)
+                         .put(passwordBytes)
                          .array();
         
         // Encrypt
@@ -124,8 +128,9 @@ public class EncryptedCredentialsStorage {
                 int userNameLength = bytes[0];
                 
                 // Convert bytes to strings at offsets
-                userName = new String(Arrays.copyOfRange(bytes, 1, userNameLength + 1));
-                password = new String(Arrays.copyOfRange(bytes, userNameLength + 1, bytes.length));
+                // Use UTF-8 because we used that to encrypt
+                userName = new String(Arrays.copyOfRange(bytes, 1, userNameLength + 1), "UTF-8");
+                password = new String(Arrays.copyOfRange(bytes, userNameLength + 1, bytes.length), "UTF-8");
             }
         }
         
