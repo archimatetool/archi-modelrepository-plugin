@@ -226,14 +226,14 @@ public class EncryptedCredentialsStorage {
     
     private static SecretKey storedPrimaryKey;
     
-    public static String askUserForPrimaryPassword() {
+    public static String askUserForPrimaryPassword() throws GeneralSecurityException {
         PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
 
         if(dialog.open() == Window.OK) {
             return dialog.getValue();
         }
         
-        return null;
+        throw new GeneralSecurityException("No Primary Password");
     }
     
     public static String askUserToCreatePrimaryPassword() {
