@@ -27,12 +27,12 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
+import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.eclipse.jface.dialogs.IInputValidator;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+
+import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -43,16 +43,18 @@ import org.eclipse.swt.widgets.Display;
 @SuppressWarnings("nls")
 public class EncryptedCredentialsStorage {
     
-    
     /**
      * File name of secure primary key for encrypted files
      */
-    private static final String PRIMARY_KEY_FILE = "primary_key"; //$NON-NLS-1$
+    private static final String PRIMARY_KEY_FILE = "primary_key";
 
     /**
      * File name of secure user name/password for each git repo
      */
-    private static final String SECURE_REPO_CREDENTIALS_FILE = "secure_credentials"; //$NON-NLS-1$
+    private static final String SECURE_REPO_CREDENTIALS_FILE = "secure_credentials";
+    
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
     
     /**
      * Convenience method to create new a EncryptedCredentialsStorage for a repository
@@ -62,6 +64,7 @@ public class EncryptedCredentialsStorage {
     }
     
     private File fStorageFile;
+    private Properties fProperties;
     
     public EncryptedCredentialsStorage(File storageFile) {
         fStorageFile = storageFile;
@@ -77,12 +80,27 @@ public class EncryptedCredentialsStorage {
     }
     
     public void storeUserName(String userName) throws IOException {
-        Properties properties = loadPropertiesFile();
-        properties.setProperty("username", userName);
-        savePropertiesFile(properties);
+        Properties properties = getProperties();
+        
+        // If userName not set remove it
+        if(!StringUtils.isSet(userName)) {
+            properties.remove(USERNAME);
+        }
+        else {
+            properties.setProperty(USERNAME, userName);
+        }
+        
+        saveProperties();
     }
     
     public boolean storePassword(String password) throws GeneralSecurityException, IOException {
+        // If password not set remove it
+        if(!StringUtils.isSet(password)) {
+            getProperties().remove(PASSWORD);
+            saveProperties();
+            return true;
+        }
+        
         // Get the stored primary key
         SecretKey key = getStoredPrimaryKey();
         if(key == null) {
@@ -97,91 +115,94 @@ public class EncryptedCredentialsStorage {
         byte[] encrypted = cipher.doFinal(passwordBytes);
         
         // Store in properties file
-        Properties properties = loadPropertiesFile();
-        properties.setProperty("password", Base64.getEncoder().encodeToString(encrypted)); // Use Bas64 because this is a string
-        savePropertiesFile(properties);
+        getProperties().setProperty(PASSWORD, Base64.getEncoder().encodeToString(encrypted)); // Use Base64 because this is a string
+        saveProperties();
         
         return true;
     }
 
     public UsernamePassword getUsernamePassword() throws GeneralSecurityException, IOException {
-        String userName = getUserName();
-        String password = getPassword();
-        return new UsernamePassword(userName, password);
+        return new UsernamePassword(getUserName(), getPassword());
     }
     
     public String getUserName() throws IOException {
-        String userName = "";
-        
-        if(hasCredentialsFile()) {
-            Properties props = loadPropertiesFile();
-            userName = props.getProperty("username", "");
-        }
-        
-        return userName;
+        return getProperties().getProperty(USERNAME, "");
     }
     
     public String getPassword() throws IOException, GeneralSecurityException {
-        String password = "";
-        
-        if(hasCredentialsFile()) {
-            // Get the store primary key
+        if(hasPassword()) {
+            // Get the stored primary key
             SecretKey key = getStoredPrimaryKey();
             if(key == null) {
-                return password;
+                return "";
             }
             
-            Properties properties = loadPropertiesFile();
-            
-            // Decode password from Base64 string
-            String pw = properties.getProperty("password", "");
+            // Decode password from Base64 string in properties
+            String pw = getProperties().getProperty(PASSWORD, "");
             byte[] passwordBytes = Base64.getDecoder().decode(pw);
             
             // Decrypt password
             Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
             passwordBytes = cipher.doFinal(passwordBytes);
             
-            password = new String(passwordBytes, "UTF-8"); // Use UTF-8 because we used that to encrypt
+            return new String(passwordBytes, "UTF-8"); // Use UTF-8 for the string because we used that to encrypt
         }
         
-        return password;
+        return "";
+    }
+    
+    /**
+     * Lighweight method of determining if there is a password entry without actually decrypting it
+     */
+    public boolean hasPassword() throws IOException {
+        return StringUtils.isSet(getProperties().getProperty(PASSWORD, ""));
     }
 
     public boolean hasCredentialsFile() {
-        // Check for zero length file
-        if(getCredentialsFile().exists() && getCredentialsFile().length() == 0) {
-            deleteCredentialsFile();
-        }
-        
         return getCredentialsFile().exists();
-    }
-    
-    public boolean deleteCredentialsFile() {
-        return getCredentialsFile().delete();
     }
     
     private File getCredentialsFile() {
         return fStorageFile;
     }
     
-    private Properties loadPropertiesFile() throws IOException {
-        Properties properties = new Properties();
-        
-        if(getCredentialsFile().exists()) {
-            try(FileInputStream is = new FileInputStream(getCredentialsFile())) {
-                properties.load(is);
+    public boolean deleteCredentialsFile() {
+        fProperties = null;
+        return getCredentialsFile().delete();
+    }
+    
+    private Properties getProperties() throws IOException {
+        if(fProperties == null) {
+            fProperties = new Properties();
+            
+            if(hasCredentialsFile()) {
+                try(FileInputStream is = new FileInputStream(getCredentialsFile())) {
+                    fProperties.load(is);
+                }
             }
         }
         
-        return properties;
+        return fProperties;
     }
     
-    private void savePropertiesFile(Properties properties) throws IOException {
-        File credentialsFile = getCredentialsFile();
-        credentialsFile.getParentFile().mkdirs();
+    private void saveProperties() throws IOException {
+        if(fProperties == null) {
+            throw new IOException("Credentials Properties is null");
+        }
         
-        try(FileOutputStream out = new FileOutputStream(credentialsFile)) {
-            properties.store(out, null);
+        File credentialsFile = getCredentialsFile();
+        
+        // If there is a password or a user name
+        if(hasPassword() || StringUtils.isSet(getUserName())) {
+            getCredentialsFile().getParentFile().mkdirs();
+            
+            try(FileOutputStream out = new FileOutputStream(credentialsFile)) {
+                fProperties.store(out, null);
+            }
+        }
+        // If not delete the file
+        else {
+            credentialsFile.delete();
         }
     }
     
@@ -206,20 +227,8 @@ public class EncryptedCredentialsStorage {
     private static SecretKey storedPrimaryKey;
     
     public static String askUserForPrimaryPassword() {
-        IInputValidator validator = newText -> {
-            return newText.length() < 1 ? "" : null;
-        };
-        
-        InputDialog dialog = new InputDialog(Display.getCurrent().getActiveShell(),
-                "Primary Password",
-                "Enter Primary Password", null, validator) {
-            
-            @Override
-            protected int getInputTextStyle() {
-                return super.getInputTextStyle() | SWT.PASSWORD;
-            }
-        };
-        
+        PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+
         if(dialog.open() == Window.OK) {
             return dialog.getValue();
         }

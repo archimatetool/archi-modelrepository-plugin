@@ -48,6 +48,20 @@ public class Messages extends NLS {
 
     public static String NewModelRepoDialog_0;
 
+    public static String NewPrimaryPasswordDialog_0;
+
+    public static String NewPrimaryPasswordDialog_1;
+
+    public static String NewPrimaryPasswordDialog_2;
+
+    public static String NewPrimaryPasswordDialog_3;
+
+    public static String NewPrimaryPasswordDialog_4;
+
+    public static String PrimaryPasswordDialog_0;
+
+    public static String PrimaryPasswordDialog_1;
+
     public static String SwitchBranchDialog_0;
 
     public static String SwitchBranchDialog_1;

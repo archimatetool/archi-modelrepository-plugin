@@ -34,18 +34,18 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
 
     public NewPrimaryPasswordDialog(Shell parentShell) {
         super(parentShell);
-        setTitle("Primary Password");
+        setTitle(Messages.NewPrimaryPasswordDialog_0);
     }
 
     @Override
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
-        shell.setText("Primary Password");
+        shell.setText(Messages.NewPrimaryPasswordDialog_0);
     }
 
     @Override
     protected Control createDialogArea(Composite parent) {
-        setMessage("Create a new Primary Password", IMessageProvider.INFORMATION);
+        setMessage(Messages.NewPrimaryPasswordDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
 
         Composite area = (Composite) super.createDialogArea(parent);
@@ -59,7 +59,7 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
             boolean matches = txtPassword1.getText().equals(txtPassword2.getText());
             
             if(!matches) {
-                setErrorMessage("The passwords do not match", false);
+                setErrorMessage(Messages.NewPrimaryPasswordDialog_2, false);
             }
             else if(passwordLength == 0) {
                 setErrorMessage(null, false);
@@ -69,10 +69,10 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
             }
         };
         
-        txtPassword1 = createTextField(container, "Password:", SWT.PASSWORD);
+        txtPassword1 = createTextField(container, Messages.NewPrimaryPasswordDialog_3, SWT.PASSWORD);
         txtPassword1.addModifyListener(listener);
         
-        txtPassword2 = createTextField(container, "Confirm:", SWT.PASSWORD);
+        txtPassword2 = createTextField(container, Messages.NewPrimaryPasswordDialog_4, SWT.PASSWORD);
         txtPassword2.addModifyListener(listener);
         
         return area;

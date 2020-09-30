@@ -46,7 +46,6 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private IArchiRepository fRepository;
     
-    private Button clearButton;
     private Button prefsButton;
     
     private UpdatingTextControl textUserName;
@@ -83,20 +82,6 @@ public class AuthSection extends AbstractArchiPropertySection {
             }
         };
 
-        // Clear Credentials
-        clearButton = getWidgetFactory().createButton(group1, Messages.AuthSection_2, SWT.PUSH);
-        clearButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                boolean answer = MessageDialog.openQuestion(parent.getShell(), Messages.AuthSection_3,
-                        Messages.AuthSection_4);
-                if(answer) {
-                    getCredentials().deleteCredentialsFile();
-                    updateControls();
-                }
-            }
-        });
-        
         // SSH Preferences
         prefsButton = getWidgetFactory().createButton(group1, Messages.AuthSection_8, SWT.PUSH);
         prefsButton.addSelectionListener(new SelectionAdapter() {
@@ -123,37 +108,31 @@ public class AuthSection extends AbstractArchiPropertySection {
     }
     
     private void updateControls() {
-        boolean isHTTP = true;
-        
+        textUserName.setText(""); //$NON-NLS-1$
+        textPassword.setText(""); //$NON-NLS-1$
+
         try {
-            isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
+            // Is this HTTP or SSH?
+            boolean isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
+            
+            textUserName.setEnabled(isHTTP);
+            textPassword.setEnabled(isHTTP);
+            prefsButton.setEnabled(!isHTTP);
+            
+            // HTTP so show credentials
+            if(isHTTP) {
+                EncryptedCredentialsStorage credentials = getCredentials();
+                
+                textUserName.setText(credentials.getUserName());
+
+                if(credentials.hasPassword()) {
+                    textPassword.setText("********"); //$NON-NLS-1$
+                }
+            }
         }
         catch(IOException ex) {
-            ex.printStackTrace();
+            showError(ex);
         }
-        
-        EncryptedCredentialsStorage credentials = getCredentials();
-        
-        if(isHTTP && credentials.hasCredentialsFile()) {
-            try {
-                textUserName.setText(credentials.getUserName());
-            }
-            catch(IOException ex) {
-                showError(ex);
-            }
-            
-            textPassword.setText("********"); //$NON-NLS-1$
-        }
-        else {
-            textUserName.setText(""); //$NON-NLS-1$
-            textPassword.setText(""); //$NON-NLS-1$
-        }
-        
-        textUserName.setEnabled(isHTTP);
-        textPassword.setEnabled(isHTTP);
-        
-        clearButton.setEnabled(credentials.hasCredentialsFile());
-        prefsButton.setEnabled(!isHTTP);
     }
     
     private EncryptedCredentialsStorage getCredentials() {
