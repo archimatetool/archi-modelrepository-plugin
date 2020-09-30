@@ -17,6 +17,7 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class ProxyAuthenticator {
      * Get settings from user prefs
      * @throws IOException
      */
-    public static void update(String repositoryURL) throws IOException {
+    public static void update(String repositoryURL) throws IOException, GeneralSecurityException {
         boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
         
         if(!useProxy) {
@@ -69,10 +70,10 @@ public class ProxyAuthenticator {
         boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
 
         if(useAuthentication) {
-            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            final EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
             
-            final UsernamePassword npw = sc.getUsernamePassword();
+            final UsernamePassword npw = cs.getUsernamePassword();
             
             Authenticator.setDefault(new Authenticator() {
                 @Override

@@ -5,17 +5,16 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.action.Action;
@@ -157,22 +156,21 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     /**
      * Get user name and password from credentials file if prefs set or from dialog
      */
-    protected UsernamePassword getUsernamePassword() throws IOException {
+    protected UsernamePassword getUsernamePassword() throws IOException, GeneralSecurityException {
         // SSH
         if(GraficoUtils.isSSH(getRepository().getOnlineRepositoryURL())) {
             return null;
         }
         
-        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(),
-                IGraficoConstants.REPO_CREDENTIALS_FILE));
+        EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(getRepository());
 
         // Is it stored?
-        if(scs.hasCredentialsFile()) {
-            return scs.getUsernamePassword();
+        if(cs.hasCredentialsFile()) {
+            return cs.getUsernamePassword();
         }
         
         // Else ask the user
-        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), scs);
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), cs);
         if(dialog.open() == Window.OK) {
             return new UsernamePassword(dialog.getUsername(), dialog.getPassword());
         }

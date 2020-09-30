@@ -5,15 +5,13 @@
  */
 package org.archicontribs.modelrepository.propertysections;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
@@ -26,6 +24,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
@@ -159,7 +158,10 @@ public class AuthSection extends AbstractArchiPropertySection {
     }
     
     private void updateControls() {
-        SimpleCredentialsStorage scs = getCredentials();
+        textUserName.setText(""); //$NON-NLS-1$
+        textPassword.setText(""); //$NON-NLS-1$
+        
+        EncryptedCredentialsStorage scs = getCredentials();
         
         if(scs.hasCredentialsFile()) {
             try {
@@ -167,14 +169,10 @@ public class AuthSection extends AbstractArchiPropertySection {
                 textUserName.setText(StringUtils.safeString(npw.getUsername()));
                 textPassword.setText(StringUtils.safeString(npw.getPassword()));
             }
-            catch(IOException ex) {
+            catch(GeneralSecurityException | IOException ex) {
                 ex.printStackTrace();
-                MessageDialog.openError(getPart().getSite().getShell(), Messages.AuthSection_0, ex.getMessage());
+                MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.AuthSection_0, "Error getting credentials. The encryption key may have changed.");
             }
-        }
-        else {
-            textUserName.setText(""); //$NON-NLS-1$
-            textPassword.setText(""); //$NON-NLS-1$
         }
         
         boolean isHTTP = true;
@@ -192,18 +190,17 @@ public class AuthSection extends AbstractArchiPropertySection {
         prefsButton.setEnabled(!isHTTP);
     }
     
-    private SimpleCredentialsStorage getCredentials() {
-        return new SimpleCredentialsStorage(new File(fRepository.getLocalGitFolder(),
-                IGraficoConstants.REPO_CREDENTIALS_FILE)); 
+    private EncryptedCredentialsStorage getCredentials() {
+        return EncryptedCredentialsStorage.forRepository(fRepository); 
     }
     
     private void saveCredentials() {
         try {
             getCredentials().store(textUserName.getText(), textPassword.getText());
         }
-        catch(NoSuchAlgorithmException | IOException ex) {
+        catch(IOException | GeneralSecurityException ex) {
             ex.printStackTrace();
-            MessageDialog.openError(getPart().getSite().getShell(),
+            MessageDialog.openError(Display.getCurrent().getActiveShell(),
                     Messages.AuthSection_11,
                     Messages.AuthSection_12 +
                             " " + //$NON-NLS-1$

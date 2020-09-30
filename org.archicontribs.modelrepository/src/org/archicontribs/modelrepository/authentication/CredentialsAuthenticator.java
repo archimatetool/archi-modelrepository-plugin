@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.authentication;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -36,7 +37,7 @@ public final class CredentialsAuthenticator {
     
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
-        String getIdentityPassword() throws IOException;
+        String getIdentityPassword() throws IOException, GeneralSecurityException;
     }
     
     /**
@@ -55,15 +56,15 @@ public final class CredentialsAuthenticator {
         }
         
         @Override
-        public String getIdentityPassword() throws IOException {
+        public String getIdentityPassword() throws IOException, GeneralSecurityException {
             String password = null;
             
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(
+                EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(
                         new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IGraficoConstants.SSH_CREDENTIALS_FILE));
 
-                if(scs.hasCredentialsFile()) {
-                    password = scs.getUsernamePassword().getPassword();
+                if(cs.hasCredentialsFile()) {
+                    password = cs.getUsernamePassword().getPassword();
                 }
                 else {
                     throw new IOException(Messages.CredentialsAuthenticator_1);
@@ -114,7 +115,7 @@ public final class CredentialsAuthenticator {
                                 file = sshIdentityProvider.getIdentityFile();
                                 pw = sshIdentityProvider.getIdentityPassword();
                             }
-                            catch(IOException ex) {
+                            catch(IOException | GeneralSecurityException ex) {
                                 throw new JSchException(ex.getMessage());
                             }
                             

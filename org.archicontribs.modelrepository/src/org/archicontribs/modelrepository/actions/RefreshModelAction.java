@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
@@ -128,7 +129,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
     }
     
-    protected int init() throws IOException, GitAPIException {
+    protected int init() throws IOException, GitAPIException, GeneralSecurityException {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();

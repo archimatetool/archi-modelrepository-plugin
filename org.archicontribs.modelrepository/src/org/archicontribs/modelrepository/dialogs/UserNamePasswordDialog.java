@@ -6,10 +6,10 @@
 package org.archicontribs.modelrepository.dialogs;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -41,9 +41,9 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     private String username;
     private String password;
     
-    private SimpleCredentialsStorage credentialsStorage;
+    private EncryptedCredentialsStorage credentialsStorage;
 
-    public UserNamePasswordDialog(Shell parentShell, SimpleCredentialsStorage credentialsStorage) {
+    public UserNamePasswordDialog(Shell parentShell, EncryptedCredentialsStorage credentialsStorage) {
         super(parentShell);
         setTitle(Messages.UserNamePasswordDialog_0);
         this.credentialsStorage = credentialsStorage;
@@ -108,7 +108,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
             try {
                 credentialsStorage.store(username, password);
             }
-            catch(NoSuchAlgorithmException | IOException ex) {
+            catch(IOException | GeneralSecurityException ex) {
                 ex.printStackTrace();
                 MessageDialog.openError(getShell(),
                         Messages.UserNamePasswordDialog_5,

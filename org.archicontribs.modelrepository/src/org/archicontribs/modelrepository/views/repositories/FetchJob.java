@@ -5,16 +5,14 @@
  */
 package org.archicontribs.modelrepository.views.repositories;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -89,8 +87,8 @@ public class FetchJob extends Job {
                 UsernamePassword npw = null;
                 if(GraficoUtils.isHTTP(repo.getOnlineRepositoryURL())) {
                     // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
-                    SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                    npw = scs.getUsernamePassword();
+                    EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(repo);
+                    npw = cs.getUsernamePassword();
                 }
 
                 ProxyAuthenticator.update(repo.getOnlineRepositoryURL());

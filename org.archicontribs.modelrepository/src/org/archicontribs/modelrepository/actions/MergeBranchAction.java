@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
@@ -144,7 +145,7 @@ public class MergeBranchAction extends AbstractModelAction {
         });
     }
     
-    private void doOnlineMerge(BranchInfo branchToMerge) throws IOException, GitAPIException {
+    private void doOnlineMerge(BranchInfo branchToMerge) throws IOException, GitAPIException, GeneralSecurityException {
         // Store currentBranch first
         BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
         

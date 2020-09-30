@@ -7,10 +7,10 @@ package org.archicontribs.modelrepository.preferences;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
@@ -320,11 +320,11 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.SSH_CREDENTIALS_FILE));
-            fSSHIdentityPasswordTextField.setText(StringUtils.safeString(sc.getUsernamePassword().getPassword()));
+            fSSHIdentityPasswordTextField.setText(StringUtils.safeString(cs.getUsernamePassword().getPassword()));
         }
-        catch(IOException ex) {
+        catch(IOException | GeneralSecurityException ex) {
             ex.printStackTrace();
         }
         
@@ -341,13 +341,13 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fRequiresProxyAuthenticationButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_REQUIRES_AUTHENTICATION));
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            EncryptedCredentialsStorage sc = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
             UsernamePassword npw = sc.getUsernamePassword();
             fProxyUserNameTextField.setText(StringUtils.safeString(npw.getUsername()));
             fProxyUserPasswordTextField.setText(StringUtils.safeString(npw.getPassword()));
         }
-        catch(IOException ex) {
+        catch(IOException | GeneralSecurityException ex) {
             ex.printStackTrace();
         }
         
@@ -382,20 +382,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.SSH_CREDENTIALS_FILE));
-            sc.store(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder().getName(), fSSHIdentityPasswordTextField.getText());
+            cs.store("", fSSHIdentityPasswordTextField.getText()); //$NON-NLS-1$
         }
-        catch(NoSuchAlgorithmException | IOException ex) {
+        catch(IOException | GeneralSecurityException ex) {
             ex.printStackTrace();
         }
 
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+            EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
-            sc.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
+            cs.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
         }
-        catch(NoSuchAlgorithmException | IOException ex) {
+        catch(IOException | GeneralSecurityException ex) {
             ex.printStackTrace();
         }
         

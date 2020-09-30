@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
@@ -84,7 +85,7 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
     }
     
-    protected void deleteBranch(BranchInfo branchInfo, boolean forceRemote) throws IOException, GitAPIException {
+    protected void deleteBranch(BranchInfo branchInfo, boolean forceRemote) throws IOException, GitAPIException, GeneralSecurityException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
             // Delete local branch and remote branch refs
             git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
