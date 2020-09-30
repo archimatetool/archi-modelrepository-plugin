@@ -9,16 +9,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Properties;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -68,75 +67,84 @@ public class EncryptedCredentialsStorage {
         fStorageFile = storageFile;
     }
 
-    public boolean store(UsernamePassword npw) throws GeneralSecurityException, IOException {
-        return store(npw.getUsername(), npw.getPassword());
+    public void store(UsernamePassword npw) throws GeneralSecurityException, IOException {
+        store(npw.getUsername(), npw.getPassword());
     }
 
-    public boolean store(String userName, String password) throws GeneralSecurityException, IOException {
-        File file = getCredentialsFile();
-        file.getParentFile().mkdirs();
-        
+    public void store(String userName, String password) throws GeneralSecurityException, IOException {
+        storeUserName(userName);
+        storePassword(password);
+    }
+    
+    public void storeUserName(String userName) throws IOException {
+        Properties properties = loadPropertiesFile();
+        properties.setProperty("username", userName);
+        savePropertiesFile(properties);
+    }
+    
+    public boolean storePassword(String password) throws GeneralSecurityException, IOException {
         // Get the stored primary key
         SecretKey key = getStoredPrimaryKey();
         if(key == null) {
             return false;
         }
         
-        // Get username and password as bytes
-        // Must use UTF-8
-        byte[] userNameBytes = userName.getBytes("UTF-8");
-        byte[] passwordBytes = password.getBytes("UTF-8");
+        // Get password as bytes
+        byte[] passwordBytes = password.getBytes("UTF-8"); // Must use UTF-8
         
-        // Prepend a single byte for the length of the user name and append username and password bytes
-        // The userName length is taken from the bytes length not the String length in case of a different encoding
-        byte[] bytes = ByteBuffer.allocate(userNameBytes.length + passwordBytes.length + 1)
-                         .put((byte)userNameBytes.length)
-                         .put(userNameBytes)
-                         .put(passwordBytes)
-                         .array();
-        
-        // Encrypt
+        // Encrypt the password
         Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
+        byte[] encrypted = cipher.doFinal(passwordBytes);
         
-        try(CipherOutputStream cos = new CipherOutputStream(new FileOutputStream(file), cipher)) {
-            cos.write(bytes);
-        }
+        // Store in properties file
+        Properties properties = loadPropertiesFile();
+        properties.setProperty("password", Base64.getEncoder().encodeToString(encrypted)); // Use Bas64 because this is a string
+        savePropertiesFile(properties);
         
         return true;
     }
-    
+
     public UsernamePassword getUsernamePassword() throws GeneralSecurityException, IOException {
+        String userName = getUserName();
+        String password = getPassword();
+        return new UsernamePassword(userName, password);
+    }
+    
+    public String getUserName() throws IOException {
         String userName = "";
+        
+        if(hasCredentialsFile()) {
+            Properties props = loadPropertiesFile();
+            userName = props.getProperty("username", "");
+        }
+        
+        return userName;
+    }
+    
+    public String getPassword() throws IOException, GeneralSecurityException {
         String password = "";
         
         if(hasCredentialsFile()) {
-            byte[] bytes = null;
-            
             // Get the store primary key
             SecretKey key = getStoredPrimaryKey();
             if(key == null) {
-                return new UsernamePassword(userName, password);
+                return password;
             }
             
-            // Read in encrypted bytes
+            Properties properties = loadPropertiesFile();
+            
+            // Decode password from Base64 string
+            String pw = properties.getProperty("password", "");
+            byte[] passwordBytes = Base64.getDecoder().decode(pw);
+            
+            // Decrypt password
             Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
+            passwordBytes = cipher.doFinal(passwordBytes);
             
-            try(CipherInputStream cis = new CipherInputStream(new FileInputStream(getCredentialsFile()), cipher)) {
-                bytes = cis.readAllBytes();
-            }
-            
-            if(bytes != null) {
-                // First byte is username length
-                int userNameLength = bytes[0];
-                
-                // Convert bytes to strings at offsets
-                // Use UTF-8 because we used that to encrypt
-                userName = new String(Arrays.copyOfRange(bytes, 1, userNameLength + 1), "UTF-8");
-                password = new String(Arrays.copyOfRange(bytes, userNameLength + 1, bytes.length), "UTF-8");
-            }
+            password = new String(passwordBytes, "UTF-8"); // Use UTF-8 because we used that to encrypt
         }
         
-        return new UsernamePassword(userName, password);
+        return password;
     }
 
     public boolean hasCredentialsFile() {
@@ -152,6 +160,31 @@ public class EncryptedCredentialsStorage {
         return getCredentialsFile().delete();
     }
     
+    private File getCredentialsFile() {
+        return fStorageFile;
+    }
+    
+    private Properties loadPropertiesFile() throws IOException {
+        Properties properties = new Properties();
+        
+        if(getCredentialsFile().exists()) {
+            try(FileInputStream is = new FileInputStream(getCredentialsFile())) {
+                properties.load(is);
+            }
+        }
+        
+        return properties;
+    }
+    
+    private void savePropertiesFile(Properties properties) throws IOException {
+        File credentialsFile = getCredentialsFile();
+        credentialsFile.getParentFile().mkdirs();
+        
+        try(FileOutputStream out = new FileOutputStream(credentialsFile)) {
+            properties.store(out, null);
+        }
+    }
+    
     /**
      * Make a Cipher from a given Key
      */
@@ -165,9 +198,6 @@ public class EncryptedCredentialsStorage {
         return cipher;
     }
     
-    private File getCredentialsFile() {
-        return fStorageFile;
-    }
     
     // ==============================================================================================
     // Primary Key Storage
