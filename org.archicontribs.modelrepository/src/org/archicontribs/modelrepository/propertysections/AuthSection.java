@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
@@ -25,14 +24,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
-import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -54,54 +49,8 @@ public class AuthSection extends AbstractArchiPropertySection {
     private Button clearButton;
     private Button prefsButton;
     
-    private TextListener textUserName, textPassword;
-    
-    private class TextListener {
-        Text text;
-        String oldValue;
-
-        Listener listener = new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                switch(event.type) {
-                    case SWT.FocusOut:
-                    case SWT.DefaultSelection:
-                        String newValue = text.getText();
-                        
-                        // Different value so save
-                        if(!oldValue.equals(newValue)) {
-                            oldValue = newValue;
-                            // Save
-                            saveCredentials();
-                            clearButton.setEnabled(true);
-                        }
-                        break;
-                    
-                    default:
-                        break;
-                }
-             }
-        };
-        
-        TextListener(Composite parent, int style) {
-            text = createSingleTextControl(parent, style);
-            text.addListener(SWT.DefaultSelection, listener);
-            text.addListener(SWT.FocusOut, listener);
-        }
-
-        void setText(String oldValue) {
-            this.oldValue = oldValue;
-            text.setText(oldValue);
-        }
-        
-        String getText() {
-            return text.getText().trim();
-        }
-
-        void setEnabled(boolean enabled) {
-            text.setEnabled(enabled);
-        }
-    }
+    private UpdatingTextControl textUserName;
+    private UpdatingTextControl textPassword;
     
     public AuthSection() {
     }
@@ -114,12 +63,27 @@ public class AuthSection extends AbstractArchiPropertySection {
         group1.setLayoutData(gd);
         group1.setLayout(new GridLayout(2, false));
         
+        // User name
         createLabel(group1, Messages.AuthSection_6, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textUserName = new TextListener(group1, SWT.NONE);
+        textUserName = new UpdatingTextControl(createSingleTextControl(group1, SWT.NONE)) {
+            @Override
+            protected void textChanged(String newText) {
+                storeUserName(newText);
+            }
+        };
         
+        // Password
         createLabel(group1, Messages.AuthSection_7, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textPassword = new TextListener(group1, SWT.PASSWORD);
+        textPassword = new UpdatingTextControl(createSingleTextControl(group1, SWT.PASSWORD)) {
+            @Override
+            protected void textChanged(String newText) {
+                setNotifications(false); // Setting the password might invoke the primary password dialog and cause a focus out event
+                storePassword(newText);
+                setNotifications(true);
+            }
+        };
 
+        // Clear Credentials
         clearButton = getWidgetFactory().createButton(group1, Messages.AuthSection_2, SWT.PUSH);
         clearButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -133,6 +97,7 @@ public class AuthSection extends AbstractArchiPropertySection {
             }
         });
         
+        // SSH Preferences
         prefsButton = getWidgetFactory().createButton(group1, Messages.AuthSection_8, SWT.PUSH);
         prefsButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -158,24 +123,8 @@ public class AuthSection extends AbstractArchiPropertySection {
     }
     
     private void updateControls() {
-        textUserName.setText(""); //$NON-NLS-1$
-        textPassword.setText(""); //$NON-NLS-1$
-        
-        EncryptedCredentialsStorage scs = getCredentials();
-        
-        if(scs.hasCredentialsFile()) {
-            try {
-                UsernamePassword npw = scs.getUsernamePassword();
-                textUserName.setText(StringUtils.safeString(npw.getUsername()));
-                textPassword.setText(StringUtils.safeString(npw.getPassword()));
-            }
-            catch(GeneralSecurityException | IOException ex) {
-                ex.printStackTrace();
-                MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.AuthSection_0, "Error getting credentials. The encryption key may have changed.");
-            }
-        }
-        
         boolean isHTTP = true;
+        
         try {
             isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
         }
@@ -183,10 +132,27 @@ public class AuthSection extends AbstractArchiPropertySection {
             ex.printStackTrace();
         }
         
+        EncryptedCredentialsStorage credentials = getCredentials();
+        
+        if(isHTTP && credentials.hasCredentialsFile()) {
+            try {
+                textUserName.setText(credentials.getUserName());
+            }
+            catch(IOException ex) {
+                showError(ex);
+            }
+            
+            textPassword.setText("********"); //$NON-NLS-1$
+        }
+        else {
+            textUserName.setText(""); //$NON-NLS-1$
+            textPassword.setText(""); //$NON-NLS-1$
+        }
+        
         textUserName.setEnabled(isHTTP);
         textPassword.setEnabled(isHTTP);
         
-        clearButton.setEnabled(scs.hasCredentialsFile());
+        clearButton.setEnabled(credentials.hasCredentialsFile());
         prefsButton.setEnabled(!isHTTP);
     }
     
@@ -194,24 +160,30 @@ public class AuthSection extends AbstractArchiPropertySection {
         return EncryptedCredentialsStorage.forRepository(fRepository); 
     }
     
-    private void saveCredentials() {
+    private void storeUserName(String userName) {
         try {
-            getCredentials().store(textUserName.getText(), textPassword.getText());
+            getCredentials().storeUserName(userName);
         }
-        catch(IOException | GeneralSecurityException ex) {
-            ex.printStackTrace();
-            MessageDialog.openError(Display.getCurrent().getActiveShell(),
-                    Messages.AuthSection_11,
-                    Messages.AuthSection_12 +
-                            " " + //$NON-NLS-1$
-                            ex.getMessage());
+        catch(IOException ex) {
+            showError(ex);
         }
     }
     
-    @Override
-    public void dispose() {
-        if(textPassword != null) {
-            textPassword.oldValue = null;
+    private void storePassword(String password) {
+        try {
+            getCredentials().storePassword(password);
         }
+        catch(IOException | GeneralSecurityException ex) {
+            showError(ex);
+        }
+    }
+    
+    private void showError(Exception ex) {
+        ex.printStackTrace();
+        MessageDialog.openError(Display.getCurrent().getActiveShell(),
+                Messages.AuthSection_11,
+                Messages.AuthSection_12 +
+                        " " + //$NON-NLS-1$
+                        ex.getMessage());
     }
 }
