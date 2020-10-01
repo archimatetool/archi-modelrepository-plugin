@@ -226,7 +226,7 @@ public class MergeBranchAction extends AbstractModelAction {
                                         pmDialog.getShell().setVisible(true);
                                         pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_12);
                                         // Branch will have been pushed at this point so BranchInfo is no longer valid to determine if it's just a local branch
-                                        deleteBranchAction.deleteBranch(branchToMerge, true);
+                                        deleteBranchAction.deleteBranchAndPush(branchToMerge, npw);
                                     }
                                 }
                             }

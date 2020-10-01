@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
@@ -24,7 +23,6 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.progress.IProgressService;
 
 /**
  * Delete Branch Action
@@ -57,23 +55,34 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
         
         try {
-            Exception[] exception = new Exception[1];
-            IProgressService ps = PlatformUI.getWorkbench().getProgressService();
-            ps.busyCursorWhile(new IRunnableWithProgress() {
-                @Override
-                public void run(IProgressMonitor pm) {
-                    try {
-                        pm.beginTask(Messages.DeleteBranchAction_2, -1);
-                        deleteBranch(branchInfo, false);
-                    }
-                    catch(Exception ex) {
-                        exception[0] = ex;
-                    }
-                }
-            });
+            // If the branch has a remote ref or is remote we should delete that too
+            boolean deleteRemote = branchInfo.hasRemoteRef() || branchInfo.isRemote();
             
-            if(exception[0] != null) {
-                throw exception[0];
+            if(deleteRemote) {
+                // Do this before opening the progress dialog
+                UsernamePassword npw = getUsernamePassword();
+                
+                Exception[] exception = new Exception[1];
+                
+                PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+                    @Override
+                    public void run(IProgressMonitor pm) {
+                        try {
+                            pm.beginTask(Messages.DeleteBranchAction_2, IProgressMonitor.UNKNOWN);
+                            deleteBranchAndPush(branchInfo, npw);
+                        }
+                        catch(Exception ex) {
+                            exception[0] = ex;
+                        }
+                    }
+                });
+                
+                if(exception[0] != null) {
+                    throw exception[0];
+                }
+            }
+            else {
+                deleteLocalBranch(branchInfo);
             }
         }
         catch(Exception ex) {
@@ -85,20 +94,23 @@ public class DeleteBranchAction extends AbstractModelAction {
         }
     }
     
-    protected void deleteBranch(BranchInfo branchInfo, boolean forceRemote) throws IOException, GitAPIException, GeneralSecurityException {
+    // Just delete the local and remote refs
+    public void deleteLocalBranch(BranchInfo branchInfo) throws IOException, GitAPIException {
         try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
-            // Delete local branch and remote branch refs
+            // Delete local and remote branch refs
+            git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
+                    branchInfo.getRemoteBranchNameFor()).setForce(true).call();
+        }
+    }
+    
+    // Ddelete the local and remote refs and push to the remote deleting the remote branch
+    public void deleteBranchAndPush(BranchInfo branchInfo, UsernamePassword npw) throws IOException, GitAPIException {
+        try(Git git = Git.open(getRepository().getLocalRepositoryFolder())) {
+            // Delete local and remote branch refs
             git.branchDelete().setBranchNames(branchInfo.getLocalBranchNameFor(),
                     branchInfo.getRemoteBranchNameFor()).setForce(true).call();
             
-            // Local branch
-            if(!forceRemote && branchInfo.isLocal() && !branchInfo.hasTrackedRef()) {
-                return;
-            }
-            
-            UsernamePassword npw = getUsernamePassword();
-            
-            // Delete remote branch
+            // Delete remote branch by pushing it
             PushCommand pushCommand = git.push();
             pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getRepository().getOnlineRepositoryURL(), npw));
             RefSpec refSpec = new RefSpec( ":" + branchInfo.getLocalBranchNameFor()); //$NON-NLS-1$
