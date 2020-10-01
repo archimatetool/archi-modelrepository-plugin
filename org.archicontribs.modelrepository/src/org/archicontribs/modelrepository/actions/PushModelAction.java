@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -50,8 +51,13 @@ public class PushModelAction extends RefreshModelAction {
                 return;
             }
             
-            // Do this before opening the progress dialog
+            // Get for this before opening the progress dialog
+            // UsernamePassword is will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
+            // User cancelled on HTTP
+            if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                return;
+            }
 
             // Do main action with PM dialog
             Display.getCurrent().asyncExec(new Runnable() {

@@ -81,8 +81,13 @@ public class RefreshModelAction extends AbstractModelAction {
                 return;
             }
             
-            // Do this before opening the progress dialog
+            // Get for this before opening the progress dialog
+            // UsernamePassword is will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
+            // User cancelled on HTTP
+            if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                return;
+            }
 
             // Do main action with PM dialog
             Display.getCurrent().asyncExec(new Runnable() {
