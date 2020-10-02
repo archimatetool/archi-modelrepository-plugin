@@ -11,6 +11,7 @@ import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.preference.PreferencePage;
@@ -77,6 +78,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private boolean sshPasswordChanged;
     private boolean proxyUsernameChanged;
     private boolean proxyPasswordChanged;
+    
+    private Button fChangePrimaryPasswordButton;
     
 	public ModelRepositoryPreferencePage() {
 		setPreferenceStore(ModelRepositoryPlugin.INSTANCE.getPreferenceStore());
@@ -152,16 +155,28 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fFetchInBackgroundIntervalSpinner.setMaximum(3000);
 
         
-        // SSH Group
-        Group sshGroup = new Group(client, SWT.NULL);
+        // Authentication
+        Group authGroup = new Group(client, SWT.NULL);
+        authGroup.setText(Messages.ModelRepositoryPreferencePage_0);
+        authGroup.setLayout(new GridLayout());
+        authGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        // Primary password
+        fChangePrimaryPasswordButton = new Button(authGroup, SWT.PUSH);
+        fChangePrimaryPasswordButton.setText(Messages.ModelRepositoryPreferencePage_25);
+        fChangePrimaryPasswordButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updatePrimaryPassword();
+            }
+        });
+        
+        // SSH Credentials
+        Group sshGroup = new Group(authGroup, SWT.NULL);
         sshGroup.setText(Messages.ModelRepositoryPreferencePage_7);
         sshGroup.setLayout(new GridLayout(3, false));
         sshGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-//        label = new Label(sshGroup, SWT.NULL);
-//        label.setText(Messages.ModelRepositoryPreferencePage_0);
-//        label.setLayoutData(gd);
-        
         label = new Label(sshGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_24);
         
@@ -198,20 +213,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fSSHIdentityPasswordTextField.setEnabled(false);
         
+        
+        
         // HTTP Credentials
-        Group httpGroup = new Group(client, SWT.NULL);
+        Group httpGroup = new Group(authGroup, SWT.NULL);
         httpGroup.setText(Messages.ModelRepositoryPreferencePage_9);
         httpGroup.setLayout(new GridLayout(1, false));
         httpGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-//        label = new Label(httpGroup, SWT.NULL);
-//        label.setText(Messages.ModelRepositoryPreferencePage_0);
-//        label.setLayoutData(gd);
 
         fStoreCredentialsButton = new Button(httpGroup, SWT.CHECK);
         fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         fStoreCredentialsButton.setLayoutData(gd);
+        
+        
         
         // Proxy Group
         Group proxyGroup = new Group(client, SWT.NULL);
@@ -473,6 +488,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         updateIdentityControls();
         updateProxyControls();
+    }
+    
+    
+    private void updatePrimaryPassword() {
+        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(getShell());
+        dialog.open();
     }
     
     private void updateIdentityControls() {

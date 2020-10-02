@@ -101,20 +101,20 @@ public class EncryptedCredentialsStorage {
             return true;
         }
         
-        // Get the stored primary key
-        SecretKey key = getStoredPrimaryKey();
+        // Get the primary key
+        SecretKey key = getPrimaryKey();
         if(key == null) {
             return false;
         }
         
-        // Get password as bytes
-        byte[] passwordBytes = password.getBytes("UTF-8"); // Must use UTF-8
+        // Get password as bytes - Must use UTF-8 !
+        byte[] passwordBytes = password.getBytes("UTF-8");
         
         // Encrypt the password
         Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
         byte[] encrypted = cipher.doFinal(passwordBytes);
         
-        // Store in properties file
+        // Store in properties file as a Base64 encoded string
         getProperties().setProperty(PASSWORD, Base64.getEncoder().encodeToString(encrypted)); // Use Base64 because this is a string
         saveProperties();
         
@@ -131,21 +131,21 @@ public class EncryptedCredentialsStorage {
     
     public String getPassword() throws IOException, GeneralSecurityException {
         if(hasPassword()) {
-            // Get the stored primary key
-            SecretKey key = getStoredPrimaryKey();
+            // Get the primary key in order to decrypt it
+            SecretKey key = getPrimaryKey();
             if(key == null) {
                 return "";
             }
             
-            // Decode password from Base64 string in properties
+            // Decode password from Base64 string in properties first
             String pw = getProperties().getProperty(PASSWORD, "");
             byte[] passwordBytes = Base64.getDecoder().decode(pw);
             
-            // Decrypt password
+            // Decrypt the password
             Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
             passwordBytes = cipher.doFinal(passwordBytes);
             
-            return new String(passwordBytes, "UTF-8"); // Use UTF-8 for the string because we used that to encrypt
+            return new String(passwordBytes, "UTF-8"); // Use UTF-8 for the string because we used that to encrypt it
         }
         
         return "";
@@ -224,71 +224,81 @@ public class EncryptedCredentialsStorage {
     // Primary Key Storage
     // ==============================================================================================
     
-    private static SecretKey storedPrimaryKey;
-    
-    public static String askUserForPrimaryPassword() {
-        PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
-
-        if(dialog.open() == Window.OK) {
-            return dialog.getValue();
-        }
-        
-        return null;
-    }
-    
-    public static String askUserToCreatePrimaryPassword() {
-        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(Display.getCurrent().getActiveShell());
-        
-        if(dialog.open() == Window.OK) {
-            return dialog.getPassword();
-        }
-        
-        return null;
-    }
+    /**
+     * The primary key used to encrypt passwords in repository credentials files
+     */
+    private static SecretKey primaryKey;
     
     /**
      * Ensure the primary key is set and ask user for it if not set
      */
     public static boolean checkPrimaryKeySet() throws GeneralSecurityException, IOException {
-        return getStoredPrimaryKey() != null;
+        return getPrimaryKey() != null;
     }
     
     /**
      * Check wether the primary key is set
      */
     public static boolean isPrimaryKeySet() {
-        return storedPrimaryKey != null;
+        return primaryKey != null;
     }
     
-    private static SecretKey getStoredPrimaryKey() throws GeneralSecurityException, IOException {
-        if(storedPrimaryKey == null) {
+    /**
+     * @return The primary key file
+     */
+    public static File getPrimaryKeyFile() {
+        return new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
+    }
+    
+    /**
+     * Create and save a new primary key
+     */
+    public static void createNewPrimaryKey(String password) throws GeneralSecurityException, IOException {
+        primaryKey = generatePrimaryKey();
+        savePrimaryKey(primaryKey, password);
+    }
+    
+    /**
+     * Set a new password for the existing primary key
+     */
+    public static void setNewPasswordForPrimaryKey(String oldPassword, String newPassword) throws GeneralSecurityException, IOException {
+        // If it exists load and save
+        SecretKey key = loadPrimaryKey(oldPassword);
+        if(key != null) {
+            savePrimaryKey(key, newPassword);
+        }
+    }
+    
+    /**
+     * Get the primary key.
+     * If it is not loaded, load it from file else ask user to create a new one.
+     */
+    private static SecretKey getPrimaryKey() throws GeneralSecurityException, IOException {
+        if(primaryKey == null) {
             File primaryKeyFile = getPrimaryKeyFile();
             
-            // If the key file exists just ask user for password
+            // If the key file exists just ask user for password and load it
             if(primaryKeyFile.exists()) {
                 String password = askUserForPrimaryPassword();
                 if(password != null) {
-                    storedPrimaryKey = getStoredPrimaryKey(password);
+                    primaryKey = loadPrimaryKey(password);
                 }
             }
             // Else create a new file key with password
             else {
-                String password = askUserToCreatePrimaryPassword();
-                if(password != null) {
-                    storedPrimaryKey = generatePrimaryKey();
-                    savePrimaryKey(storedPrimaryKey, password);
-                }
+                askUserToCreatePrimaryPassword();
             }
         }
         
-        return storedPrimaryKey;
+        return primaryKey;
     }
     
     /**
-     * Get the stored primary key or null if not present
+     * Load the primary key 
+     * Return null if not present
      */
-    private static SecretKey getStoredPrimaryKey(String password) throws GeneralSecurityException, IOException {
-        File file = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
+    private static SecretKey loadPrimaryKey(String password) throws GeneralSecurityException, IOException {
+        File file = getPrimaryKeyFile();
         
         if(file.exists()) {
             byte[] bytes = null;
@@ -305,7 +315,7 @@ public class EncryptedCredentialsStorage {
                 // Get the remaining encrypted key bytes
                 byte[] keybytes = Arrays.copyOfRange(bytes, 8, bytes.length);
                 
-                // Decrypt the key bytes
+                // Decrypt the key bytes with the password and salt
                 Cipher cipher = makeCipherWithPassword(password, Cipher.DECRYPT_MODE, salt);
                 keybytes = cipher.doFinal(keybytes);
                 
@@ -318,7 +328,7 @@ public class EncryptedCredentialsStorage {
     }
     
     /**
-     * Save the primary key encrypted with a password
+     * Save the primary key to file encrypted with a password
      */
     private static void savePrimaryKey(SecretKey key, String password) throws GeneralSecurityException, IOException {
         // Generate a new random salt
@@ -330,19 +340,12 @@ public class EncryptedCredentialsStorage {
         
         // Save it
         try(FileOutputStream fos = new FileOutputStream(getPrimaryKeyFile())) {
-            // Store the password salt
+            // Store the password salt first
             fos.write(salt);
             
-            // Store the encypted key
+            // Then store the encypted key
             fos.write(keybytes);
         }
-    }
-    
-    /**
-     * @return The primary key file
-     */
-    private static File getPrimaryKeyFile() {
-        return new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
     }
     
     /**
@@ -385,5 +388,20 @@ public class EncryptedCredentialsStorage {
         cipher.init(mode, key, pbeParamSpec);
 
         return cipher;
+    }
+    
+    private static String askUserForPrimaryPassword() {
+        PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+
+        if(dialog.open() == Window.OK) {
+            return dialog.getValue();
+        }
+        
+        return null;
+    }
+    
+    private static void askUserToCreatePrimaryPassword() {
+        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+        dialog.open();
     }
 }

@@ -52,11 +52,23 @@ public class Messages extends NLS {
 
     public static String NewPrimaryPasswordDialog_1;
 
+    public static String NewPrimaryPasswordDialog_10;
+
     public static String NewPrimaryPasswordDialog_2;
 
     public static String NewPrimaryPasswordDialog_3;
 
     public static String NewPrimaryPasswordDialog_4;
+
+    public static String NewPrimaryPasswordDialog_5;
+
+    public static String NewPrimaryPasswordDialog_6;
+
+    public static String NewPrimaryPasswordDialog_7;
+
+    public static String NewPrimaryPasswordDialog_8;
+
+    public static String NewPrimaryPasswordDialog_9;
 
     public static String PrimaryPasswordDialog_0;
 
