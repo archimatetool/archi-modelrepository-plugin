@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,7 +52,12 @@ public class PushModelAction extends RefreshModelAction {
                 return;
             }
             
-            // Get for this before opening the progress dialog
+            // Check primary key set
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+            
+            // Get this before opening the progress dialog
             // UsernamePassword is will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
             // User cancelled on HTTP

@@ -12,6 +12,8 @@ public class Messages extends NLS {
 
     public static String FetchJob_2;
 
+    public static String FetchJob_3;
+
     public static String ModelRepositoryTreeViewer_0;
 
     public static String ModelRepositoryTreeViewer_1;

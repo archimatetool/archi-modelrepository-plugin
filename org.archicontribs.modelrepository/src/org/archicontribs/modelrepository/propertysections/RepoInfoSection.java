@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
+import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -66,7 +67,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                 fTextFile.setText(fFile);
                 
                 fURL = fArchiRepo.getOnlineRepositoryURL();
-                fTextURL.setText(fURL);
+                fTextURL.setText(StringUtils.safeString(fURL));
                 
                 fBranch = ""; //$NON-NLS-1$
                 
@@ -78,7 +79,7 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
                     }
                 }
                 
-                fTextCurrentBranch.setText(fBranch);
+                fTextCurrentBranch.setText(StringUtils.safeString(fBranch));
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();

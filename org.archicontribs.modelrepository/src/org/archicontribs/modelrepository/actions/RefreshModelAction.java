@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -81,8 +82,13 @@ public class RefreshModelAction extends AbstractModelAction {
                 return;
             }
             
-            // Get for this before opening the progress dialog
-            // UsernamePassword is will be null if using SSH
+            // Check primary key set
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+
+            // Get this before opening the progress dialog
+            // UsernamePassword will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
             // User cancelled on HTTP
             if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
@@ -156,7 +162,10 @@ public class RefreshModelAction extends AbstractModelAction {
         }
         
         // Proxy update
-        ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
+        boolean result = ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
+        if(!result) {
+            return USER_CANCEL;
+        }
         
         return USER_OK;
     }

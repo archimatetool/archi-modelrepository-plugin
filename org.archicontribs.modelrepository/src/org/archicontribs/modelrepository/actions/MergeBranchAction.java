@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
@@ -155,6 +156,11 @@ public class MergeBranchAction extends AbstractModelAction {
         // Init
         int status = pushAction.init();
         if(status == RefreshModelAction.USER_CANCEL) {
+            return;
+        }
+        
+        // Check primary key set
+        if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
             return;
         }
         

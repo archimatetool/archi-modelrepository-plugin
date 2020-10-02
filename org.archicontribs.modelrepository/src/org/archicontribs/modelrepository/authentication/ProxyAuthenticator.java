@@ -54,7 +54,7 @@ public class ProxyAuthenticator {
      * Get settings from user prefs
      * @throws IOException
      */
-    public static void update(String repositoryURL) throws IOException, GeneralSecurityException {
+    public static boolean update(String repositoryURL) throws IOException, GeneralSecurityException {
         boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
         
         if(!useProxy) {
@@ -64,12 +64,17 @@ public class ProxyAuthenticator {
             // Test the connection - this is better to do it now
             testConnection(repositoryURL, null);
             
-            return;
+            return true;
         }
         
         boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
 
         if(useAuthentication) {
+            // Check primary key set
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return false;
+            }
+            
             final EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
                     IGraficoConstants.PROXY_CREDENTIALS_FILE));
             
@@ -90,7 +95,7 @@ public class ProxyAuthenticator {
         final int port = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
         
         if(!StringUtils.isSet(hostName)) {
-            return;
+            return false;
         }
         
         // Test the connection is reachable
@@ -118,6 +123,8 @@ public class ProxyAuthenticator {
 
         // Test the connection with the repository URL
         testConnection(repositoryURL, proxy);
+        
+        return true;
     }
     
     /**

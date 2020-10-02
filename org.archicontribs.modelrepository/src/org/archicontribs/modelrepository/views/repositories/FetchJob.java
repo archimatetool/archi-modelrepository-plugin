@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
@@ -20,10 +21,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Display;
 
 /**
@@ -39,33 +37,50 @@ public class FetchJob extends Job {
         super("Fetch Job"); //$NON-NLS-1$
         fViewer = viewer;
         
-        IPropertyChangeListener listener = new IPropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent event) {
-                if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
-                    if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
-                        start();
-                    }
+        // Don't start until we have primary password access
+        // So disable background fetch until then
+        disablePreference();
+
+        // Preference changed to fetch in background
+        IPropertyChangeListener listener = event -> {
+            if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
+                if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
+                    start();
                 }
             }
         };
         
+        // Listen to preferences
         ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
         
-        fViewer.getControl().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
-            }
+        // Unlisten to preferences
+        fViewer.getControl().addDisposeListener(event -> {
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
         });
-        
-        start();
     }
     
-    protected void start() {
+    private void start() {
+        // Password primary key not set
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                disablePreference();
+                return;
+            }
+        }
+        catch(GeneralSecurityException | IOException ex) {
+            ex.printStackTrace();
+            disablePreference();
+            MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, Messages.FetchJob_3);
+            return;
+        }
+        
         if(canRun()) {
             schedule(1000);
         }
+    }
+    
+    private void disablePreference() {
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
     }
 
     @Override
@@ -85,13 +100,15 @@ public class FetchJob extends Job {
             
             try {
                 UsernamePassword npw = null;
-                if(GraficoUtils.isHTTP(repo.getOnlineRepositoryURL())) {
+                String url = repo.getOnlineRepositoryURL();
+                
+                if(GraficoUtils.isHTTP(url)) {
                     // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
                     EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(repo);
                     npw = cs.getUsernamePassword();
                 }
 
-                ProxyAuthenticator.update(repo.getOnlineRepositoryURL());
+                ProxyAuthenticator.update(url);
                 repo.fetchFromRemote(npw, null, false);
                 needsRefresh = true;
             }
@@ -101,7 +118,7 @@ public class FetchJob extends Job {
                     if(ex.getMessage().contains("not authorized") || //$NON-NLS-1$
                             ex.getMessage().contains("authentication not supported")) { //$NON-NLS-1$
                         // Disable background fetch
-                        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
+                        disablePreference();
 
                         // Show message
                         Display.getDefault().asyncExec(() -> {

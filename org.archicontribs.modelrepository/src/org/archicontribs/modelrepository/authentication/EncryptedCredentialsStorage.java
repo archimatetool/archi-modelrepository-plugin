@@ -226,14 +226,14 @@ public class EncryptedCredentialsStorage {
     
     private static SecretKey storedPrimaryKey;
     
-    public static String askUserForPrimaryPassword() throws GeneralSecurityException {
+    public static String askUserForPrimaryPassword() {
         PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
 
         if(dialog.open() == Window.OK) {
             return dialog.getValue();
         }
         
-        throw new GeneralSecurityException("No Primary Password");
+        return null;
     }
     
     public static String askUserToCreatePrimaryPassword() {
@@ -244,6 +244,20 @@ public class EncryptedCredentialsStorage {
         }
         
         return null;
+    }
+    
+    /**
+     * Ensure the primary key is set and ask user for it if not set
+     */
+    public static boolean checkPrimaryKeySet() throws GeneralSecurityException, IOException {
+        return getStoredPrimaryKey() != null;
+    }
+    
+    /**
+     * Check wether the primary key is set
+     */
+    public static boolean isPrimaryKeySet() {
+        return storedPrimaryKey != null;
     }
     
     private static SecretKey getStoredPrimaryKey() throws GeneralSecurityException, IOException {

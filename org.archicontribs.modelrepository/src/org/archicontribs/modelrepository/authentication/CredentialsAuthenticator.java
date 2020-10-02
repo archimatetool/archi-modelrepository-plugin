@@ -64,7 +64,7 @@ public final class CredentialsAuthenticator {
                         new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IGraficoConstants.SSH_CREDENTIALS_FILE));
 
                 if(cs.hasCredentialsFile()) {
-                    password = cs.getUsernamePassword().getPassword();
+                    password = cs.getPassword();
                 }
                 else {
                     throw new IOException(Messages.CredentialsAuthenticator_1);

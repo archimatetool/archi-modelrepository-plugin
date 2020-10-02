@@ -76,7 +76,10 @@ public class CloneModelAction extends AbstractModelAction {
         
         try {
             // Proxy check
-            ProxyAuthenticator.update(repoURL);
+            boolean result = ProxyAuthenticator.update(repoURL);
+            if(!result) {
+                return;
+            }
             
             // Clone
             Exception[] exception = new Exception[1];
