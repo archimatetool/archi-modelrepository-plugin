@@ -39,14 +39,14 @@ public interface IGraficoConstants {
     String REPO_CREDENTIALS_FILE = "credentials"; //$NON-NLS-1$
     
     /**
-     * File name of SSH identity password for each git repo
+     * File name of SSH identity password
      */
-    String SSH_CREDENTIALS_FILE = "ssh_credentials"; //$NON-NLS-1$
+    String SSH_CREDENTIALS_FILE = "secure_ssh_credentials"; //$NON-NLS-1$
     
     /**
      * File name of user name/password for Proxy Server
      */
-    String PROXY_CREDENTIALS_FILE = "proxy_credentials"; //$NON-NLS-1$
+    String PROXY_CREDENTIALS_FILE = "secure_proxy_credentials"; //$NON-NLS-1$
     
     /**
      * Remote git name, assumed that the repo is called "origin"
