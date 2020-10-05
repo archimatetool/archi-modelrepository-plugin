@@ -55,6 +55,11 @@ public class ProxyAuthenticator {
      * @throws IOException
      */
     public static boolean update(String repositoryURL) throws IOException, GeneralSecurityException {
+        // HTTP proxy not used with SSH
+        if(GraficoUtils.isSSH(repositoryURL)) {
+            return true;
+        }
+        
         boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
         
         if(!useProxy) {
@@ -83,7 +88,13 @@ public class ProxyAuthenticator {
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 public PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
+                    // If proxy, return its credentials
+                    // Otherwise the requested URL is the endpoint (and not the proxy host)
+                    // In this case the authentication should not be proxy so return null (and JGit CredentialsProvider will be used)
+                    if(getRequestorType() == RequestorType.PROXY) {
+                        return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
+                    }
+                    return null;
                 }
             });
         }
@@ -134,14 +145,9 @@ public class ProxyAuthenticator {
      * @throws IOException 
      */
     private static void testConnection(String repositoryURL, Proxy proxy) throws IOException {
-        // TODO - doesn't work with SSH
-        if(GraficoUtils.isSSH(repositoryURL)) {
-            return;
-        }
-        
         URL testURL = new URL(repositoryURL);
         
-        // TODO: localhost https connections throw certificate exceptions
+        // localhost https connections throw certificate exceptions
         if("localhost".equals(testURL.getHost()) || "127.0.0.1".equals(testURL.getHost())) { //$NON-NLS-1$ //$NON-NLS-2$
             return;
         }
