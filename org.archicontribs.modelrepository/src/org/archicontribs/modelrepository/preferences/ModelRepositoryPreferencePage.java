@@ -429,10 +429,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
                 }
             }
         }
-        // Else delete credentials file
-        else {
-            sshCredentials.deleteCredentialsFile();
-        }
         
         // Proxy details
         EncryptedCredentialsStorage proxyCredentials = getProxyCredentials();
@@ -453,10 +449,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
                 ex.printStackTrace();
                 return false;
             }
-        }
-        // Else delete credentials file
-        else {
-            proxyCredentials.deleteCredentialsFile();
         }
        
         return true;
