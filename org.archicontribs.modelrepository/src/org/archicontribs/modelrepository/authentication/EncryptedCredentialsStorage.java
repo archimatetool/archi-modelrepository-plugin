@@ -391,17 +391,22 @@ public class EncryptedCredentialsStorage {
     }
     
     private static String askUserForPrimaryPassword() {
-        PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
-
-        if(dialog.open() == Window.OK) {
-            return dialog.getValue();
+        // Check that current thread is the UI thread in case this is called from a non-UI thread
+        if(Display.getCurrent() != null) {
+            PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+            if(dialog.open() == Window.OK) {
+                return dialog.getValue();
+            }
         }
         
         return null;
     }
     
     private static void askUserToCreatePrimaryPassword() {
-        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(Display.getCurrent().getActiveShell());
-        dialog.open();
+        // Check that current thread is the UI thread in case this is called from a non-UI thread
+        if(Display.getCurrent() != null) {
+            NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(Display.getCurrent().getActiveShell());
+            dialog.open();
+        }
     }
 }
