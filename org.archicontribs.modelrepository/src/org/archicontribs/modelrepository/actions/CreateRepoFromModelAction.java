@@ -6,11 +6,12 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -49,6 +50,16 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+        }
+        catch(GeneralSecurityException | IOException ex) {
+            displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
+            return;
+        }
+        
         NewModelRepoDialog dialog = new NewModelRepoDialog(fWindow.getShell());
         if(dialog.open() != Window.OK) {
             return;
@@ -75,9 +86,6 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {
-            // Proxy check
-            ProxyAuthenticator.update(repoURL);
-            
             // Create a new repo
             try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
             }

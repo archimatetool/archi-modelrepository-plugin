@@ -7,11 +7,9 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
@@ -140,7 +138,7 @@ public class RefreshModelAction extends AbstractModelAction {
         }
     }
     
-    protected int init() throws IOException, GitAPIException, GeneralSecurityException {
+    protected int init() throws IOException, GitAPIException {
         // Offer to save the model if open and dirty
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
@@ -159,12 +157,6 @@ public class RefreshModelAction extends AbstractModelAction {
                 return USER_CANCEL;
             }
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
-        }
-        
-        // Proxy update
-        boolean result = ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
-        if(!result) {
-            return USER_CANCEL;
         }
         
         return USER_OK;

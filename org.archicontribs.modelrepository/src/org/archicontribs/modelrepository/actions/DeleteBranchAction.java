@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -62,12 +61,6 @@ public class DeleteBranchAction extends AbstractModelAction {
             boolean deleteRemote = branchInfo.hasRemoteRef() || branchInfo.isRemote();
             
             if(deleteRemote) {
-                // Proxy update
-                boolean result = ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
-                if(!result) {
-                    return;
-                }
-
                 // Check primary key set
                 if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
                     return;

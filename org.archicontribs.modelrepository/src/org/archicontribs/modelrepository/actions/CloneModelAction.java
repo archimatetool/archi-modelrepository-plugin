@@ -6,11 +6,12 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -32,8 +33,8 @@ import com.archimatetool.model.IArchimateModel;
 /**
  * Clone a model
  * 
- * 1. Get user credentials
- * 2. Check Proxy
+ * 1. Check Primary Key
+ * 2. Get user credentials
  * 3. Clone from Remote
  * 4. If Grafico files exist load the model from the Grafico files and save it as temp file
  * 5. If Grafico files do not exist create a new temp model and save it
@@ -50,6 +51,17 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        // Check primary key set
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+        }
+        catch(GeneralSecurityException | IOException ex) {
+            displayErrorDialog(Messages.CloneModelAction_0, ex);
+            return;
+        }
+        
         CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
         if(dialog.open() != Window.OK) {
             return;
@@ -75,12 +87,6 @@ public class CloneModelAction extends AbstractModelAction {
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {
-            // Proxy check
-            boolean result = ProxyAuthenticator.update(repoURL);
-            if(!result) {
-                return;
-            }
-            
             // Clone
             Exception[] exception = new Exception[1];
             IProgressService ps = PlatformUI.getWorkbench().getProgressService();
