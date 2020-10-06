@@ -139,7 +139,14 @@ public class EncryptedCredentialsStorage {
             
             // Decode password from Base64 string in properties first
             String pw = getProperties().getProperty(PASSWORD, "");
-            byte[] passwordBytes = Base64.getDecoder().decode(pw);
+            byte[] passwordBytes = null;
+
+            try {
+                passwordBytes = Base64.getDecoder().decode(pw);
+            }
+            catch(IllegalArgumentException ex) {
+                throw new GeneralSecurityException(ex);
+            }
             
             // Decrypt the password
             Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
