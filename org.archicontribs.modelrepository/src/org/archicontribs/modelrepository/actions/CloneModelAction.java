@@ -75,7 +75,7 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && !StringUtils.isSet(npw.getPassword())) {
+        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && npw.getPassword().length == 0) {
             MessageDialog.openError(fWindow.getShell(), 
                     Messages.CloneModelAction_0,
                     Messages.CloneModelAction_1);

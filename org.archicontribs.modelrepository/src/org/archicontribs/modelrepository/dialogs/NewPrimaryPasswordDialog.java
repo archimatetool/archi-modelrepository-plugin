@@ -152,7 +152,7 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         // Change password in existing primary key
         if(changePasswordRadio.getSelection()) {
             try {
-                EncryptedCredentialsStorage.setNewPasswordForPrimaryKey(currentPasswordText.getText(), newPasswordText.getText());
+                EncryptedCredentialsStorage.setNewPasswordForPrimaryKey(currentPasswordText.getTextChars(), newPasswordText.getText().toCharArray());
             }
             catch(GeneralSecurityException | IOException ex) {
                 ex.printStackTrace();
@@ -164,7 +164,7 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         // Create new key
         else {
             try {
-                EncryptedCredentialsStorage.createNewPrimaryKey(newPasswordText.getText());
+                EncryptedCredentialsStorage.createNewPrimaryKey(newPasswordText.getTextChars());
             }
             catch(GeneralSecurityException | IOException ex) {
                 ex.printStackTrace();

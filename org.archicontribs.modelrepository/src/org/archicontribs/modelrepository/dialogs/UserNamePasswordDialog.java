@@ -39,7 +39,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     private Button storeCredentialsButton;
 
     private String username;
-    private String password;
+    private char[] password;
     
     private EncryptedCredentialsStorage credentialsStorage;
 
@@ -98,8 +98,8 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     }
 
     private void saveInput() {
-        username = txtUsername.getText().trim();
-        password = txtPassword.getText().trim();
+        username = txtUsername.getText();
+        password = txtPassword.getTextChars();
         
         boolean doStoreInCredentialsFile = storeCredentialsButton.getSelection();
         
@@ -133,7 +133,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         return username;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
 }

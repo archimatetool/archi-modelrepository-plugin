@@ -73,7 +73,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && !StringUtils.isSet(npw.getPassword())) {
+        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && npw.getPassword().length == 0) {
             MessageDialog.openError(fWindow.getShell(), 
                     Messages.CreateRepoFromModelAction_0,
                     Messages.CreateRepoFromModelAction_3);

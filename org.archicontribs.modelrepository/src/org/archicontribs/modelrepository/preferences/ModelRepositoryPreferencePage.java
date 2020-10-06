@@ -421,7 +421,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             // Password changed
             if(sshPasswordChanged) {
                 try {
-                    sshCredentials.storePassword(fSSHIdentityPasswordTextField.getText());
+                    sshCredentials.storePassword(fSSHIdentityPasswordTextField.getTextChars());
                 }
                 catch(GeneralSecurityException | IOException ex) {
                     ex.printStackTrace();
@@ -442,7 +442,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
                 }
                 // Password changed
                 if(proxyPasswordChanged) {
-                    proxyCredentials.storePassword(fProxyUserPasswordTextField.getText());
+                    proxyCredentials.storePassword(fProxyUserPasswordTextField.getTextChars());
                 }
             }
             catch(IOException | GeneralSecurityException ex) {

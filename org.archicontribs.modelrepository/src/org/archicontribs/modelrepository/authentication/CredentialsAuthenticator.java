@@ -37,7 +37,7 @@ public final class CredentialsAuthenticator {
     
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
-        String getIdentityPassword() throws IOException, GeneralSecurityException;
+        char[] getIdentityPassword() throws IOException, GeneralSecurityException;
     }
     
     /**
@@ -56,8 +56,8 @@ public final class CredentialsAuthenticator {
         }
         
         @Override
-        public String getIdentityPassword() throws IOException, GeneralSecurityException {
-            String password = null;
+        public char[] getIdentityPassword() throws IOException, GeneralSecurityException {
+            char[] password = null;
             
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
                 EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(
@@ -110,7 +110,7 @@ public final class CredentialsAuthenticator {
                             jsch.removeAllIdentity();
                             
                             File file = null;
-                            String pw = null;
+                            char[] pw = null;
                             try {
                                 file = sshIdentityProvider.getIdentityFile();
                                 pw = sshIdentityProvider.getIdentityPassword();
@@ -120,7 +120,7 @@ public final class CredentialsAuthenticator {
                             }
                             
                             if(pw != null) {
-                                jsch.addIdentity(file.getAbsolutePath(), pw);
+                                jsch.addIdentity(file.getAbsolutePath(), new String(pw));
                             }
                             else {
                                 jsch.addIdentity(file.getAbsolutePath());

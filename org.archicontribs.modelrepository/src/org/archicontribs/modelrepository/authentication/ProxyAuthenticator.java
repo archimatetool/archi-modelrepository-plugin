@@ -53,7 +53,7 @@ public class ProxyAuthenticator {
                             IGraficoConstants.PROXY_CREDENTIALS_FILE));
                     UsernamePassword npw = cs.getUsernamePassword();
                     
-                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
+                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword());
                 }
                 catch(GeneralSecurityException | IOException ex) {
                     ex.printStackTrace();

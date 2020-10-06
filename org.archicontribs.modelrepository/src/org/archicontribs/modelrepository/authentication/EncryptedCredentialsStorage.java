@@ -74,7 +74,7 @@ public class EncryptedCredentialsStorage {
         store(npw.getUsername(), npw.getPassword());
     }
 
-    public void store(String userName, String password) throws GeneralSecurityException, IOException {
+    public void store(String userName, char[] password) throws GeneralSecurityException, IOException {
         storeUserName(userName);
         storePassword(password);
     }
@@ -93,9 +93,9 @@ public class EncryptedCredentialsStorage {
         saveProperties();
     }
     
-    public boolean storePassword(String password) throws GeneralSecurityException, IOException {
+    public boolean storePassword(char[] password) throws GeneralSecurityException, IOException {
         // If password not set remove it
-        if(!StringUtils.isSet(password)) {
+        if(password == null || password.length == 0) {
             getProperties().remove(PASSWORD);
             saveProperties();
             return true;
@@ -108,7 +108,7 @@ public class EncryptedCredentialsStorage {
         }
         
         // Get password as bytes - Must use UTF-8 !
-        byte[] passwordBytes = password.getBytes("UTF-8");
+        byte[] passwordBytes = new String(password).getBytes("UTF-8");
         
         // Encrypt the password
         Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
@@ -129,12 +129,12 @@ public class EncryptedCredentialsStorage {
         return getProperties().getProperty(USERNAME, "");
     }
     
-    public String getPassword() throws IOException, GeneralSecurityException {
+    public char[] getPassword() throws IOException, GeneralSecurityException {
         if(hasPassword()) {
             // Get the primary key in order to decrypt it
             SecretKey key = getPrimaryKey();
             if(key == null) {
-                return "";
+                return "".toCharArray();
             }
             
             // Decode password from Base64 string in properties first
@@ -152,10 +152,11 @@ public class EncryptedCredentialsStorage {
             Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
             passwordBytes = cipher.doFinal(passwordBytes);
             
-            return new String(passwordBytes, "UTF-8"); // Use UTF-8 for the string because we used that to encrypt it
+            // Use UTF-8 because we used that to encrypt it
+            return new String(passwordBytes, "UTF-8").toCharArray();
         }
         
-        return "";
+        return "".toCharArray();
     }
     
     /**
@@ -260,7 +261,7 @@ public class EncryptedCredentialsStorage {
     /**
      * Create and save a new primary key
      */
-    public static void createNewPrimaryKey(String password) throws GeneralSecurityException, IOException {
+    public static void createNewPrimaryKey(char[] password) throws GeneralSecurityException, IOException {
         primaryKey = generatePrimaryKey();
         savePrimaryKey(primaryKey, password);
     }
@@ -268,7 +269,7 @@ public class EncryptedCredentialsStorage {
     /**
      * Set a new password for the existing primary key
      */
-    public static void setNewPasswordForPrimaryKey(String oldPassword, String newPassword) throws GeneralSecurityException, IOException {
+    public static void setNewPasswordForPrimaryKey(char[] oldPassword, char[] newPassword) throws GeneralSecurityException, IOException {
         // If it exists load and save
         SecretKey key = loadPrimaryKey(oldPassword);
         if(key != null) {
@@ -286,7 +287,7 @@ public class EncryptedCredentialsStorage {
             
             // If the key file exists just ask user for password and load it
             if(primaryKeyFile.exists()) {
-                String password = askUserForPrimaryPassword();
+                char[] password = askUserForPrimaryPassword();
                 if(password != null) {
                     primaryKey = loadPrimaryKey(password);
                 }
@@ -304,7 +305,7 @@ public class EncryptedCredentialsStorage {
      * Load the primary key 
      * Return null if not present
      */
-    private static SecretKey loadPrimaryKey(String password) throws GeneralSecurityException, IOException {
+    private static SecretKey loadPrimaryKey(char[] password) throws GeneralSecurityException, IOException {
         File file = getPrimaryKeyFile();
         
         if(file.exists()) {
@@ -337,7 +338,7 @@ public class EncryptedCredentialsStorage {
     /**
      * Save the primary key to file encrypted with a password
      */
-    private static void savePrimaryKey(SecretKey key, String password) throws GeneralSecurityException, IOException {
+    private static void savePrimaryKey(SecretKey key, char[] password) throws GeneralSecurityException, IOException {
         // Generate a new random salt
         byte[] salt = generateSalt();
         
@@ -379,9 +380,13 @@ public class EncryptedCredentialsStorage {
      * The key is generated from the the password
      * See https://stackoverflow.com/questions/13673556/using-password-based-encryption-on-a-file-in-java
      */
-    private static Cipher makeCipherWithPassword(String password, int mode, byte[] salt) throws GeneralSecurityException {
+    private static Cipher makeCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
+        // We have to convert the password characters to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
+        byte[] passwordBytes = new String(password).getBytes();
+        String encoded = Base64.getEncoder().encodeToString(passwordBytes);
+        
         // Use a KeyFactory to derive the corresponding key from the password
-        PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
+        PBEKeySpec keySpec = new PBEKeySpec(encoded.toCharArray());
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
         SecretKey key = keyFactory.generateSecret(keySpec);
 
@@ -397,12 +402,12 @@ public class EncryptedCredentialsStorage {
         return cipher;
     }
     
-    private static String askUserForPrimaryPassword() {
+    private static char[] askUserForPrimaryPassword() {
         // Check that current thread is the UI thread in case this is called from a non-UI thread
         if(Display.getCurrent() != null) {
             PrimaryPasswordDialog dialog = new PrimaryPasswordDialog(Display.getCurrent().getActiveShell());
             if(dialog.open() == Window.OK) {
-                return dialog.getValue();
+                return dialog.getValue().toCharArray();
             }
         }
         

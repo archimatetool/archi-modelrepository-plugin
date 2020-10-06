@@ -77,7 +77,7 @@ public class AuthSection extends AbstractArchiPropertySection {
             @Override
             protected void textChanged(String newText) {
                 setNotifications(false); // Setting the password might invoke the primary password dialog and cause a focus out event
-                storePassword(newText);
+                storePassword(newText.toCharArray());
                 setNotifications(true);
             }
         };
@@ -148,7 +148,7 @@ public class AuthSection extends AbstractArchiPropertySection {
         }
     }
     
-    private void storePassword(String password) {
+    private void storePassword(char[] password) {
         try {
             getCredentials().storePassword(password);
         }

@@ -41,7 +41,7 @@ public class CloneInputDialog extends TitleAreaDialog {
     
     private String URL;
     private String username;
-    private String password;
+    private char[] password;
     private boolean doStoreCredentials;
 
     public CloneInputDialog(Shell parentShell) {
@@ -112,8 +112,8 @@ public class CloneInputDialog extends TitleAreaDialog {
     // save content of the Text fields because they get disposed
     // as soon as the Dialog closes
     protected void saveInput() {
-        username = txtUsername.getText().trim();
-        password = txtPassword.getText().trim();
+        username = txtUsername.getText();
+        password = txtPassword.getTextChars();
         URL = txtURL.getText().trim();
         doStoreCredentials = storeCredentialsButton.getSelection();
     }

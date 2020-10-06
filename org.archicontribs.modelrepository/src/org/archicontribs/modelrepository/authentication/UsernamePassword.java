@@ -13,19 +13,19 @@ package org.archicontribs.modelrepository.authentication;
  */
 public class UsernamePassword {
 
-    private String fUsername;
-    private String fPassword;
+    private String username;
+    private char[] password;
     
-    public UsernamePassword(String username, String password) {
-        fUsername = username == null ? "" : username; //$NON-NLS-1$
-        fPassword = password == null ? "" : password; //$NON-NLS-1$
+    public UsernamePassword(String username, char[] password) {
+        this.username = username;
+        this.password = password.clone();
     }
     
-    public String getPassword() {
-        return fPassword;
+    public char[] getPassword() {
+        return password;
     }
     
     public String getUsername() {
-        return fUsername;
+        return username;
     }
 }
