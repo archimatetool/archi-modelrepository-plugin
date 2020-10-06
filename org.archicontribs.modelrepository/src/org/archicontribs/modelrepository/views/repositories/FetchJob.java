@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.swt.widgets.Display;
 
@@ -110,34 +111,42 @@ public class FetchJob extends Job {
                 repo.fetchFromRemote(npw, null, false);
                 needsRefresh = true;
             }
-            catch(Exception ex) {
+            catch(IOException | GitAPIException ex) {
+                ex.printStackTrace();
+                
                 if(ex instanceof TransportException) {
-                    // Seems to be the only way to trap these exceptions :-(
-                    if(ex.getMessage().contains("not authorized") || //$NON-NLS-1$
-                            ex.getMessage().contains("authentication not supported")) { //$NON-NLS-1$
-                        // Disable background fetch
-                        disablePreference();
+                    disablePreference();
 
-                        // Show message
-                        Display.getDefault().asyncExec(() -> {
-                            String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
-                            message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
-                            try {
-                                message += repo.getName() + "\n"; //$NON-NLS-1$
-                                message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
-                            }
-                            catch(IOException ex1) {
-                                ex1.printStackTrace();
-                            }
-                            MessageDialog.openInformation(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
-                        });
+                    // Show message
+                    Display.getDefault().syncExec(() -> {
+                        String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
+                        message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
+                        try {
+                            message += repo.getName() + "\n"; //$NON-NLS-1$
+                            message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
+                        }
+                        catch(IOException ex1) {
+                            ex1.printStackTrace();
+                        }
+                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
+                    });
 
-                        return Status.OK_STATUS;
-                    }
+                    return Status.OK_STATUS;
                 }
-                else {
-                    ex.printStackTrace();
-                }
+            }
+            // Encrypted password key error
+            catch(GeneralSecurityException ex) {
+                ex.printStackTrace();
+                
+                // Disable background fetch
+                disablePreference();
+                
+                Display.getDefault().syncExec(() -> {
+                    String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
+                    MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
+                });
+
+                return Status.OK_STATUS;
             }
         }
 
