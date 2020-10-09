@@ -412,15 +412,13 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_HOST, fProxyHostTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_PORT, fProxyPortTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
-        
-        // SSH password
-        EncryptedCredentialsStorage sshCredentials = getSSHCredentials();
-        
+                
         // If "requires password" selected
         if(fSSHIdentityRequiresPasswordButton.getSelection()) {
-            // Password changed
+            // If password changed
             if(sshPasswordChanged) {
                 try {
+                    EncryptedCredentialsStorage sshCredentials = getSSHCredentials();
                     sshCredentials.storePassword(fSSHIdentityPasswordTextField.getTextChars());
                 }
                 catch(GeneralSecurityException | IOException ex) {
@@ -430,11 +428,10 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             }
         }
         
-        // Proxy details
-        EncryptedCredentialsStorage proxyCredentials = getProxyCredentials();
-        
-        // If selected
+        // If "use proxy" selected
         if(fUseProxyButton.getSelection()) {
+            EncryptedCredentialsStorage proxyCredentials = getProxyCredentials();
+
             try {
                 // Username changed
                 if(proxyUsernameChanged) {
