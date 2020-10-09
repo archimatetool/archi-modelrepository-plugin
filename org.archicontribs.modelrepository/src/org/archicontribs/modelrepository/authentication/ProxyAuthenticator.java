@@ -15,17 +15,20 @@ import java.net.Proxy.Type;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IStatus;
 
 /**
- * ProxyAuthenticator
+ * Proxy Authenticator
  * 
  * @author Phillip Beauvoir
  */
@@ -91,21 +94,45 @@ public class ProxyAuthenticator {
         });
     }
     
+    /**
+     * Whether we are using a proxy as set in preferences
+     */
+    public static boolean isUsingProxy() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
+    }
+    
+    /**
+     * Whether we are using authentication for the proxy as set in preferences
+     */
+    public static boolean isUsingAuthentication() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
+    }
+
+    /**
+     * Return the Proxy Host as set in preferences
+     */
+    public static String getProxyHost() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
+    }
+
+    /**
+     * Return the Proxy Port as set in preferences
+     */
+    public static int getProxyPort() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+    }
+
     // Setup the proxy
     private static void setupProxy() {
-        boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
-        
-        // Don't use proxy
-        if(!useProxy) {
+        // Don't use a proxy
+        if(!isUsingProxy()) {
             Authenticator.setDefault(null);
             ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
             return;
         }
         
-        boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
-
         // Authentication is used
-        if(useAuthentication) {
+        if(isUsingAuthentication()) {
             // Set our Authenticator
             Authenticator.setDefault(AUTHENTICATOR);
         }
@@ -114,14 +141,10 @@ public class ProxyAuthenticator {
             Authenticator.setDefault(null);
         }
         
-        // Get host name and port
-        final String hostName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
-        final int port = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+        // The proxy to use
+        final Proxy proxy = createHTTPProxyFromPreferences();
         
-        // Create a new Proxy from these
-        final InetSocketAddress socketAddress = new InetSocketAddress(hostName, port);
-        final Proxy proxy = new Proxy(Type.HTTP, socketAddress);
-        
+        // The default ProxySelector
         ProxySelector.setDefault(new ProxySelector() {
             @Override
             public List<Proxy> select(URI uri) {
@@ -133,6 +156,44 @@ public class ProxyAuthenticator {
                 ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
                 ex.printStackTrace();
             }
-        });      
+        });
+    }
+    
+    /**
+     * Create a new Proxy from the hostName and port set in Preferences
+     */
+    private static Proxy createHTTPProxyFromPreferences() {
+        InetSocketAddress socketAddress = new InetSocketAddress(getProxyHost(), getProxyPort());
+        return new Proxy(Type.HTTP, socketAddress);
+    }
+    
+    /**
+     * Test a http connection
+     */
+    public static boolean testHTTPConnection(String url) throws IOException {
+        if(GraficoUtils.isSSH(url)) {
+            return false;
+        }
+        
+        URL testURL = new URL(url);
+        
+        // localhost https connections throw certificate exceptions
+        if("localhost".equals(testURL.getHost()) || "127.0.0.1".equals(testURL.getHost())) { //$NON-NLS-1$ //$NON-NLS-2$
+            return false;
+        }
+        
+        URLConnection connection;
+        
+        if(isUsingProxy()) {
+            Proxy proxy = createHTTPProxyFromPreferences();
+            connection = testURL.openConnection(proxy);
+        }
+        else {
+            connection = testURL.openConnection();
+        }
+        
+        connection.connect();
+        
+        return true;
     }
 }
