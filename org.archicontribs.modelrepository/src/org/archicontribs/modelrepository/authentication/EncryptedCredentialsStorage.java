@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -312,9 +313,7 @@ public class EncryptedCredentialsStorage {
             byte[] bytes = null;
             
             // Read in all bytes
-            try(FileInputStream fis = new FileInputStream(file)) {
-                bytes = fis.readAllBytes();
-            }
+            bytes = Files.readAllBytes(file.toPath());
             
             if(bytes != null) {
                 // Get the salt from the first 8 bytes
