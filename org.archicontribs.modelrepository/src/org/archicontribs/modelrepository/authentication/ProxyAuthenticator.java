@@ -79,19 +79,6 @@ public class ProxyAuthenticator {
         
         // Added this one too. I think it's for HTTP
         System.setProperty("jdk.http.auth.proxying.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
-        
-        // Set up now
-        setupProxy();
-        
-        // On preference change setup again
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(event -> {
-            if(event.getProperty() == IPreferenceConstants.PREFS_PROXY_USE || 
-                                        event.getProperty() == IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION ||
-                                        event.getProperty() == IPreferenceConstants.PREFS_PROXY_HOST || 
-                                        event.getProperty() == IPreferenceConstants.PREFS_PROXY_PORT) {
-                setupProxy();
-            }
-        });
     }
     
     /**
@@ -122,12 +109,11 @@ public class ProxyAuthenticator {
         return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
     }
 
-    // Setup the proxy
-    private static void setupProxy() {
+    // Update the proxy details
+    public static void update() {
         // Don't use a proxy
         if(!isUsingProxy()) {
-            Authenticator.setDefault(null);
-            ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
+            clear();
             return;
         }
         
@@ -157,6 +143,14 @@ public class ProxyAuthenticator {
                 ex.printStackTrace();
             }
         });
+    }
+    
+    /**
+     * Clear the Proxy settings
+     */
+    public static void clear() {
+        Authenticator.setDefault(null);
+        ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
     }
     
     /**

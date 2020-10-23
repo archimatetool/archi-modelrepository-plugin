@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -112,11 +113,18 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        // Update Proxy
+                        ProxyAuthenticator.update();
+                        
                         pm.beginTask(Messages.CreateRepoFromModelAction_4, -1);
                         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(Exception ex) {
                         exception[0] = ex;
+                    }
+                    finally {
+                        // Clear Proxy
+                        ProxyAuthenticator.clear();
                     }
                 }
             });

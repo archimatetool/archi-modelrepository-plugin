@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -94,11 +95,18 @@ public class CloneModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        // Update Proxy
+                        ProxyAuthenticator.update();
+                        
                         pm.beginTask(Messages.CloneModelAction_4, -1);
                         getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));
                     }
                     catch(Exception ex) {
                         exception[0] = ex;
+                    }
+                    finally {
+                        // Clear Proxy
+                        ProxyAuthenticator.clear();
                     }
                 }
             });

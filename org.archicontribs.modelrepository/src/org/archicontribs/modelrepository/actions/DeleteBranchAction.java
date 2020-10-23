@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -80,11 +81,18 @@ public class DeleteBranchAction extends AbstractModelAction {
                     @Override
                     public void run(IProgressMonitor pm) {
                         try {
+                            // Update Proxy
+                            ProxyAuthenticator.update();
+                            
                             pm.beginTask(Messages.DeleteBranchAction_2, IProgressMonitor.UNKNOWN);
                             deleteBranchAndPush(branchInfo, npw);
                         }
                         catch(Exception ex) {
                             exception[0] = ex;
+                        }
+                        finally {
+                            // Clear Proxy
+                            ProxyAuthenticator.clear();
                         }
                     }
                 });

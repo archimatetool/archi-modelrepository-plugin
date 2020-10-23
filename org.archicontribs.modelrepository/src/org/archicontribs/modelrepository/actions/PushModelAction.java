@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -78,6 +79,9 @@ public class PushModelAction extends RefreshModelAction {
                                 try {
                                     monitor.beginTask(Messages.PushModelAction_1, -1);
                                     
+                                    // Update Proxy
+                                    ProxyAuthenticator.update();
+                                    
                                     // Pull
                                     int status = pull(npw, pmDialog);
                                     
@@ -115,6 +119,9 @@ public class PushModelAction extends RefreshModelAction {
                                     catch(IOException ex) {
                                         ex.printStackTrace();
                                     }
+                                    
+                                    // Clear Proxy
+                                    ProxyAuthenticator.clear();
                                 }
                             }
                         });

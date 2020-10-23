@@ -10,6 +10,7 @@ import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -108,6 +109,8 @@ public class FetchJob extends Job {
                     npw = cs.getUsernamePassword();
                 }
 
+                // Update Proxy
+                ProxyAuthenticator.update();
                 repo.fetchFromRemote(npw, null, false);
                 needsRefresh = true;
             }
@@ -147,6 +150,10 @@ public class FetchJob extends Job {
                 });
 
                 return Status.OK_STATUS;
+            }
+            finally {
+                // Clear Proxy
+                ProxyAuthenticator.clear();
             }
         }
 

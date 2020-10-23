@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
@@ -104,6 +105,9 @@ public class RefreshModelAction extends AbstractModelAction {
                             @Override
                             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                                 try {
+                                    // Update Proxy
+                                    ProxyAuthenticator.update();
+                                    
                                     monitor.beginTask(Messages.RefreshModelAction_5, -1);
                                     int status = pull(npw, pmDialog);
                                     if(status == PULL_STATUS_UP_TO_DATE) {
@@ -122,6 +126,9 @@ public class RefreshModelAction extends AbstractModelAction {
                                     catch(IOException ex) {
                                         ex.printStackTrace();
                                     }
+                                    
+                                    // Clear Proxy
+                                    ProxyAuthenticator.clear();
                                 }
                             }
                         });

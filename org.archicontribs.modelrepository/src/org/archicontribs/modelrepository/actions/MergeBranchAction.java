@@ -11,6 +11,7 @@ import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
@@ -183,6 +184,9 @@ public class MergeBranchAction extends AbstractModelAction {
                         @Override
                         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                             try {
+                                // Update Proxy
+                                ProxyAuthenticator.update();
+                                
                                 monitor.beginTask(Messages.MergeBranchAction_11, -1);
                                 
                                 // Pull
@@ -253,6 +257,9 @@ public class MergeBranchAction extends AbstractModelAction {
                                 catch(IOException ex) {
                                     ex.printStackTrace();
                                 }
+                                
+                                // Clear Proxy
+                                ProxyAuthenticator.clear();
                             }
                         }
                     });
