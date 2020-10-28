@@ -54,7 +54,7 @@ public class SwitchBranchAction extends AbstractModelAction {
                     Messages.AbstractModelAction_1,
                     Messages.AbstractModelAction_2,
                     SWT.NONE,
-                    "Yes", "No", "Cancel");
+                    Messages.SwitchBranchAction_2, Messages.SwitchBranchAction_3, Messages.SwitchBranchAction_4);
             
             // Cancel
             if(response == 2) {
@@ -109,7 +109,7 @@ public class SwitchBranchAction extends AbstractModelAction {
                 // User chose "no" to commit so let's make sure we proceed
                 boolean proceed = MessageDialog.openQuestion(fWindow.getShell(),
                         Messages.SwitchBranchAction_0,
-                        "All uncommitted changes will be lost. Are you sure you want to continue?");
+                        Messages.SwitchBranchAction_5);
                 
                 if(!proceed) {
                     return;

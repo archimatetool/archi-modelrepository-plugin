@@ -57,19 +57,19 @@ public class BranchesTableViewer extends TableViewer {
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 2);
-        column.getColumn().setText("Latest Commit Author");
+        column.getColumn().setText(Messages.BranchesTableViewer_6);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 3);
-        column.getColumn().setText("Latest Commit Date");
+        column.getColumn().setText(Messages.BranchesTableViewer_7);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 4);
-        column.getColumn().setText("Commit Status");
+        column.getColumn().setText(Messages.BranchesTableViewer_8);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 5);
-        column.getColumn().setText("Merge Status");
+        column.getColumn().setText(Messages.BranchesTableViewer_9);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
 
         setContentProvider(new BranchesContentProvider());
@@ -181,25 +181,25 @@ public class BranchesTableViewer extends TableViewer {
                     String text;
                     
                     if(branchInfo.hasUnpushedCommits()) {
-                        text = "There are unpublished commits";
+                        text = Messages.BranchesTableViewer_10;
                     }
                     else if(branchInfo.hasRemoteCommits() || branchInfo.isRemote()) {
-                        text = "There are new commits on the remote";
+                        text = Messages.BranchesTableViewer_11;
                     }
                     else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
-                        text = "There are unpublished and new commits on the remote";
+                        text = Messages.BranchesTableViewer_12;
                     }
                     else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
-                        text = "Unpublished & Remote Commits";
+                        text = Messages.BranchesTableViewer_13;
                     }
                     else {
-                        text = "Up to date";
+                        text = Messages.BranchesTableViewer_14;
                     }
                     
                     return text;
                     
                 case 5:
-                    return branchInfo.isMerged() ? "OK" : "Not merged";
+                    return branchInfo.isMerged() ? Messages.BranchesTableViewer_15 : Messages.BranchesTableViewer_16;
                     
                 default:
                     return ""; //$NON-NLS-1$

@@ -25,7 +25,7 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
     public DeleteStaleBranchesAction(IWorkbenchWindow window) {
         super(window);
         //setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_DELETE));
-        setText("Clean Selected Branches");
+        setText(Messages.DeleteStaleBranchesAction_0);
         setToolTipText(getText());
     }
 
@@ -46,8 +46,8 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
     @Override
     public void run() {
         boolean response = MessageDialog.openConfirm(fWindow.getShell(),
-                "Clean",
-                "Are you sure you want to clean these branches?");
+                Messages.DeleteStaleBranchesAction_1,
+                Messages.DeleteStaleBranchesAction_2);
         if(!response) {
             return;
         }
@@ -56,7 +56,7 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
             deleteBranches();
         }
         catch(IOException | GitAPIException ex) {
-            displayErrorDialog("Clean", ex);
+            displayErrorDialog(Messages.DeleteStaleBranchesAction_3, ex);
         }
         finally {
             // Notify listeners
@@ -96,14 +96,15 @@ public class DeleteStaleBranchesAction extends AbstractModelAction {
      * 2. Is not the current branch
      * 3. Is not the master branch
      * 4. Is being tracked to remote and has no remote ref
-     * 5. Has no unpushed commits
+     * 5. Has been merged
+     * 6. Has no unpushed commits
      */
     private boolean isStaleBranch(BranchInfo branchInfo) {
         return branchInfo.isLocal() &&
                 !branchInfo.isCurrentBranch() &&
                 !branchInfo.isMasterBranch() &&
                 branchInfo.isRemoteDeleted() &&
-                //branchInfo.isMerged() && 
+                branchInfo.isMerged() && 
                 !branchInfo.hasUnpushedCommits();
     }
 }

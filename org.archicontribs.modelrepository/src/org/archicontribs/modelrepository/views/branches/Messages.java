@@ -10,6 +10,20 @@ public class Messages extends NLS {
 
     public static String BranchesTableViewer_1;
 
+    public static String BranchesTableViewer_10;
+
+    public static String BranchesTableViewer_11;
+
+    public static String BranchesTableViewer_12;
+
+    public static String BranchesTableViewer_13;
+
+    public static String BranchesTableViewer_14;
+
+    public static String BranchesTableViewer_15;
+
+    public static String BranchesTableViewer_16;
+
     public static String BranchesTableViewer_2;
 
     public static String BranchesTableViewer_3;
@@ -17,6 +31,14 @@ public class Messages extends NLS {
     public static String BranchesTableViewer_4;
 
     public static String BranchesTableViewer_5;
+
+    public static String BranchesTableViewer_6;
+
+    public static String BranchesTableViewer_7;
+
+    public static String BranchesTableViewer_8;
+
+    public static String BranchesTableViewer_9;
 
     public static String BranchesView_0;
 

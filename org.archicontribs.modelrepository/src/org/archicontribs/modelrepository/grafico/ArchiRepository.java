@@ -368,9 +368,10 @@ public class ArchiRepository implements IArchiRepository {
             PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
                 @Override
                 public void run(IProgressMonitor pm) {
+                    pm.beginTask(Messages.ArchiRepository_1, IProgressMonitor.UNKNOWN);
+
                     try {
                         // Export
-                        pm.beginTask("Creating files...", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
                         GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
                         exporter.exportModel();
                         
@@ -379,7 +380,6 @@ public class ArchiRepository implements IArchiRepository {
                         
                         // Stage modified files to index - this can take a long time!
                         // This will clear any different line endings and calls to git.status() will be faster
-                        pm.beginTask("Adding files...", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
                         try(Git git = Git.open(getLocalRepositoryFolder())) {
                             AddCommand addCommand = git.add();
                             addCommand.addFilepattern("."); //$NON-NLS-1$
