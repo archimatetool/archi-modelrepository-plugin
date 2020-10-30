@@ -121,7 +121,10 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         
         currentPasswordText.setEnabled(primaryKeyFileExists);
         changePasswordRadio.setEnabled(primaryKeyFileExists);
+        
+        changePasswordRadio.setSelection(primaryKeyFileExists);
         createNewPasswordRadio.setSelection(!primaryKeyFileExists);
+        
         rubric.setEnabled(!primaryKeyFileExists);
         
         return area;
