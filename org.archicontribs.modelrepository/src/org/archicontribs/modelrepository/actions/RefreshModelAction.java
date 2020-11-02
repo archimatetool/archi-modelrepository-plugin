@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
@@ -139,6 +140,9 @@ public class RefreshModelAction extends AbstractModelAction {
                 }
             });
             
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);

@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
@@ -104,6 +105,9 @@ public class DeleteBranchAction extends AbstractModelAction {
             else {
                 deleteLocalBranch(branchInfo);
             }
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.DeleteBranchAction_0, ex);

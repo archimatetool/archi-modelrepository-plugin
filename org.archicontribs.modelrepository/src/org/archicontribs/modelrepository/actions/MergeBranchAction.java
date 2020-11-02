@@ -85,6 +85,9 @@ public class MergeBranchAction extends AbstractModelAction {
                 doLocalMerge(fBranchInfo);
             }
         }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+        }
         catch(Exception ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }

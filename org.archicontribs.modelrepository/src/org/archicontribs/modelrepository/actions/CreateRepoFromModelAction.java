@@ -56,7 +56,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 return;
             }
         }
-        catch(GeneralSecurityException | IOException ex) {
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+            return;
+        }
+        catch(IOException ex) {
             displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
             return;
         }

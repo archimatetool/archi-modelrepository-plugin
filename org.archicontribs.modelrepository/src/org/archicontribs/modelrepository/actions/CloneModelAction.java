@@ -6,7 +6,6 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
@@ -58,7 +57,11 @@ public class CloneModelAction extends AbstractModelAction {
                 return;
             }
         }
-        catch(GeneralSecurityException | IOException ex) {
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+            return;
+        }
+        catch(Exception ex) {
             displayErrorDialog(Messages.CloneModelAction_0, ex);
             return;
         }

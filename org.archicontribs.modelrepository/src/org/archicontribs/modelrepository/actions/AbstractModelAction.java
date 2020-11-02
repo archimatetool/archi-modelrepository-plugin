@@ -101,6 +101,11 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                     "\n" + //$NON-NLS-1$
                     message);
     }
+    
+    protected void displayCredentialsErrorDialog(Throwable ex) {
+        ex.printStackTrace();
+        displayErrorDialog(Messages.AbstractModelAction_5, Messages.AbstractModelAction_11);
+    }
 
     /**
      * Offer to save the model
