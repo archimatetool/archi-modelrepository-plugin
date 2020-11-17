@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.BranchConfig;
 import org.eclipse.jgit.lib.BranchTrackingStatus;
@@ -210,7 +211,8 @@ public class BranchInfo {
             // Else this is another branch
             else {
                 // Get all other branch refs
-                List<Ref> otherRefs = Git.wrap(repository).branchList().call();
+            	// Setting ListMode to REMOTE lists only remote branches while ALL lists remote and local branches
+                List<Ref> otherRefs = Git.wrap(repository).branchList().setListMode(ListMode.ALL).call();
                 otherRefs.remove(ref); // remove this one
                 
                 // In-built method
