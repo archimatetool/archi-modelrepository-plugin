@@ -8,12 +8,15 @@ package org.archicontribs.modelrepository.dialogs;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -45,15 +48,36 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
     
     private Label rubric;
     
+    private static final int minLength = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LENGTH);
+    private static final int minLowerCase = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LOWERCASE_CHARS);
+    private static final int minUpperCase = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_UPPERCASE_CHARS);
+    private static final int minDigits = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_DIGITS);
+    private static final int minSpecial = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_SPECIAL_CHARS);
+
     private ModifyListener listener = event -> {
-        int passwordLength = newPasswordText.getText().length();
-        boolean matches = newPasswordText.getText().equals(confirmPasswordText.getText());
-        
-        if(!matches) {
-            setErrorMessage(Messages.NewPrimaryPasswordDialog_2, false);
-        }
-        else if(passwordLength == 0) {
+        String input = newPasswordText.getText();
+        int length = input.length();
+
+        if(length == 0) {
             setErrorMessage(null, false);
+        }
+        else if(length < minLength) {
+            setErrorMessage(NLS.bind("Must be a minimum of {0} characters", minLength), false);
+        }
+        else if(countLowerCase(input) < minLowerCase) {
+            setErrorMessage(NLS.bind("Must have a minimum of {0} lower-case characters", minLowerCase), false);
+        }
+        else if(countUpperCase(input) < minUpperCase) {
+            setErrorMessage(NLS.bind("Must have a minimum of {0} upper-case characters", minUpperCase), false);
+        }
+        else if(countDigits(input) < minDigits) {
+            setErrorMessage(NLS.bind("Must have a minimum of {0} digits", minDigits), false);
+        }
+        else if(countSpecialChars(input) < minSpecial) {
+            setErrorMessage(NLS.bind("Must have a minimum of {0} special characters", minSpecial), false);
+        }
+        else if(!input.equals(confirmPasswordText.getText())) {
+            setErrorMessage(Messages.NewPrimaryPasswordDialog_2, false);
         }
         else {
             setErrorMessage(null, true);
@@ -143,6 +167,22 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         txt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         return txt;
+    }
+
+    private long countLowerCase(String inputString) {
+        return inputString.chars().filter(Character::isLowerCase).count();
+    }
+
+    private long countUpperCase(String inputString) {
+        return inputString.chars().filter(Character::isUpperCase).count();
+    }
+    
+    private long countDigits(String inputString) {
+        return inputString.chars().filter(Character::isDigit).count();
+    }
+
+    private long countSpecialChars(String inputString) {
+        return inputString.chars().filter((s) -> !Character.isAlphabetic(s) && !Character.isDigit(s)).count();
     }
 
     @Override
