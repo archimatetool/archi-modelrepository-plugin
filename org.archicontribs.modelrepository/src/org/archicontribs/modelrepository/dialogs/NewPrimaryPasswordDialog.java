@@ -14,13 +14,13 @@ import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -31,13 +31,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.IArchiImages;
+import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 
 /**
  * New Primary Password Dialog
  * 
  * @author Phil Beauvoir
  */
-public class NewPrimaryPasswordDialog extends TitleAreaDialog {
+public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
 
     private Text currentPasswordText;
     private Text newPasswordText;
@@ -48,36 +49,44 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
     
     private Label rubric;
     
-    private static final int minLength = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LENGTH);
-    private static final int minLowerCase = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LOWERCASE_CHARS);
-    private static final int minUpperCase = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_UPPERCASE_CHARS);
-    private static final int minDigits = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_DIGITS);
-    private static final int minSpecial = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_SPECIAL_CHARS);
+    private int minLowerCase = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LOWERCASE_CHARS), 0);
+    private int minUpperCase = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_UPPERCASE_CHARS), 0);
+    private int minDigits = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_DIGITS), 0);
+    private int minSpecial = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_SPECIAL_CHARS), 0);
+    private int minLength = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LENGTH),
+                                  minLowerCase + minUpperCase + minDigits + minSpecial); // maximum of minLength or sum of constraints
 
     private ModifyListener listener = event -> {
-        String input = newPasswordText.getText();
-        int length = input.length();
+        String newPassword = newPasswordText.getText();
+        int newPasswordLength = newPassword.length();
+        String confirmPassword = confirmPasswordText.getText();
+        int confirmPasswordLength = confirmPassword.length();
 
-        if(length == 0) {
+        if(newPasswordLength == 0 && confirmPasswordLength == 0) {
             setErrorMessage(null, false);
         }
-        else if(length < minLength) {
+        else if(newPasswordLength < minLength) {
             setErrorMessage(NLS.bind("Must be a minimum of {0} characters", minLength), false);
         }
-        else if(countLowerCase(input) < minLowerCase) {
+        else if(countLowerCase(newPassword) < minLowerCase) {
             setErrorMessage(NLS.bind("Must have a minimum of {0} lower-case characters", minLowerCase), false);
         }
-        else if(countUpperCase(input) < minUpperCase) {
+        else if(countUpperCase(newPassword) < minUpperCase) {
             setErrorMessage(NLS.bind("Must have a minimum of {0} upper-case characters", minUpperCase), false);
         }
-        else if(countDigits(input) < minDigits) {
+        else if(countDigits(newPassword) < minDigits) {
             setErrorMessage(NLS.bind("Must have a minimum of {0} digits", minDigits), false);
         }
-        else if(countSpecialChars(input) < minSpecial) {
+        else if(countSpecialChars(newPassword) < minSpecial) {
             setErrorMessage(NLS.bind("Must have a minimum of {0} special characters", minSpecial), false);
         }
-        else if(!input.equals(confirmPasswordText.getText())) {
-            setErrorMessage(Messages.NewPrimaryPasswordDialog_2, false);
+        else if(!newPassword.equals(confirmPassword)) {
+            if(confirmPasswordLength >= newPasswordLength) {
+                setErrorMessage(Messages.NewPrimaryPasswordDialog_2, false);
+            }
+            else {
+                setErrorMessage(null, false);
+            }
         }
         else {
             setErrorMessage(null, true);
@@ -85,7 +94,7 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
     };
 
     public NewPrimaryPasswordDialog(Shell parentShell) {
-        super(parentShell);
+        super(parentShell, "NewPrimaryPasswordDialog"); //$NON-NLS-1$
         setTitle(Messages.NewPrimaryPasswordDialog_0);
     }
 
@@ -129,7 +138,7 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         
         rubric = new Label(container1, SWT.WRAP);
         rubric.setText(Messages.NewPrimaryPasswordDialog_7);
-        GridDataFactory.create(GridData.FILL_HORIZONTAL).hint(100, SWT.DEFAULT).applyTo(rubric);
+        GridDataFactory.create(GridData.FILL_HORIZONTAL).hint(SWT.DEFAULT, SWT.DEFAULT).applyTo(rubric);
 
         Composite container2 = new Composite(container1, SWT.NONE);
         GridDataFactory.create(GridData.FILL_HORIZONTAL).applyTo(container2);
@@ -150,6 +159,31 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
         createNewPasswordRadio.setSelection(!primaryKeyFileExists);
         
         rubric.setEnabled(!primaryKeyFileExists);
+        
+        // If there is a minimum password length (either set or the sum of the password constraints) show this...
+        if(minLength > 0) {
+            String message = NLS.bind(" " + "{0} characters,", minLength); //$NON-NLS-1$
+            
+            if(minLowerCase != 0) {
+                message += NLS.bind(" " + "{0} lower case,", minLowerCase); //$NON-NLS-1$
+            }
+            if(minUpperCase != 0) {
+                message += NLS.bind(" " + "{0} upper case,", minUpperCase); //$NON-NLS-1$
+            }
+            if(minDigits != 0) {
+                message += NLS.bind(" " + "{0} digits,", minDigits); //$NON-NLS-1$
+            }
+            if(minSpecial != 0) {
+                message += NLS.bind(" " + "{0} special characters,", minSpecial); //$NON-NLS-1$
+            }
+            
+            message = message.replaceAll(",$", "."); // replace last comma with a dot //$NON-NLS-1$ //$NON-NLS-2$
+            message = "New password must have a minimum of" + message;
+            
+            Label label = new Label(container2, SWT.WRAP);
+            label.setText(message);
+            GridDataFactory.create(GridData.FILL_HORIZONTAL).hint(SWT.DEFAULT, SWT.DEFAULT).span(2, 1).applyTo(label);
+        }
         
         return area;
     }
@@ -224,5 +258,10 @@ public class NewPrimaryPasswordDialog extends TitleAreaDialog {
     protected void createButtonsForButtonBar(Composite parent) {
         super.createButtonsForButtonBar(parent);
         getButton(IDialogConstants.OK_ID).setEnabled(false);
+    }
+    
+    @Override
+    protected Point getDefaultDialogSize() {
+        return new Point(560, 410);
     }
 }
