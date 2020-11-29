@@ -49,4 +49,15 @@ public interface IPreferenceConstants {
     String PREFS_PASSWORD_MIN_UPPERCASE_CHARS = "passwordMinUpperCase";
     String PREFS_PASSWORD_MIN_DIGITS = "passwordMinDigits";
     String PREFS_PASSWORD_MIN_SPECIAL_CHARS = "passwordMinSpecialChars";
+    
+    /*
+      Password timeouts
+      
+      Can be set in plugin_customization.ini as minutes:
+         org.archicontribs.modelrepository/passwordPrimaryTimeout=10
+         org.archicontribs.modelrepository/passwordInactivityTimeout=10
+     */
+    
+    String PREFS_PRIMARY_PASSWORD_TIMEOUT = "passwordPrimaryTimeout";
+    String PREFS_PASSWORD_INACTIVITY_TIMEOUT = "passwordInactivityTimeout";
  }

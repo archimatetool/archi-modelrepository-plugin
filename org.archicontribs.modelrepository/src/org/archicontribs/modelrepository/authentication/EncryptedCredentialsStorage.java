@@ -30,6 +30,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 
@@ -57,6 +58,14 @@ public class EncryptedCredentialsStorage {
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     
+    private static long PRIMARY_PASSWORD_TIMEOUT = 
+            Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PRIMARY_PASSWORD_TIMEOUT) * 1000 * 60, 0);
+    private static long PRIMARY_PASSWORD_TIMEOUT_MARK = 0;
+    
+    private static long PASSWORD_INACTIVITY_TIMEOUT =
+            Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_INACTIVITY_TIMEOUT) * 1000 * 60, 0);
+    private static long PASSWORD_INACTIVITY_TIMEOUT_MARK = 0;
+
     /**
      * Convenience method to create new a EncryptedCredentialsStorage for a repository
      */
@@ -283,6 +292,16 @@ public class EncryptedCredentialsStorage {
      * If it is not loaded, load it from file else ask user to create a new one.
      */
     private static SecretKey getPrimaryKey() throws GeneralSecurityException, IOException {
+        // If the primary password has not been entered since last login set key to null
+        if(PRIMARY_PASSWORD_TIMEOUT != 0 && System.currentTimeMillis() - PRIMARY_PASSWORD_TIMEOUT_MARK > PRIMARY_PASSWORD_TIMEOUT) {
+            primaryKey = null;
+        }
+        
+        // If inactivity on password since last time set key to null
+        if(PASSWORD_INACTIVITY_TIMEOUT != 0 && System.currentTimeMillis() - PASSWORD_INACTIVITY_TIMEOUT_MARK > PASSWORD_INACTIVITY_TIMEOUT) {
+            primaryKey = null;
+        }
+
         if(primaryKey == null) {
             File primaryKeyFile = getPrimaryKeyFile();
             
@@ -297,7 +316,11 @@ public class EncryptedCredentialsStorage {
             else {
                 askUserToCreatePrimaryPassword();
             }
+
+            PRIMARY_PASSWORD_TIMEOUT_MARK = System.currentTimeMillis();
         }
+        
+        PASSWORD_INACTIVITY_TIMEOUT_MARK = System.currentTimeMillis();
         
         return primaryKey;
     }
