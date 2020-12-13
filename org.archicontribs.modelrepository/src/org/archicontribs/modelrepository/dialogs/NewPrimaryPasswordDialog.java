@@ -66,19 +66,19 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
             setErrorMessage(null, false);
         }
         else if(newPasswordLength < minLength) {
-            setErrorMessage(NLS.bind("Must be a minimum of {0} characters", minLength), false);
+            setErrorMessage(NLS.bind(Messages.NewPrimaryPasswordDialog_11, minLength), false);
         }
         else if(countLowerCase(newPassword) < minLowerCase) {
-            setErrorMessage(NLS.bind("Must have a minimum of {0} lower-case characters", minLowerCase), false);
+            setErrorMessage(NLS.bind(Messages.NewPrimaryPasswordDialog_12, minLowerCase), false);
         }
         else if(countUpperCase(newPassword) < minUpperCase) {
-            setErrorMessage(NLS.bind("Must have a minimum of {0} upper-case characters", minUpperCase), false);
+            setErrorMessage(NLS.bind(Messages.NewPrimaryPasswordDialog_13, minUpperCase), false);
         }
         else if(countDigits(newPassword) < minDigits) {
-            setErrorMessage(NLS.bind("Must have a minimum of {0} digits", minDigits), false);
+            setErrorMessage(NLS.bind(Messages.NewPrimaryPasswordDialog_14, minDigits), false);
         }
         else if(countSpecialChars(newPassword) < minSpecial) {
-            setErrorMessage(NLS.bind("Must have a minimum of {0} special characters", minSpecial), false);
+            setErrorMessage(NLS.bind(Messages.NewPrimaryPasswordDialog_15, minSpecial), false);
         }
         else if(!newPassword.equals(confirmPassword)) {
             if(confirmPasswordLength >= newPasswordLength) {
@@ -162,23 +162,23 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
         
         // If there is a minimum password length (either set or the sum of the password constraints) show this...
         if(minLength > 0) {
-            String message = NLS.bind(" " + "{0} characters,", minLength); //$NON-NLS-1$
+            String message = NLS.bind(" " + Messages.NewPrimaryPasswordDialog_16, minLength); //$NON-NLS-1$
             
             if(minLowerCase != 0) {
-                message += NLS.bind(" " + "{0} lower case,", minLowerCase); //$NON-NLS-1$
+                message += NLS.bind(" " + Messages.NewPrimaryPasswordDialog_17, minLowerCase); //$NON-NLS-1$
             }
             if(minUpperCase != 0) {
-                message += NLS.bind(" " + "{0} upper case,", minUpperCase); //$NON-NLS-1$
+                message += NLS.bind(" " + Messages.NewPrimaryPasswordDialog_18, minUpperCase); //$NON-NLS-1$
             }
             if(minDigits != 0) {
-                message += NLS.bind(" " + "{0} digits,", minDigits); //$NON-NLS-1$
+                message += NLS.bind(" " + Messages.NewPrimaryPasswordDialog_19, minDigits); //$NON-NLS-1$
             }
             if(minSpecial != 0) {
-                message += NLS.bind(" " + "{0} special characters,", minSpecial); //$NON-NLS-1$
+                message += NLS.bind(" " + Messages.NewPrimaryPasswordDialog_20, minSpecial); //$NON-NLS-1$
             }
             
             message = message.replaceAll(",$", "."); // replace last comma with a dot //$NON-NLS-1$ //$NON-NLS-2$
-            message = "New password must have a minimum of" + message;
+            message = Messages.NewPrimaryPasswordDialog_21 + message;
             
             Label label = new Label(container2, SWT.WRAP);
             label.setText(message);
