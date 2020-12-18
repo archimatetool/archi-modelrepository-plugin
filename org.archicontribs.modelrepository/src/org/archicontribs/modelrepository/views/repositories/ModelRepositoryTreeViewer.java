@@ -16,11 +16,11 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
-import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IDecoration;
@@ -45,6 +45,19 @@ import com.archimatetool.editor.utils.StringUtils;
  * Repository Tree Viewer
  */
 public class ModelRepositoryTreeViewer extends TreeViewer implements IRepositoryListener {
+    
+    // Cache status for expensive calls
+    private class StatusCache {
+        BranchInfo branchInfo;
+        boolean hasLocalChanges;
+        
+        public StatusCache(BranchInfo branchInfo, boolean hasLocalChanges) {
+            this.branchInfo = branchInfo;
+            this.hasLocalChanges = hasLocalChanges;
+        }
+    }
+    
+    private Map<IArchiRepository, StatusCache> cache;
 
     /**
      * Constructor
@@ -141,6 +154,27 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         return repos;
     }
     
+    /**
+     * Update the status cache
+     */
+    private void updateStatusCache(List<IArchiRepository> repos) {
+        cache = new Hashtable<IArchiRepository, StatusCache>();
+        
+        for(IArchiRepository repo : repos) {
+            try {
+                BranchInfo branchInfo = repo.getBranchStatus().getCurrentLocalBranch();
+                if(branchInfo != null) { // This can be null!!
+                    StatusCache sc = new StatusCache(branchInfo, repo.hasLocalChanges());
+                    cache.put(repo, sc);
+                }
+            }
+            catch(IOException | GitAPIException ex) {
+                ex.printStackTrace();
+                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Error getting Model Repository Status", ex); //$NON-NLS-1$
+            }
+        }
+    }
+    
     // ===============================================================================================
 	// ===================================== Tree Model ==============================================
 	// ===============================================================================================
@@ -177,7 +211,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         @Override
         public Object[] getChildren(Object parent) {
             if(parent instanceof File) {
-                return getRepositories((File)parent).toArray();
+                List<IArchiRepository> repos = getRepositories((File)parent);
+                updateStatusCache(repos); // update status cache
+                return repos.toArray();
             }
             
             return new Object[0];
@@ -194,21 +230,6 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
 	// ===============================================================================================
 
     class ModelRepoTreeLabelProvider extends CellLabelProvider {
-        // Cache status for expensive calls
-        private class StatusCache {
-            boolean hasUnpushedCommits;
-            boolean hasRemoteCommits;
-            boolean hasLocalChanges;
-            
-            public StatusCache(boolean hasUnpushedCommits, boolean hasRemoteCommits, boolean hasLocalChanges) {
-                this.hasUnpushedCommits = hasUnpushedCommits;
-                this.hasRemoteCommits = hasRemoteCommits;
-                this.hasLocalChanges = hasLocalChanges;
-            }
-        }
-        
-        Map<IArchiRepository, StatusCache> cache = new Hashtable<IArchiRepository, StatusCache>();
-        
         Image getImage(IArchiRepository repo) {
             Image image = IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
             
@@ -219,12 +240,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                             IModelRepositoryImages.ICON_LEFT_BALL_OVERLAY, IDecoration.BOTTOM_LEFT);
                 }
                 
-                if(sc.hasUnpushedCommits) {
+                if(sc.branchInfo.hasUnpushedCommits()) {
                     image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_RIGHT_BALL_OVERLAY, IDecoration.BOTTOM_RIGHT);
                 }
                 
-                if(sc.hasRemoteCommits) {
+                if(sc.branchInfo.hasRemoteCommits()) {
                     image = IModelRepositoryImages.ImageFactory.getOverlayImage(image,
                             IModelRepositoryImages.ICON_TOP_BALL_OVERLAY, IDecoration.TOP_RIGHT);
                 }
@@ -241,13 +262,13 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                 if(sc.hasLocalChanges) {
                     s += Messages.ModelRepositoryTreeViewer_2;
                 }
-                if(sc.hasUnpushedCommits) {
+                if(sc.branchInfo.hasUnpushedCommits()) {
                     if(StringUtils.isSet(s)) {
                         s += " | "; //$NON-NLS-1$
                     }
                     s += Messages.ModelRepositoryTreeViewer_0;
                 }
-                if(sc.hasRemoteCommits) {
+                if(sc.branchInfo.hasRemoteCommits()) {
                     if(StringUtils.isSet(s)) {
                         s += " | "; //$NON-NLS-1$
                     }
@@ -271,42 +292,25 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
                     return;
                 }
                 
-                try {
-                    // Check status of current branch
-                    String currentLocalBranch = ""; //$NON-NLS-1$
+                // Clear this first
+                cell.setForeground(null);
+                
+                StatusCache sc = cache.get(repo);
+                if(sc != null) {
+                    // Repository name and current branch
+                    cell.setText(repo.getName() + " [" + sc.branchInfo.getShortName() + "]"); //$NON-NLS-1$ //$NON-NLS-2$
                     
-                    BranchStatus status = repo.getBranchStatus();
-                    if(status != null) {
-                        BranchInfo branchInfo = status.getCurrentLocalBranch();
-                        if(branchInfo != null) {
-                            currentLocalBranch = branchInfo.getShortName();
-                        }
-                    }
-                    
-                    boolean hasUnpushedCommits = repo.hasUnpushedCommits(currentLocalBranch);
-                    boolean hasRemoteCommits = repo.hasRemoteCommits(currentLocalBranch);
-                    boolean hasLocalChanges = repo.hasLocalChanges();
-                    
-                    StatusCache sc = new StatusCache(hasUnpushedCommits, hasRemoteCommits, hasLocalChanges);
-                    cache.put(repo, sc);
-
                     // Red text
-                    if(hasUnpushedCommits || hasRemoteCommits || hasLocalChanges) {
+                    if(sc.branchInfo.hasUnpushedCommits() || sc.branchInfo.hasRemoteCommits() || sc.hasLocalChanges) {
                         cell.setForeground(ColorFactory.get(255, 64, 0));
                     }
-                    else {
-                        cell.setForeground(null);
-                    }
+                }
+                else {
+                    cell.setText(repo.getName());
+                }
 
-                    // Repository name and current branch
-                    cell.setText(repo.getName() + " [" + currentLocalBranch + "]"); //$NON-NLS-1$ //$NON-NLS-2$
-                    
-                    // Image
-                    cell.setImage(getImage(repo));
-                }
-                catch(IOException | GitAPIException ex) {
-                    ex.printStackTrace();
-                }
+                // Image
+                cell.setImage(getImage(repo));
             }
         }
         

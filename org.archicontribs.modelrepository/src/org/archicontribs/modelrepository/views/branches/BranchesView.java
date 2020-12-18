@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.views.branches;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.AddBranchAction;
 import org.archicontribs.modelrepository.actions.DeleteBranchAction;
+import org.archicontribs.modelrepository.actions.DeleteStaleBranchesAction;
 import org.archicontribs.modelrepository.actions.MergeBranchAction;
 import org.archicontribs.modelrepository.actions.SwitchBranchAction;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -25,9 +26,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -63,6 +62,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
     private SwitchBranchAction fActionSwitchBranch;
     private MergeBranchAction fActionMergeBranch;
     private DeleteBranchAction fActionDeleteBranch;
+    private DeleteStaleBranchesAction fActionDeleteStaleBranches;
     
     @Override
     public void createPartControl(Composite parent) {
@@ -125,11 +125,8 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         /*
          * Listen to Table Selections to update local Actions
          */
-        fBranchesTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                updateActions();
-            }
+        fBranchesTableViewer.addSelectionChangedListener((event) -> {
+            updateActions();
         });
         
         fBranchesTableViewer.addDoubleClickListener((event) -> {
@@ -154,6 +151,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         
         fActionDeleteBranch = new DeleteBranchAction(getViewSite().getWorkbenchWindow());
         fActionDeleteBranch.setEnabled(false);
+        
+        fActionDeleteStaleBranches = new DeleteStaleBranchesAction(getViewSite().getWorkbenchWindow());
+        fActionDeleteStaleBranches.setEnabled(false);
     }
 
     /**
@@ -188,6 +188,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
+        //manager.add(fActionDeleteStaleBranches);
     }
     
     /**
@@ -200,6 +201,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         fActionAddBranch.setBranch(branchInfo);
         fActionMergeBranch.setBranch(branchInfo);
         fActionDeleteBranch.setBranch(branchInfo);
+        fActionDeleteStaleBranches.setSelection(getBranchesViewer().getStructuredSelection());
     }
     
     private void fillContextMenu(IMenuManager manager) {
@@ -210,6 +212,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
         manager.add(fActionMergeBranch);
         manager.add(new Separator());
         manager.add(fActionDeleteBranch);
+        manager.add(fActionDeleteStaleBranches);
     }
 
     @Override
@@ -261,6 +264,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
             fActionSwitchBranch.setRepository(selectedRepository);
             fActionMergeBranch.setRepository(selectedRepository);
             fActionDeleteBranch.setRepository(selectedRepository);
+            fActionDeleteStaleBranches.setRepository(selectedRepository);
         }
     }
     

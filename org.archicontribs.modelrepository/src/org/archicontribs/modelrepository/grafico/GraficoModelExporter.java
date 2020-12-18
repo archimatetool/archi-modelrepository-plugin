@@ -33,8 +33,6 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
@@ -58,12 +56,12 @@ import com.archimatetool.model.IIdentifier;
 public class GraficoModelExporter {
 	
     // Use a ProgressMonitor to cancel running Jobs and track Exception
-    static class ExceptionProgressMonitor extends NullProgressMonitor {
+    private static class ExceptionProgressMonitor extends NullProgressMonitor {
         IOException ex;
         
         void catchException(IOException ex) {
             this.ex = ex;
-            setCanceled(true);
+            setCanceled(true); // Cancel running job on exception
         }
     }
     
@@ -152,16 +150,12 @@ public class GraficoModelExporter {
             job.schedule();
         }
         
-        BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    jobgroup.join(0, pm);
-                }
-                catch(OperationCanceledException | InterruptedException ex) {
-                }
-            }
-        });
+        try {
+            jobgroup.join(0, pm);
+        }
+        catch(OperationCanceledException | InterruptedException ex) {
+            throw new IOException(ex);
+        }
         
         // Throw on any exception
         if(pm.ex != null) {

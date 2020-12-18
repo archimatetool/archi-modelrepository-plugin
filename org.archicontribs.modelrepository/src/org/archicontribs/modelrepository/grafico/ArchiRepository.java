@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,6 +21,8 @@ import java.util.stream.Stream;
 
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CleanCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -36,7 +39,6 @@ import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.BranchTrackingStatus;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -54,6 +56,7 @@ import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
@@ -197,7 +200,13 @@ public class ArchiRepository implements IArchiRepository {
             PushCommand pushCommand = git.push();
             pushCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             pushCommand.setProgressMonitor(monitor);
-            return pushCommand.call();
+            
+            Iterable<PushResult> result = pushCommand.call();
+            
+            // After a successful push, ensure we are tracking the current branch
+            setTrackedBranch(git.getRepository(), git.getRepository().getBranch());
+            
+            return result;
         }
     }
     
@@ -216,7 +225,7 @@ public class ArchiRepository implements IArchiRepository {
     public FetchResult fetchFromRemote(UsernamePassword npw, ProgressMonitor monitor, boolean isDryrun) throws IOException, GitAPIException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             // Check and set tracked master branch
-            setTrackedMasterBranch(git.getRepository());
+            setTrackedBranch(git.getRepository(), IGraficoConstants.MASTER);
             FetchCommand fetchCommand = git.fetch();
             fetchCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(getOnlineRepositoryURL(), npw));
             fetchCommand.setProgressMonitor(monitor);
@@ -243,7 +252,7 @@ public class ArchiRepository implements IArchiRepository {
         setDefaultConfigSettings(git.getRepository());
         
         // Set tracked master branch
-        setTrackedMasterBranch(git.getRepository());
+        setTrackedBranch(git.getRepository(), IGraficoConstants.MASTER);
         
         return git;
     }
@@ -322,11 +331,6 @@ public class ArchiRepository implements IArchiRepository {
     public boolean isHeadAndRemoteSame() throws IOException, GitAPIException {
         try(Repository repository = Git.open(getLocalRepositoryFolder()).getRepository()) {
             // Get remote branch ref
-            BranchStatus status = getBranchStatus();
-            if(status == null) {
-                return false;
-            }
-            
             BranchInfo currentRemoteBranch = getBranchStatus().getCurrentRemoteBranch();
             if(currentRemoteBranch == null) {
                 return false;
@@ -348,49 +352,56 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     @Override
-    public boolean hasUnpushedCommits(String branch) throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
-            if(trackingStatus != null) {
-                return trackingStatus.getAheadCount() > 0;
-            }
-            return false;
-        }
-    }
-
-    @Override
-    public boolean hasRemoteCommits(String branch) throws IOException {
-        try(Git git = Git.open(getLocalRepositoryFolder())) {
-            BranchTrackingStatus trackingStatus = BranchTrackingStatus.of(git.getRepository(), branch);
-            if(trackingStatus != null) {
-                return trackingStatus.getBehindCount() > 0;
-            }
-            return false;
-        }
-    }
-    
-    @Override
     public void exportModelToGraficoFiles() throws IOException, GitAPIException {
-        // Open the model
+        // Open the model before showing the progress monitor
         IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
         
         if(model == null) {
             throw new IOException(Messages.ArchiRepository_0);
         }
         
-        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
-        exporter.exportModel();
+        final Exception[] exception = new Exception[1];
+
+        try {
+            // When using this be careful that no UI operations are called as this could lead to an SWT Invalid thread access exception
+            // This will show a Cancel button which will not cancel, but this progress monitor is the only one which does not freeze the UI
+            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+                @Override
+                public void run(IProgressMonitor pm) {
+                    pm.beginTask(Messages.ArchiRepository_1, IProgressMonitor.UNKNOWN);
+
+                    try {
+                        // Export
+                        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
+                        exporter.exportModel();
+                        
+                        // Check lock file is deleted
+                        checkDeleteLockFile();
+                        
+                        // Stage modified files to index - this can take a long time!
+                        // This will clear any different line endings and calls to git.status() will be faster
+                        try(Git git = Git.open(getLocalRepositoryFolder())) {
+                            AddCommand addCommand = git.add();
+                            addCommand.addFilepattern("."); //$NON-NLS-1$
+                            addCommand.setUpdate(false);
+                            addCommand.call();
+                        }
+                    }
+                    catch(IOException | GitAPIException ex) {
+                        exception[0] = ex;
+                    }
+                }
+            });
+        }
+        catch(InvocationTargetException | InterruptedException ex) {
+            throw new IOException(ex);
+        }
         
-        // Check lock file is deleted
-        checkDeleteLockFile();
-        
-        // Stage modified files to index
-        // This will clear any different line endings
-        try (Git git = Git.open(getLocalRepositoryFolder())) {
-            AddCommand addCommand = git.add();
-            addCommand.addFilepattern("."); //$NON-NLS-1$
-            addCommand.setUpdate(false);
-            addCommand.call();
+        if(exception[0] instanceof IOException) {
+            throw (IOException)exception[0];
+        }
+        if(exception[0] instanceof GitAPIException) {
+            throw (GitAPIException)exception[0];
         }
     }
     
@@ -473,17 +484,17 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     /**
-     * Set the tracked master branch to "origin"
-     * @param repository
-     * @throws IOException
+     * Set the given branchName to track "origin"
      */
-    private void setTrackedMasterBranch(Repository repository) throws IOException {
-        StoredConfig config = repository.getConfig();
-        String branchName = IGraficoConstants.MASTER;
-        String remoteName = IGraficoConstants.ORIGIN;
+    private void setTrackedBranch(Repository repository, String branchName) throws IOException {
+        if(branchName == null) {
+            return;
+        }
         
-        if(!remoteName.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
-            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, remoteName);
+        StoredConfig config = repository.getConfig();
+        
+        if(!IGraficoConstants.ORIGIN.equals(config.getString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_REMOTE))) {
+            config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName,  ConfigConstants.CONFIG_KEY_REMOTE, IGraficoConstants.ORIGIN);
             config.setString(ConfigConstants.CONFIG_BRANCH_SECTION, branchName, ConfigConstants.CONFIG_KEY_MERGE, Constants.R_HEADS + branchName);
             config.save();
         }

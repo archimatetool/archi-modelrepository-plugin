@@ -10,11 +10,13 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -47,8 +49,42 @@ public class SwitchBranchAction extends AbstractModelAction {
         // We need to do this to keep grafico and temp files in sync
         IArchimateModel model = getRepository().locateModel();
         if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
-            if(!offerToSaveModel(model)) {
+            int response = MessageDialog.open(MessageDialog.CONFIRM,
+                    fWindow.getShell(),
+                    Messages.AbstractModelAction_1,
+                    Messages.AbstractModelAction_2,
+                    SWT.NONE,
+                    Messages.SwitchBranchAction_2, Messages.SwitchBranchAction_3, Messages.SwitchBranchAction_4);
+            
+            // Cancel
+            if(response == 2) {
                 return;
+            }
+            
+            // Save anyway
+            try {
+                IEditorModelManager.INSTANCE.saveModel(model);
+            }
+            catch(IOException ex) {
+                displayErrorDialog(Messages.AbstractModelAction_1, ex);
+                return;
+            }
+
+            // If "no" to save then don't commit
+            if(response == 1) {
+                try {
+                    // Abort changes by resetting to HEAD
+                    getRepository().resetToRef(IGraficoConstants.HEAD);
+                    
+                    // Switch branch
+                    switchBranch(branchInfo, !isBranchRefSameAsCurrentBranchRef(branchInfo));
+                    notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
+                    
+                    return;
+                }
+                catch(IOException | GitAPIException ex) {
+                    displayErrorDialog(Messages.SwitchBranchAction_0, ex);
+                }
             }
         }
         
@@ -60,21 +96,27 @@ public class SwitchBranchAction extends AbstractModelAction {
             
             // If there are changes to commit...
             if(getRepository().hasChangesToCommit()) {
-                boolean doCommit = true;
-                
-                // If target branch ref is same as the current commit we don't actully need to commit changes
-                // But we should ask the user first...
-                // Will we require a switch to a different commit point?
-                if(isBranchRefSameAsCurrentBranchRef(branchInfo)) {
-                    // Ask user
-                    doCommit = MessageDialog.openQuestion(fWindow.getShell(), Messages.SwitchBranchAction_0,
-                            Messages.SwitchBranchAction_1);
-                }
-                
+                // Ask user
+                boolean doCommit = MessageDialog.openQuestion(fWindow.getShell(),
+                        Messages.SwitchBranchAction_0,
+                        Messages.SwitchBranchAction_1);
+
                 // Commit dialog
                 if(doCommit && !offerToCommitChanges()) {
                     return;
                 }
+
+                // User chose "no" to commit so let's make sure we proceed
+                boolean proceed = MessageDialog.openQuestion(fWindow.getShell(),
+                        Messages.SwitchBranchAction_0,
+                        Messages.SwitchBranchAction_5);
+                
+                if(!proceed) {
+                    return;
+                }
+                
+                // Abort changes by resetting to HEAD
+                getRepository().resetToRef(IGraficoConstants.HEAD);
                 
                 notifyHistoryChanged = true;
             }
@@ -85,7 +127,7 @@ public class SwitchBranchAction extends AbstractModelAction {
         catch(Exception ex) {
             displayErrorDialog(Messages.SwitchBranchAction_0, ex);
         }
-        
+
         // Notify listeners last because a new UI selection will trigger an updated BranchInfo here
         if(notifyHistoryChanged) {
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
@@ -99,8 +141,8 @@ public class SwitchBranchAction extends AbstractModelAction {
             if(branchInfo.isLocal()) {
                 git.checkout().setName(branchInfo.getFullName()).call();
             }
-            // If the branch is remote and not tracked we need create the local branch and switch to that
-            else if(branchInfo.isRemote() && !branchInfo.hasTrackedRef()) {
+            // If the branch is remote and has no local ref we need to create the local branch and switch to that
+            else if(branchInfo.isRemote() && !branchInfo.hasLocalRef()) {
                 String branchName = branchInfo.getShortName();
                 
                 // Create local branch at point of remote branch ref

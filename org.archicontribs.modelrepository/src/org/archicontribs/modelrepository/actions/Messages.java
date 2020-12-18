@@ -68,6 +68,14 @@ public class Messages extends NLS {
 
     public static String DeleteModelAction_2;
 
+    public static String DeleteStaleBranchesAction_0;
+
+    public static String DeleteStaleBranchesAction_1;
+
+    public static String DeleteStaleBranchesAction_2;
+
+    public static String DeleteStaleBranchesAction_3;
+
     public static String ExtractModelFromCommitAction_0;
 
     public static String ExtractModelFromCommitAction_1;
@@ -161,6 +169,14 @@ public class Messages extends NLS {
     public static String SwitchBranchAction_0;
 
     public static String SwitchBranchAction_1;
+
+    public static String SwitchBranchAction_2;
+
+    public static String SwitchBranchAction_3;
+
+    public static String SwitchBranchAction_4;
+
+    public static String SwitchBranchAction_5;
 
     public static String UndoLastCommitAction_0;
 

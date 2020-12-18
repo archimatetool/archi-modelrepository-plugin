@@ -322,6 +322,8 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         }
         else {
             manager.add(fActionOpen);
+            manager.add(fActionRefresh);
+            manager.add(new Separator());
             manager.add(fActionShowInHistory);
             manager.add(fActionShowInBranches);
             manager.add(new Separator());

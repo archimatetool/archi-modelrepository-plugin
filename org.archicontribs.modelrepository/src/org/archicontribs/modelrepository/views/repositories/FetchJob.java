@@ -15,6 +15,8 @@ import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -24,6 +26,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Display;
@@ -93,9 +96,21 @@ public class FetchJob extends Job {
                     npw = scs.getUsernamePassword();
                 }
 
+                // Update ProxyAuthenticator
                 ProxyAuthenticator.update(repo.getOnlineRepositoryURL());
-                repo.fetchFromRemote(npw, null, false);
+                
+                // Fetch
+                FetchResult fetchResult = repo.fetchFromRemote(npw, null, false);
+                
+                // We got here, so the tree can be refreshed later
                 needsRefresh = true;
+                
+                // Remote branches might have been deleted or added
+                if(!fetchResult.getTrackingRefUpdates().isEmpty() && !fViewer.getControl().isDisposed()) {
+                    fViewer.getControl().getDisplay().asyncExec(() -> {
+                        RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.BRANCHES_CHANGED, repo);
+                    });
+                }
             }
             catch(Exception ex) {
                 if(ex instanceof TransportException) {
