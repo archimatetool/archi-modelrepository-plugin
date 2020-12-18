@@ -7,9 +7,13 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -50,8 +54,18 @@ public class PushModelAction extends RefreshModelAction {
                 return;
             }
             
-            // Do this before opening the progress dialog
+            // Check primary key set
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+            
+            // Get this before opening the progress dialog
+            // UsernamePassword is will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
+            // User cancelled on HTTP
+            if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                return;
+            }
 
             // Do main action with PM dialog
             Display.getCurrent().asyncExec(new Runnable() {
@@ -65,6 +79,9 @@ public class PushModelAction extends RefreshModelAction {
                             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                                 try {
                                     monitor.beginTask(Messages.PushModelAction_1, -1);
+                                    
+                                    // Update Proxy
+                                    ProxyAuthenticator.update();
                                     
                                     // Pull
                                     int status = pull(npw, pmDialog);
@@ -103,6 +120,9 @@ public class PushModelAction extends RefreshModelAction {
                                     catch(IOException ex) {
                                         ex.printStackTrace();
                                     }
+                                    
+                                    // Clear Proxy
+                                    ProxyAuthenticator.clear();
                                 }
                             }
                         });
@@ -112,6 +132,9 @@ public class PushModelAction extends RefreshModelAction {
                     }
                 }
             });
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.PushModelAction_0, ex);

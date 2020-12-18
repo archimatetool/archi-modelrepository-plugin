@@ -6,10 +6,10 @@
 package org.archicontribs.modelrepository.dialogs;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -39,11 +39,11 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     private Button storeCredentialsButton;
 
     private String username;
-    private String password;
+    private char[] password;
     
-    private SimpleCredentialsStorage credentialsStorage;
+    private EncryptedCredentialsStorage credentialsStorage;
 
-    public UserNamePasswordDialog(Shell parentShell, SimpleCredentialsStorage credentialsStorage) {
+    public UserNamePasswordDialog(Shell parentShell, EncryptedCredentialsStorage credentialsStorage) {
         super(parentShell);
         setTitle(Messages.UserNamePasswordDialog_0);
         this.credentialsStorage = credentialsStorage;
@@ -98,8 +98,8 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     }
 
     private void saveInput() {
-        username = txtUsername.getText().trim();
-        password = txtPassword.getText().trim();
+        username = txtUsername.getText();
+        password = txtPassword.getTextChars();
         
         boolean doStoreInCredentialsFile = storeCredentialsButton.getSelection();
         
@@ -108,7 +108,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
             try {
                 credentialsStorage.store(username, password);
             }
-            catch(NoSuchAlgorithmException | IOException ex) {
+            catch(IOException | GeneralSecurityException ex) {
                 ex.printStackTrace();
                 MessageDialog.openError(getShell(),
                         Messages.UserNamePasswordDialog_5,
@@ -133,7 +133,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         return username;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
 }

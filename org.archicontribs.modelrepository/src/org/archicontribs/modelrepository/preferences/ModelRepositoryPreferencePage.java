@@ -7,11 +7,11 @@ package org.archicontribs.modelrepository.preferences;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.preference.PreferencePage;
@@ -39,7 +39,6 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.ui.UIUtils;
-import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -75,6 +74,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text fProxyPortTextField;
     private Text fProxyUserNameTextField;
     private Text fProxyUserPasswordTextField;
+    
+    private boolean sshPasswordChanged;
+    private boolean proxyUsernameChanged;
+    private boolean proxyPasswordChanged;
+    
+    private Button fChangePrimaryPasswordButton;
     
 	public ModelRepositoryPreferencePage() {
 		setPreferenceStore(ModelRepositoryPlugin.INSTANCE.getPreferenceStore());
@@ -152,16 +157,28 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fFetchInBackgroundIntervalSpinner.setMaximum(3000);
 
         
-        // SSH Group
-        Group sshGroup = new Group(client, SWT.NULL);
+        // Authentication
+        Group authGroup = new Group(client, SWT.NULL);
+        authGroup.setText(Messages.ModelRepositoryPreferencePage_0);
+        authGroup.setLayout(new GridLayout());
+        authGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        
+        // Primary password
+        fChangePrimaryPasswordButton = new Button(authGroup, SWT.PUSH);
+        fChangePrimaryPasswordButton.setText(Messages.ModelRepositoryPreferencePage_25);
+        fChangePrimaryPasswordButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                updatePrimaryPassword();
+            }
+        });
+        
+        // SSH Credentials
+        Group sshGroup = new Group(authGroup, SWT.NULL);
         sshGroup.setText(Messages.ModelRepositoryPreferencePage_7);
         sshGroup.setLayout(new GridLayout(3, false));
         sshGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-//        label = new Label(sshGroup, SWT.NULL);
-//        label.setText(Messages.ModelRepositoryPreferencePage_0);
-//        label.setLayoutData(gd);
-        
         label = new Label(sshGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_24);
         
@@ -198,20 +215,20 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityPasswordTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         fSSHIdentityPasswordTextField.setEnabled(false);
         
+        
+        
         // HTTP Credentials
-        Group httpGroup = new Group(client, SWT.NULL);
+        Group httpGroup = new Group(authGroup, SWT.NULL);
         httpGroup.setText(Messages.ModelRepositoryPreferencePage_9);
         httpGroup.setLayout(new GridLayout(1, false));
         httpGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-//        label = new Label(httpGroup, SWT.NULL);
-//        label.setText(Messages.ModelRepositoryPreferencePage_0);
-//        label.setLayoutData(gd);
 
         fStoreCredentialsButton = new Button(httpGroup, SWT.CHECK);
         fStoreCredentialsButton.setText(Messages.ModelRepositoryPreferencePage_8);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         fStoreCredentialsButton.setLayoutData(gd);
+        
+        
         
         // Proxy Group
         Group proxyGroup = new Group(client, SWT.NULL);
@@ -314,40 +331,55 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     }
 
     private void setValues() {
+        // Gobal user details
         PersonIdent result = getUserDetails();
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
         
+        // Workspace folder
+        fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
+        
+        // Refresh in background
+        fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
+        fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
+
+        // SSH details
         fSSHIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
         fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.SSH_CREDENTIALS_FILE));
-            fSSHIdentityPasswordTextField.setText(StringUtils.safeString(sc.getUsernamePassword().getPassword()));
+            EncryptedCredentialsStorage sshCredentials = getSSHCredentials();
+            fSSHIdentityPasswordTextField.setText(sshCredentials.hasPassword() ? "********" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            fSSHIdentityPasswordTextField.addModifyListener(event -> {
+                sshPasswordChanged = true;
+            });
         }
         catch(IOException ex) {
             ex.printStackTrace();
         }
         
-        fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
-        
-        fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
-        fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
-        
+        // Store HTTP details by default
         fStoreCredentialsButton.setSelection(getPreferenceStore().getBoolean(PREFS_STORE_REPO_CREDENTIALS));
         
+        // Proxy details
         fUseProxyButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_USE));
         fProxyHostTextField.setText(getPreferenceStore().getString(PREFS_PROXY_HOST));
         fProxyPortTextField.setText(getPreferenceStore().getString(PREFS_PROXY_PORT));
         fRequiresProxyAuthenticationButton.setSelection(getPreferenceStore().getBoolean(PREFS_PROXY_REQUIRES_AUTHENTICATION));
         
         try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
-            UsernamePassword npw = sc.getUsernamePassword();
-            fProxyUserNameTextField.setText(StringUtils.safeString(npw.getUsername()));
-            fProxyUserPasswordTextField.setText(StringUtils.safeString(npw.getPassword()));
+            EncryptedCredentialsStorage proxyCredentials = getProxyCredentials();
+            fProxyUserNameTextField.setText(proxyCredentials.getUserName());
+            fProxyUserPasswordTextField.setText(proxyCredentials.hasPassword() ? "********" : ""); //$NON-NLS-1$ //$NON-NLS-2$
+            
+            fProxyUserNameTextField.addModifyListener(event -> {
+                proxyUsernameChanged = true;
+            });
+            
+            fProxyUserPasswordTextField.addModifyListener(event -> {
+                proxyPasswordChanged = true;
+            });
         }
         catch(IOException ex) {
             ex.printStackTrace();
@@ -382,25 +414,42 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         getPreferenceStore().setValue(PREFS_PROXY_HOST, fProxyHostTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_PORT, fProxyPortTextField.getText());
         getPreferenceStore().setValue(PREFS_PROXY_REQUIRES_AUTHENTICATION, fRequiresProxyAuthenticationButton.getSelection());
+                
+        // If "requires password" selected
+        if(fSSHIdentityRequiresPasswordButton.getSelection()) {
+            // If password changed
+            if(sshPasswordChanged) {
+                try {
+                    EncryptedCredentialsStorage sshCredentials = getSSHCredentials();
+                    sshCredentials.storePassword(fSSHIdentityPasswordTextField.getTextChars());
+                }
+                catch(GeneralSecurityException | IOException ex) {
+                    ex.printStackTrace();
+                    return false;
+                }
+            }
+        }
         
-        try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.SSH_CREDENTIALS_FILE));
-            sc.store(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder().getName(), fSSHIdentityPasswordTextField.getText());
-        }
-        catch(NoSuchAlgorithmException | IOException ex) {
-            ex.printStackTrace();
-        }
+        // If "use proxy" selected
+        if(fUseProxyButton.getSelection()) {
+            EncryptedCredentialsStorage proxyCredentials = getProxyCredentials();
 
-        try {
-            SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
-            sc.store(fProxyUserNameTextField.getText(), fProxyUserPasswordTextField.getText());
+            try {
+                // Username changed
+                if(proxyUsernameChanged) {
+                    proxyCredentials.storeUserName(fProxyUserNameTextField.getText());
+                }
+                // Password changed
+                if(proxyPasswordChanged) {
+                    proxyCredentials.storePassword(fProxyUserPasswordTextField.getTextChars());
+                }
+            }
+            catch(IOException | GeneralSecurityException ex) {
+                ex.printStackTrace();
+                return false;
+            }
         }
-        catch(NoSuchAlgorithmException | IOException ex) {
-            ex.printStackTrace();
-        }
-        
+       
         return true;
     }
     
@@ -432,6 +481,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         updateProxyControls();
     }
     
+    
+    private void updatePrimaryPassword() {
+        NewPrimaryPasswordDialog dialog = new NewPrimaryPasswordDialog(getShell());
+        dialog.open();
+    }
+    
     private void updateIdentityControls() {
     	fSSHIdentityPasswordTextField.setEnabled(fSSHIdentityRequiresPasswordButton.getSelection());
     }
@@ -455,6 +510,16 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         // Default
         return new PersonIdent(getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_NAME), getPreferenceStore().getDefaultString(PREFS_COMMIT_USER_EMAIL));
+    }
+    
+    private EncryptedCredentialsStorage getSSHCredentials() {
+        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                IGraficoConstants.SSH_CREDENTIALS_FILE));
+    }
+    
+    private EncryptedCredentialsStorage getProxyCredentials() {
+        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                IGraficoConstants.PROXY_CREDENTIALS_FILE));
     }
     
     @Override

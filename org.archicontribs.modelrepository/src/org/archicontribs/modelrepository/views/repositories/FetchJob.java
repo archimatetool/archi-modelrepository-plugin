@@ -5,16 +5,15 @@
  */
 package org.archicontribs.modelrepository.views.repositories;
 
-import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -24,11 +23,9 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Display;
 
 /**
@@ -44,33 +41,50 @@ public class FetchJob extends Job {
         super("Fetch Job"); //$NON-NLS-1$
         fViewer = viewer;
         
-        IPropertyChangeListener listener = new IPropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent event) {
-                if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
-                    if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
-                        start();
-                    }
+        // Don't start until we have primary password access
+        // So disable background fetch until then
+        disablePreference();
+
+        // Preference changed to fetch in background
+        IPropertyChangeListener listener = event -> {
+            if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
+                if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
+                    start();
                 }
             }
         };
         
+        // Listen to preferences
         ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
         
-        fViewer.getControl().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
-            }
+        // Unlisten to preferences
+        fViewer.getControl().addDisposeListener(event -> {
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
         });
-        
-        start();
     }
     
-    protected void start() {
+    private void start() {
+        // Password primary key not set
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                disablePreference();
+                return;
+            }
+        }
+        catch(GeneralSecurityException | IOException ex) {
+            ex.printStackTrace();
+            disablePreference();
+            MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, Messages.FetchJob_3);
+            return;
+        }
+        
         if(canRun()) {
             schedule(1000);
         }
+    }
+    
+    private void disablePreference() {
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
     }
 
     @Override
@@ -90,18 +104,20 @@ public class FetchJob extends Job {
             
             try {
                 UsernamePassword npw = null;
-                if(GraficoUtils.isHTTP(repo.getOnlineRepositoryURL())) {
+                String url = repo.getOnlineRepositoryURL();
+                
+                if(GraficoUtils.isHTTP(url)) {
                     // Get credentials. In some public repos we can still fetch without needing a password so we try anyway
-                    SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(repo.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                    npw = scs.getUsernamePassword();
+                    EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(repo);
+                    npw = cs.getUsernamePassword();
                 }
 
                 // Update ProxyAuthenticator
-                ProxyAuthenticator.update(repo.getOnlineRepositoryURL());
-                
+                ProxyAuthenticator.update();
+
                 // Fetch
                 FetchResult fetchResult = repo.fetchFromRemote(npw, null, false);
-                
+
                 // We got here, so the tree can be refreshed later
                 needsRefresh = true;
                 
@@ -112,34 +128,46 @@ public class FetchJob extends Job {
                     });
                 }
             }
-            catch(Exception ex) {
+            catch(IOException | GitAPIException ex) {
+                ex.printStackTrace();
+                
                 if(ex instanceof TransportException) {
-                    // Seems to be the only way to trap these exceptions :-(
-                    if(ex.getMessage().contains("not authorized") || //$NON-NLS-1$
-                            ex.getMessage().contains("authentication not supported")) { //$NON-NLS-1$
-                        // Disable background fetch
-                        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
+                    disablePreference();
 
-                        // Show message
-                        Display.getDefault().asyncExec(() -> {
-                            String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
-                            message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
-                            try {
-                                message += repo.getName() + "\n"; //$NON-NLS-1$
-                                message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
-                            }
-                            catch(IOException ex1) {
-                                ex1.printStackTrace();
-                            }
-                            MessageDialog.openInformation(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
-                        });
+                    // Show message
+                    Display.getDefault().syncExec(() -> {
+                        String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
+                        message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
+                        try {
+                            message += repo.getName() + "\n"; //$NON-NLS-1$
+                            message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
+                        }
+                        catch(IOException ex1) {
+                            ex1.printStackTrace();
+                        }
+                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
+                    });
 
-                        return Status.OK_STATUS;
-                    }
+                    return Status.OK_STATUS;
                 }
-                else {
-                    ex.printStackTrace();
-                }
+            }
+            // Encrypted password key error
+            catch(GeneralSecurityException ex) {
+                ex.printStackTrace();
+                
+                // Disable background fetch
+                disablePreference();
+                
+                Display.getDefault().syncExec(() -> {
+                    String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
+                    MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
+                });
+
+                return Status.OK_STATUS;
+            }
+            finally {
+                // Clear ProxyAuthenticator
+                ProxyAuthenticator.clear();
             }
         }
 

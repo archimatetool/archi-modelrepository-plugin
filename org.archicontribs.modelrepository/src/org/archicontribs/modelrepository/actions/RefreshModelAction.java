@@ -7,8 +7,10 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
@@ -80,8 +82,18 @@ public class RefreshModelAction extends AbstractModelAction {
                 return;
             }
             
-            // Do this before opening the progress dialog
+            // Check primary key set
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+
+            // Get this before opening the progress dialog
+            // UsernamePassword will be null if using SSH
             UsernamePassword npw = getUsernamePassword();
+            // User cancelled on HTTP
+            if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+                return;
+            }
 
             // Do main action with PM dialog
             Display.getCurrent().asyncExec(new Runnable() {
@@ -94,6 +106,9 @@ public class RefreshModelAction extends AbstractModelAction {
                             @Override
                             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                                 try {
+                                    // Update Proxy
+                                    ProxyAuthenticator.update();
+                                    
                                     monitor.beginTask(Messages.RefreshModelAction_5, -1);
                                     int status = pull(npw, pmDialog);
                                     if(status == PULL_STATUS_UP_TO_DATE) {
@@ -112,6 +127,9 @@ public class RefreshModelAction extends AbstractModelAction {
                                     catch(IOException ex) {
                                         ex.printStackTrace();
                                     }
+                                    
+                                    // Clear Proxy
+                                    ProxyAuthenticator.clear();
                                 }
                             }
                         });
@@ -122,6 +140,9 @@ public class RefreshModelAction extends AbstractModelAction {
                 }
             });
             
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);
@@ -148,9 +169,6 @@ public class RefreshModelAction extends AbstractModelAction {
             }
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
         }
-        
-        // Proxy update
-        ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
         
         return USER_OK;
     }

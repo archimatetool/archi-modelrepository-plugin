@@ -116,13 +116,13 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
                 }
 
                 @Override
-                public String getIdentityPassword() {
-                    return password;
+                public char[] getIdentityPassword() {
+                    return password.toCharArray();
                 }
             });
             
             IArchiRepository repo = new ArchiRepository(cloneFolder);
-            repo.cloneModel(url, new UsernamePassword(username, password), null);
+            repo.cloneModel(url, new UsernamePassword(username, password.toCharArray()), null);
             
             logMessage(Messages.LoadModelFromRepositoryProvider_5);
         }
