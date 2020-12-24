@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.bouncycastle.bcpg_1.60.0.v20181210-2057.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.bouncycastle.bcpkix_1.60.0.v20181210-2057.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.bouncycastle.bcprov_1.60.0.v20181210-2057.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit_5.3.0.201903130848-r.jar" sourcepath="lib/org.eclipse.jgit.source_5.3.0.201903130848-r.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/javaewah_1.1.6.v20160919-1400.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.slf4j.api_1.7.2.v20121108-1250.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.jcraft.jzlib_1.1.1.v201205102305.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit.ssh.jsch_5.9.0.202009080501-r.jar" sourcepath="libsrc/org.eclipse.jgit.ssh.jsch.source_5.9.0.202009080501-r.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit_5.9.0.202009080501-r.jar" sourcepath="libsrc/org.eclipse.jgit.source_5.9.0.202009080501-r.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/com.jcraft.jsch_0.1.55.v20190404-1902.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/javaewah_1.1.7.v20200107-0831.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
