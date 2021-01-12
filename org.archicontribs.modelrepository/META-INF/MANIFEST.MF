@@ -8,7 +8,7 @@ Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.6.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
 Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.actions,
