@@ -30,6 +30,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
@@ -50,11 +51,6 @@ public class EncryptedCredentialsStorage {
      */
     private static final String PRIMARY_KEY_FILE = "primary_key";
 
-    /**
-     * File name of secure user name/password for each git repo
-     */
-    private static final String SECURE_REPO_CREDENTIALS_FILE = "secure_credentials";
-    
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     
@@ -70,7 +66,7 @@ public class EncryptedCredentialsStorage {
      * Convenience method to create new a EncryptedCredentialsStorage for a repository
      */
     public static EncryptedCredentialsStorage forRepository(IArchiRepository repository) {
-        return new EncryptedCredentialsStorage(new File(repository.getLocalGitFolder(), SECURE_REPO_CREDENTIALS_FILE));
+        return new EncryptedCredentialsStorage(new File(repository.getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
     }
     
     private File fStorageFile;
