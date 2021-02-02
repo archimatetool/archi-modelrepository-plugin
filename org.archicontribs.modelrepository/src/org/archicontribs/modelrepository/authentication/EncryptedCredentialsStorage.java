@@ -208,7 +208,7 @@ public class EncryptedCredentialsStorage {
         
         // If there is a password or a user name
         if(hasPassword() || StringUtils.isSet(getUserName())) {
-            getCredentialsFile().getParentFile().mkdirs();
+            credentialsFile.getParentFile().mkdirs(); // Ensure parent folder exists
             
             try(FileOutputStream out = new FileOutputStream(credentialsFile)) {
                 fProperties.store(out, null);
@@ -364,8 +364,16 @@ public class EncryptedCredentialsStorage {
         Cipher cipher = makeCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
         byte[] keybytes = cipher.doFinal(key.getEncoded());
         
+        File primaryKeyFile = getPrimaryKeyFile();
+        
+        // Ensure parent folder exists
+        File parentFolder = primaryKeyFile.getParentFile();
+        if(parentFolder != null) {
+            parentFolder.mkdirs();
+        }
+        
         // Save it
-        try(FileOutputStream fos = new FileOutputStream(getPrimaryKeyFile())) {
+        try(FileOutputStream fos = new FileOutputStream(primaryKeyFile)) {
             // Store the password salt first
             fos.write(salt);
             
