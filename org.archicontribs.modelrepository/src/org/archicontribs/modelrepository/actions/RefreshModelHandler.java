@@ -26,7 +26,7 @@ public class RefreshModelHandler extends AbstractModelSelectionHandler {
         IArchimateModel model = getActiveArchimateModel();
         
         if(model != null) {
-            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+            RefreshModelAction2 action = new RefreshModelAction2(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
             action.run();
         }
         

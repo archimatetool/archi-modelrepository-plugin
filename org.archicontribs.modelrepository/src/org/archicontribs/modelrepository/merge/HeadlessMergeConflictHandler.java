@@ -37,15 +37,16 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateModel;
 
 /**
- * Handle Merge Conflicts on a MergeResult
+ * Handle Merge Conflicts on a MergeResult without UI interaction
  * 
  * @author Phillip Beauvoir
+ * @author Michael Ansley
+ * 
  */
-public class MergeConflictHandler  implements IMergeConflictHandler {
+public class HeadlessMergeConflictHandler implements IMergeConflictHandler {
     
     private IArchiRepository fArchiRepo;
     private MergeResult fMergeResult;
-    private Shell fShell;
     
     private String fTheirRef;
     
@@ -55,11 +56,10 @@ public class MergeConflictHandler  implements IMergeConflictHandler {
     
     private IProgressMonitor fProgressMonitor;
 
-    public MergeConflictHandler(MergeResult mergeResult, String theirRef, IArchiRepository repo, Shell shell) {
+    public HeadlessMergeConflictHandler(MergeResult mergeResult, String theirRef, IArchiRepository repo) {
         fMergeResult = mergeResult;
         fArchiRepo = repo;
         fTheirRef = theirRef;
-        fShell = shell;
     }
     
     public void init(IProgressMonitor pm) throws IOException, GitAPIException {
@@ -84,11 +84,6 @@ public class MergeConflictHandler  implements IMergeConflictHandler {
         for(String xmlPath : fMergeResult.getConflicts().keySet()) {
             fMergeObjectInfos.add(new MergeObjectInfo(xmlPath, this));
         }
-    }
-    
-    public boolean openConflictsDialog(String message) {
-        Dialog dialog = new ConflictsDialog(fShell, this, message);
-        return dialog.open() == Window.OK ? true : false;
     }
     
     /**
@@ -167,6 +162,7 @@ public class MergeConflictHandler  implements IMergeConflictHandler {
     /**
      * Extract a model from either our latest commit or their latest online commit
      * ref = "refs/head/master" or "origin/master"
+     * @throws IOException 
      * @throws CanceledException 
      */
     private IArchimateModel extractModel(String ref) throws IOException, CanceledException {
@@ -202,7 +198,6 @@ public class MergeConflictHandler  implements IMergeConflictHandler {
                     if(fProgressMonitor != null && fProgressMonitor.isCanceled()) {
                         throw new CanceledException(Messages.MergeConflictHandler_2);
                     }
-                    
                     ObjectId objectId = treeWalk.getObjectId(0);
                     ObjectLoader loader = repository.open(objectId);
                     
@@ -221,6 +216,11 @@ public class MergeConflictHandler  implements IMergeConflictHandler {
         IArchimateModel model = importer.importAsModel();
         FileUtils.deleteFolder(tmpFolder);
         return model;
+    }
+    
+    public boolean openConflictsDialog(String message, Shell shell) {
+        Dialog dialog = new ConflictsDialog(shell, this, message);
+        return dialog.open() == Window.OK ? true : false;
     }
     
 }

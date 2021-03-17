@@ -26,7 +26,7 @@ public class CommitModelHandler extends AbstractModelSelectionHandler {
         IArchimateModel model = getActiveArchimateModel();
         
         if(model != null) {
-            CommitModelAction action = new CommitModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+            CommitModelAction2 action = new CommitModelAction2(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
             action.run();
         }
         

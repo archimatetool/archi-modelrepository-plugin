@@ -88,7 +88,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         abstract void setMergeInfo(MergeObjectInfo mergeInfo);
     }
     
-    private MergeConflictHandler fHandler;
+    private IMergeConflictHandler fHandler;
     
     private String fMessage;
     
@@ -108,7 +108,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             Messages.ConflictsDialog_1
     };
     
-    ConflictsDialog(Shell parentShell, MergeConflictHandler handler, String message) {
+    ConflictsDialog(Shell parentShell, IMergeConflictHandler handler, String message) {
         super(parentShell, DIALOG_ID);
         setTitle(Messages.ConflictsDialog_2);
         fHandler = handler;

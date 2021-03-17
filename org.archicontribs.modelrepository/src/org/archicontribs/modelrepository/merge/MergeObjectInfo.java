@@ -22,7 +22,7 @@ import com.archimatetool.model.util.ArchimateModelUtils;
  */
 class MergeObjectInfo {
 
-    private MergeConflictHandler handler;
+    private IMergeConflictHandler handler;
 
     private String xmlPath;
     
@@ -35,7 +35,7 @@ class MergeObjectInfo {
     // User's choice
     private int userChoice = OURS;
 
-    MergeObjectInfo(String xmlPath, MergeConflictHandler handler) throws IOException {
+    MergeObjectInfo(String xmlPath, IMergeConflictHandler handler) throws IOException {
         this.handler = handler;
         this.xmlPath = xmlPath;
         

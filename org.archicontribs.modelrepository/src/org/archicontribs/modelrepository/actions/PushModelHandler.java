@@ -26,7 +26,7 @@ public class PushModelHandler extends AbstractModelSelectionHandler {
         IArchimateModel model = getActiveArchimateModel();
         
         if(model != null) {
-            PushModelAction action = new PushModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+            PushModelAction2 action = new PushModelAction2(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
             action.run();
         }
         

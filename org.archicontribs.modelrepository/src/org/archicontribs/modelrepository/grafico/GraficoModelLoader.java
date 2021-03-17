@@ -61,13 +61,15 @@ public class GraficoModelLoader {
      */
     public IArchimateModel loadModel() throws IOException {
         fRestoredObjects = null;
+        boolean wbRunning = PlatformUI.isWorkbenchRunning();
         
         // Store ids of open diagrams
         List<String> openModelIDs = null;
         
         // Close the real model if it is already open - do this first!
         IArchimateModel model = fRepository.locateModel();
-        if(model != null) {
+        // Managing the UI is only relevant if there is one
+        if((model != null) && wbRunning) {
             openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
             IEditorModelManager.INSTANCE.closeModel(model);
             while(Display.getCurrent().readAndDispatch()); // Stops flickering in tree
@@ -78,15 +80,25 @@ public class GraficoModelLoader {
         
         IArchimateModel[] graficoModel = new IArchimateModel[1];
         IOException[] exception = new IOException[1];
-        
-        BusyIndicator.showWhile(Display.getCurrent(), () -> {
+
+        // Managing the UI is only relevant if there is one
+        if (wbRunning) {
+	        BusyIndicator.showWhile(Display.getCurrent(), () -> {
+	            try {
+	                graficoModel[0] = importer.importAsModel();
+	            }
+	            catch(IOException ex) {
+	                exception[0] = ex;
+	            }
+	        });
+        } else {
             try {
                 graficoModel[0] = importer.importAsModel();
             }
             catch(IOException ex) {
                 exception[0] = ex;
             }
-        });
+        }
         
         if(exception[0] != null) {
             throw exception[0];
@@ -108,8 +120,8 @@ public class GraficoModelLoader {
         // Save it
         IEditorModelManager.INSTANCE.saveModel(graficoModel[0]);
         
-        // And re-open it if we already had it open
-        if(model != null) {
+        // And re-open it if we already had it open, if there is a UI running
+        if((model != null) && wbRunning) {
             IEditorModelManager.INSTANCE.openModel(graficoModel[0]);
             reopenEditors(graficoModel[0], openModelIDs);
         }

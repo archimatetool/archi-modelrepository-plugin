@@ -350,13 +350,36 @@ public class ArchiRepository implements IArchiRepository {
             return headRef.getObjectId().equals(remoteRef.getObjectId());
         }
     }
+
+    /**
+     * Headless export function
+     * 
+     * @param model	The model to export into git working folders
+     */
+    private void doExport(IArchimateModel model) throws IOException, GitAPIException {
+        // Export
+        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
+        exporter.exportModel();
+        
+        // Check lock file is deleted
+        checkDeleteLockFile();
+        
+        // Stage modified files to index - this can take a long time!
+        // This will clear any different line endings and calls to git.status() will be faster
+        try(Git git = Git.open(getLocalRepositoryFolder())) {
+            AddCommand addCommand = git.add();
+            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.setUpdate(false);
+            addCommand.call();
+        }
+    }
     
     @Override
     public void exportModelToGraficoFiles() throws IOException, GitAPIException {
         // Open the model before showing the progress monitor
-        IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
-        
-        if(model == null) {
+    	IArchimateModel model = IEditorModelManager.INSTANCE.openModel(getTempModelFile());
+
+    	if(model == null) {
             throw new IOException(Messages.ArchiRepository_0);
         }
         
@@ -365,33 +388,28 @@ public class ArchiRepository implements IArchiRepository {
         try {
             // When using this be careful that no UI operations are called as this could lead to an SWT Invalid thread access exception
             // This will show a Cancel button which will not cancel, but this progress monitor is the only one which does not freeze the UI
-            PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-                @Override
-                public void run(IProgressMonitor pm) {
-                    pm.beginTask(Messages.ArchiRepository_1, IProgressMonitor.UNKNOWN);
-
-                    try {
-                        // Export
-                        GraficoModelExporter exporter = new GraficoModelExporter(model, getLocalRepositoryFolder());
-                        exporter.exportModel();
-                        
-                        // Check lock file is deleted
-                        checkDeleteLockFile();
-                        
-                        // Stage modified files to index - this can take a long time!
-                        // This will clear any different line endings and calls to git.status() will be faster
-                        try(Git git = Git.open(getLocalRepositoryFolder())) {
-                            AddCommand addCommand = git.add();
-                            addCommand.addFilepattern("."); //$NON-NLS-1$
-                            addCommand.setUpdate(false);
-                            addCommand.call();
-                        }
-                    }
-                    catch(IOException | GitAPIException ex) {
-                        exception[0] = ex;
-                    }
+        	if (PlatformUI.isWorkbenchRunning()) {
+	        	PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+	                @Override
+	                public void run(IProgressMonitor pm) {
+	                    pm.beginTask(Messages.ArchiRepository_1, IProgressMonitor.UNKNOWN);
+	
+	                    try {
+	                    	doExport(model);
+	                    }
+	                    catch(IOException | GitAPIException ex) {
+	                        exception[0] = ex;
+	                    }
+	                }
+	        	});
+            } else {
+                try {
+                	doExport(model);
                 }
-            });
+                catch(IOException | GitAPIException ex) {
+                    exception[0] = ex;
+                }
+            }
         }
         catch(InvocationTargetException | InterruptedException ex) {
             throw new IOException(ex);

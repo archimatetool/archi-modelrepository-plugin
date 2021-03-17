@@ -36,6 +36,8 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	private IArchiRepository fRepository;
 	
 	protected IWorkbenchWindow fWindow;
+	protected String fCommitMessage = "";
+	protected boolean fAmend = false;
 	
 	protected AbstractModelAction(IWorkbenchWindow window) {
 	    fWindow = window;
@@ -106,7 +108,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         ex.printStackTrace();
         displayErrorDialog(Messages.AbstractModelAction_5, Messages.AbstractModelAction_11);
     }
-
+    
     /**
      * Offer to save the model
      * @param model
@@ -125,6 +127,18 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 displayErrorDialog(Messages.AbstractModelAction_1, ex);
             }
         }
+        
+        return doSave;
+    }
+
+    /**
+     * Ask the user whether to save the model
+     * @param model
+     */
+    protected boolean shouldSaveModel(IArchimateModel model) {
+        boolean doSave = MessageDialog.openConfirm(fWindow.getShell(),
+                Messages.AbstractModelAction_1,
+                Messages.AbstractModelAction_2);
         
         return doSave;
     }
@@ -152,6 +166,24 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 return false;
             }
             
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Ask the user whether to commit changes
+     * @return true if successful, false otherwise
+     */
+    protected boolean shouldCommitChanges() {
+        CommitDialog commitDialog = new CommitDialog(fWindow.getShell(), getRepository());
+        int response = commitDialog.open();
+        
+        if(response == Window.OK) {
+            fCommitMessage = commitDialog.getCommitMessage();
+            fAmend = commitDialog.getAmend();
+                        
             return true;
         }
         
