@@ -9,6 +9,12 @@
             id="org.archicontribs.modelrepository.commandlineCloneModel"
             name="Load &amp; Clone Collaboration Model">
       </commandlineProvider>
+      <commandlineProvider
+            class="org.archicontribs.modelrepository.commandline.UpdateModelToRepositoryProvider"
+            description="Load and/or clone from a local or online collaboration repository and set to the current model"
+            id="org.archicontribs.modelrepository.commandlineUpdateModel"
+            name="Commit &amp; Publish Collaboration Model">
+      </commandlineProvider>
    </extension>
 
 </plugin>
