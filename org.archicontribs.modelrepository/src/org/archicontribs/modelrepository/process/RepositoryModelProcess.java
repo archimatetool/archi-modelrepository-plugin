@@ -76,24 +76,22 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class RepositoryModelProcess {
 
-    public static final String NOTIFY_LOG_MESSAGE = Messages.AbstractRepositoryModelProcess_0; //$NON-NLS-1$
-    public static final String NOTIFY_LOG_ERROR = Messages.AbstractRepositoryModelProcess_3; //$NON-NLS-1$
-    // TODO: Not used, can be removed
-    public static final String NOTIFY_STATUS_UPDATE = Messages.AbstractRepositoryModelProcess_4; //$NON-NLS-1$
+    public static final String NOTIFY_LOG_MESSAGE = Messages.RepositoryModelProcess_0; //$NON-NLS-1$
+    public static final String NOTIFY_LOG_ERROR = Messages.RepositoryModelProcess_1; //$NON-NLS-1$
 
 	public static final int PROCESS_COMMIT = 1;
 	public static final int PROCESS_REFRESH = 2;
 	public static final int PROCESS_PUBLISH = 3;
 	
-	public static final String NOTIFY_START_COMMIT = Messages.AbstractRepositoryModelProcess_7; //$NON-NLS-1$
-    public static final String NOTIFY_END_COMMIT = Messages.AbstractRepositoryModelProcess_8; //$NON-NLS-1$
-    public static final String NOTIFY_START_PULL = Messages.RefreshModelProcess_10;
-    public static final String NOTIFY_PULL_STATUS = Messages.RefreshModelProcess_12;
-    public static final String NOTIFY_END_PULL = Messages.RefreshModelProcess_13;
+	public static final String NOTIFY_START_COMMIT = Messages.RepositoryModelProcess_2; //$NON-NLS-1$
+    public static final String NOTIFY_END_COMMIT = Messages.RepositoryModelProcess_3; //$NON-NLS-1$
+    public static final String NOTIFY_START_PULL = Messages.RefreshModelProcess_6;
+    public static final String NOTIFY_PULL_STATUS = Messages.RefreshModelProcess_8;
+    public static final String NOTIFY_END_PULL = Messages.RefreshModelProcess_10;
     public static final String NOTIFY_START_PUSH = Messages.PushModelProcess_2;
-    public static final String NOTIFY_END_PUSH = Messages.PushModelProcess_5;
+    public static final String NOTIFY_END_PUSH = Messages.PushModelProcess_3;
 
-    public static final String ACTION_REQUEST_CONFLICT_RESOLUTION = Messages.RefreshModelProcess_18;
+    public static final String ACTION_REQUEST_CONFLICT_RESOLUTION = Messages.RefreshModelProcess_15;
 
     public static final int PULL_STATUS_ERROR = -1;
     public static final int PULL_STATUS_OK = 0;
@@ -150,8 +148,8 @@ public class RepositoryModelProcess {
     
     public void run() {
 
-    	String messageSummary = Messages.AbstractRepositoryModelProcess_9;
-		if (fProcessCommand==PROCESS_COMMIT) messageSummary = Messages.AbstractRepositoryModelProcess_2;
+    	String messageSummary = Messages.RepositoryModelProcess_4;
+		if (fProcessCommand==PROCESS_COMMIT) messageSummary = Messages.CommitModelProcess_2;
 		if (fProcessCommand==PROCESS_REFRESH) messageSummary = Messages.RefreshModelProcess_0;
 		if (fProcessCommand==PROCESS_PUBLISH) messageSummary = Messages.PushModelProcess_0;
 
@@ -159,7 +157,7 @@ public class RepositoryModelProcess {
 
         	// Are we enabled to run?
         	if (!isEnabled()) {
-        		logError(messageSummary, Messages.AbstractRepositoryModelProcess_12);
+        		logError(messageSummary, Messages.RepositoryModelProcess_7);
         		return;
         	}
         	
@@ -175,10 +173,10 @@ public class RepositoryModelProcess {
             // Then commit
             try {
                 if(getRepository().hasChangesToCommit()) {
-            		sendSimpleEvent(NOTIFY_START_COMMIT, messageSummary, Messages.CommitModelProcess_6);
+            		sendSimpleEvent(NOTIFY_START_COMMIT, messageSummary, Messages.CommitModelProcess_1);
             		getRepository().commitChanges(fCommitMessage, fAmend);
                     getRepository().saveChecksum();
-                    sendSimpleEvent(NOTIFY_END_COMMIT, messageSummary, Messages.CommitModelProcess_1);
+                    sendSimpleEvent(NOTIFY_END_COMMIT, messageSummary, Messages.CommitModelProcess_0);
                 }
             }
             catch(Exception ex) {
@@ -190,7 +188,7 @@ public class RepositoryModelProcess {
 
 
             if ((fProcessCommand == PROCESS_REFRESH) || (fProcessCommand == PROCESS_PUBLISH)) {
-	            sendSimpleEvent(NOTIFY_START_PULL, messageSummary, Messages.RefreshModelProcess_6);
+	            sendSimpleEvent(NOTIFY_START_PULL, messageSummary, Messages.RefreshModelProcess_8);
 	            try {
 		            int status = pull();
 		            switch (status) {
@@ -198,15 +196,15 @@ public class RepositoryModelProcess {
 		            									sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_2);
 		            									break;
 		            	case PULL_STATUS_OK: 			sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_OK), "");
-														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_14);
+														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_11);
 														break;
 		            	case PULL_STATUS_MERGE_CANCEL:	sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_MERGE_CANCEL), "");
-														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_15);
+														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_13);
 		            									break;
 		            	case PULL_STATUS_ERROR:			sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_ERROR), "");
-		            									sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_16);
+		            									sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_14);
 		            									break;
-		            	default:						logError(messageSummary, Messages.RefreshModelProcess_11);
+		            	default:						logError(messageSummary, Messages.RefreshModelProcess_12);
 		            									break;
 		            }
 		            
@@ -231,7 +229,7 @@ public class RepositoryModelProcess {
 	                    if(sb.length() != 0) {
 	                        logError(messageSummary, sb.toString());
 	                    }
-	                    sendSimpleEvent(NOTIFY_END_PUSH, messageSummary, Messages.PushModelProcess_5);
+	                    sendSimpleEvent(NOTIFY_END_PUSH, messageSummary, Messages.PushModelProcess_4);
 	                }
 	
 	            } catch(Exception ex) {
@@ -266,7 +264,7 @@ public class RepositoryModelProcess {
     protected int pull() throws IOException, GitAPIException  {
         PullResult pullResult = null;
         
-        getProgressMonitor().subTask(Messages.RefreshModelProcess_6);
+        getProgressMonitor().subTask(Messages.RefreshModelProcess_8);
         
         try {
             pullResult = getRepository().pullFromRemote(getUsernamePassword(), new ProgressMonitorWrapper(getProgressMonitor()));
@@ -295,7 +293,7 @@ public class RepositoryModelProcess {
             return PULL_STATUS_UP_TO_DATE;
         }
 
-        getProgressMonitor().subTask(Messages.RefreshModelProcess_7);
+        getProgressMonitor().subTask(Messages.RefreshModelProcess_6);
         
         BranchStatus branchStatus = getRepository().getBranchStatus();
         
@@ -336,7 +334,7 @@ public class RepositoryModelProcess {
                 return PULL_STATUS_MERGE_CANCEL;
             }
             
-            getProgressMonitor().subTask(Messages.RefreshModelProcess_8);
+            getProgressMonitor().subTask(Messages.RefreshModelProcess_7);
             // Reload the model from the Grafico XML files
             try {
             	loader.loadModel();
@@ -346,7 +344,7 @@ public class RepositoryModelProcess {
             	throw ex;
             }
         } else { 
-            getProgressMonitor().subTask(Messages.RefreshModelProcess_8);
+            getProgressMonitor().subTask(Messages.RefreshModelProcess_7);
 		    // Reload the model from the Grafico XML files
 			loader.loadModel();
         }
@@ -449,9 +447,10 @@ public class RepositoryModelProcess {
     protected boolean sendComplexEvent(String eventType) {
     	if (fEventListener!=null) {
     		return fEventListener.actionComplexEvent(eventType, getLogPrefix(), this);
+    	} else {
+	    	logMessage(Messages.RepositoryModelProcess_6, Messages.RepositoryModelProcess_5);
+	    	return true;
     	}
-    	logMessage(Messages.AbstractRepositoryModelProcess_11, Messages.AbstractRepositoryModelProcess_10);
-    	return true;
     }
 
     /**
