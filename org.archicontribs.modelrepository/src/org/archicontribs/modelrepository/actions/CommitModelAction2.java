@@ -11,6 +11,7 @@ import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.merge.IMergeConflictHandler;
 import org.archicontribs.modelrepository.process.IRepositoryProcessListener;
 import org.archicontribs.modelrepository.process.RepositoryModelProcess;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -112,18 +113,18 @@ public class CommitModelAction2 extends AbstractModelAction implements IReposito
     }
 
 	@Override
-	public void actionSimpleEvent(String eventType, String object, String summary, String detail) {
-		if (eventType.equals(RepositoryModelProcess.NOTIFY_LOG_ERROR)) {
+	public void notifyEvent(int eventType, String object, String summary, String detail) {
+		if (eventType==RepositoryModelProcess.NOTIFY_LOG_ERROR) {
 			displayErrorDialog(summary, detail);
-		} else if (eventType.equals(RepositoryModelProcess.NOTIFY_LOG_MESSAGE)){
+		} else if (eventType==RepositoryModelProcess.NOTIFY_LOG_MESSAGE){
             MessageDialog.openInformation(fWindow.getShell(), summary, detail);
-		} else if (eventType.equals(RepositoryModelProcess.NOTIFY_END_COMMIT) ) {
+		} else if (eventType==RepositoryModelProcess.NOTIFY_END_COMMIT) {
             notifyChangeListeners(IRepositoryListener.HISTORY_CHANGED);
 		}
 	}
 
 	@Override
-	public boolean actionComplexEvent(String eventType, String object, RepositoryModelProcess process) {
+	public boolean resolveConflicts(IMergeConflictHandler conflictHandler) {
 		// TODO Auto-generated method stub
 		return true;
 	}

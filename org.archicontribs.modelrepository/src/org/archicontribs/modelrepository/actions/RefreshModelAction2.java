@@ -14,6 +14,8 @@ import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.merge.IMergeConflictHandler;
+import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.archicontribs.modelrepository.process.IRepositoryProcessListener;
 import org.archicontribs.modelrepository.process.RepositoryModelProcess;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -174,14 +176,14 @@ public class RefreshModelAction2 extends AbstractModelAction implements IReposit
     }
 
 	@Override
-	public void actionSimpleEvent(String eventType, String object, String summary, String detail) {
-        if(eventType.equals(RepositoryModelProcess.NOTIFY_PULL_STATUS)) {
+	public void notifyEvent(int eventType, String object, String summary, String detail) {
+        if(eventType==RepositoryModelProcess.NOTIFY_PULL_STATUS) {
         	if (summary.equals(String.valueOf(RepositoryModelProcess.PULL_STATUS_UP_TO_DATE))) {
         		MessageDialog.openInformation(fWindow.getShell(), Messages.RefreshModelAction_0, Messages.RefreshModelAction_2);
         	}
-        } else if (eventType.equals(RepositoryModelProcess.NOTIFY_LOG_ERROR)) {
+        } else if (eventType==RepositoryModelProcess.NOTIFY_LOG_ERROR) {
     		MessageDialog.openError(fWindow.getShell(), summary, detail);
-        } else if (eventType.equals(RepositoryModelProcess.NOTIFY_LOG_MESSAGE)) {
+        } else if (eventType==RepositoryModelProcess.NOTIFY_LOG_MESSAGE) {
     		MessageDialog.openInformation(fWindow.getShell(), summary, detail);
         }
         
@@ -189,20 +191,16 @@ public class RefreshModelAction2 extends AbstractModelAction implements IReposit
 	}
 
 	@Override
-	public boolean actionComplexEvent(String eventType, String object, RepositoryModelProcess process) {
-		if (eventType.equals(RepositoryModelProcess.ACTION_REQUEST_CONFLICT_RESOLUTION)) {
-			try {
-				RepositoryModelProcess proc = (RepositoryModelProcess) process;
-	            String dialogMessage = NLS.bind(Messages.RefreshModelAction_4, proc.getRepository().getBranchStatus().getCurrentLocalBranch().getShortName());
-	
-	            return proc.getConflictHandler().openConflictsDialog(dialogMessage, fWindow.getShell());
-		        
-			} catch (IOException | GitAPIException ex) {
-        		MessageDialog.openError(fWindow.getShell(), Messages.RefreshModelAction_0, ex.getMessage());
-				return false;
-			}
-			
+	public boolean resolveConflicts(IMergeConflictHandler conflictHandler) {
+		try {
+            String dialogMessage = NLS.bind(Messages.RefreshModelAction_4, conflictHandler.getArchiRepository().getBranchStatus().getCurrentLocalBranch().getShortName());
+
+            MergeConflictHandler c = (MergeConflictHandler) conflictHandler;
+            return c.openConflictsDialog(dialogMessage);
+	        
+		} catch (IOException | GitAPIException ex) {
+    		MessageDialog.openError(fWindow.getShell(), Messages.RefreshModelAction_0, ex.getMessage());
+			return false;
 		}
-		return true;
 	}
 }

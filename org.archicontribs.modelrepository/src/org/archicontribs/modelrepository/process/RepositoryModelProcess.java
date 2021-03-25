@@ -7,7 +7,6 @@ package org.archicontribs.modelrepository.process;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-
 import org.archicontribs.modelrepository.actions.ProgressMonitorWrapper;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
@@ -17,8 +16,10 @@ import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.merge.HeadlessMergeConflictHandler;
+import org.archicontribs.modelrepository.merge.IMergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.MergeResult.MergeStatus;
 import org.eclipse.jgit.api.errors.CanceledException;
@@ -54,19 +55,19 @@ import com.archimatetool.model.IArchimateModel;
  * @see #PROCESS_PUBLISH
  * 
  * @see Notify events
- * 		@see #NOTIFY_START_COMMIT - Received before starting the commit process
- * 		@see #NOTIFY_END_COMMIT - Received after ending the commit 
- * 		@see #NOTIFY_START_PULL - Received before starting the pull process
- * 		@see #NOTIFY_END_PULL - Received after ending the pull process
- * 		@see #NOTIFY_START_PUSH - Received before starting the push process
- * 		@see #NOTIFY_END_PUSH - Received after ending the push process
- * 		@see #NOTIFY_PULL_STATUS - Received during the pull process with a pull status value in the summary field
+ * 		@see #NOTIFY_START_COMMIT	- Received before starting the commit process
+ * 		@see #NOTIFY_END_COMMIT		- Received after ending the commit 
+ * 		@see #NOTIFY_START_PULL		- Received before starting the pull process
+ * 		@see #NOTIFY_END_PULL		- Received after ending the pull process
+ * 		@see #NOTIFY_START_PUSH		- Received before starting the push process
+ * 		@see #NOTIFY_END_PUSH		- Received after ending the push process
+ * 		@see #NOTIFY_PULL_STATUS	- Received during the pull process with a pull status value in the summary field
  * 			@see #PULL_STATUS_ERROR
  * 			@see #PULL_STATUS_OK
  * 			@see #PULL_STATUS_UP_TO_DATE
  * 			@see #PULL_STATUS_MERGE_CANCEL
- * 		@see #NOTIFY_LOG_MESSAGE
- * 		@see #NOTIFY_LOG_ERROR
+ * 		@see #NOTIFY_LOG_MESSAGE	- Received to log a general message
+ * 		@see #NOTIFY_LOG_ERROR		- Received to log an error message
  * 
  * @see Request action events
  * 		@see #ACTION_REQUEST_CONFLICT_RESOLUTION - Use getConflictHandler to fetch the conflicts and handle them;
@@ -76,50 +77,54 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class RepositoryModelProcess {
 
-    public static final String NOTIFY_LOG_MESSAGE = Messages.RepositoryModelProcess_0; //$NON-NLS-1$
-    public static final String NOTIFY_LOG_ERROR = Messages.RepositoryModelProcess_1; //$NON-NLS-1$
-
+	// Repository process types
 	public static final int PROCESS_COMMIT = 1;
 	public static final int PROCESS_REFRESH = 2;
 	public static final int PROCESS_PUBLISH = 3;
-	
-	public static final String NOTIFY_START_COMMIT = Messages.RepositoryModelProcess_2; //$NON-NLS-1$
-    public static final String NOTIFY_END_COMMIT = Messages.RepositoryModelProcess_3; //$NON-NLS-1$
-    public static final String NOTIFY_START_PULL = Messages.RefreshModelProcess_6;
-    public static final String NOTIFY_PULL_STATUS = Messages.RefreshModelProcess_8;
-    public static final String NOTIFY_END_PULL = Messages.RefreshModelProcess_10;
-    public static final String NOTIFY_START_PUSH = Messages.PushModelProcess_2;
-    public static final String NOTIFY_END_PUSH = Messages.PushModelProcess_3;
 
-    public static final String ACTION_REQUEST_CONFLICT_RESOLUTION = Messages.RefreshModelProcess_15;
+	// Notification event types
+    public static final int NOTIFY_LOG_MESSAGE	= 0;
+    public static final int NOTIFY_LOG_ERROR	= 1;
+	public static final int NOTIFY_START_COMMIT	= 2;
+    public static final int NOTIFY_END_COMMIT	= 3;
+    public static final int NOTIFY_START_PULL	= 4;
+    public static final int NOTIFY_PULL_STATUS	= 5;
+    public static final int NOTIFY_END_PULL		= 6;
+    public static final int NOTIFY_START_PUSH	= 7;
+    public static final int NOTIFY_END_PUSH		= 8;
 
-    public static final int PULL_STATUS_ERROR = -1;
-    public static final int PULL_STATUS_OK = 0;
-    public static final int PULL_STATUS_UP_TO_DATE = 1;
-    public static final int PULL_STATUS_MERGE_CANCEL = 2;
-
-    static final String PREFIX = Messages.PushModelProcess_1;
+    // Pull status values from Git
+    public static final int PULL_STATUS_ERROR			= -1;
+    public static final int PULL_STATUS_OK				= 0;
+    public static final int PULL_STATUS_UP_TO_DATE 		= 1;
+    public static final int PULL_STATUS_MERGE_CANCEL	= 2;
     
-    protected static final int USER_OK = 0;
-    protected static final int USER_CANCEL = 1;
+    protected static final int USER_OK		= 0;
+    protected static final int USER_CANCEL	= 1;
     
     protected int fProcessCommand = 0;
-	private IArchiRepository fRepository;					// Repository with which this process will work
-    private boolean fEnabled = false;						// Is this process enabled?
-    protected IRepositoryProcessListener fEventListener;	// Event listener for callbacks
-    private UsernamePassword fNpw;							// Security
+	private IArchiRepository fRepository;
+    private boolean fEnabled = false;
+    private IRepositoryProcessListener fEventListener;
+    private UsernamePassword fNpw;
     private IProgressMonitor pm;
-
-    protected HeadlessMergeConflictHandler fMergeConflictHandler;
+    protected IMergeConflictHandler fMergeConflictHandler;	
     protected String fCommitMessage = "";
     protected boolean fAmend = false;
 
     /**
      * Constructor
      * 
-     * @param model			The model, the repository of which this process will manage
-     * @param eventListener	The listener that will respond to events raised by this process
-     * @param commitMessage	Set the local commit message, to be used when performing the commit in this process
+     * @param process			The specific process this instance will execute
+	 * 	@see #PROCESS_COMMIT
+	 * 	@see #PROCESS_REFRESH
+	 * 	@see #PROCESS_PUBLISH
+     * @param model				The model, the repository of which this process will manage
+     * @param eventListener		The listener that will respond to events raised by this process
+     * @param progressMonitor	The progress monitor that can be used to update the UI (can be set to null if no UI)
+     * @param npw				The UsernamePassword object to provide relevant security access
+     * @param commitMessage		Set the local commit message, to be used when performing the commit in this process
+     * @param amend				Whether to amend the most recent git commit
      */
     public RepositoryModelProcess(int process, IArchimateModel model, IRepositoryProcessListener eventListener, IProgressMonitor progressMonitor, UsernamePassword npw, String commitMessage, boolean amend) {
         if ((process == PROCESS_COMMIT) || (process == PROCESS_REFRESH) || (process == PROCESS_PUBLISH)) {
@@ -148,16 +153,11 @@ public class RepositoryModelProcess {
     
     public void run() {
 
-    	String messageSummary = Messages.RepositoryModelProcess_4;
-		if (fProcessCommand==PROCESS_COMMIT) messageSummary = Messages.CommitModelProcess_2;
-		if (fProcessCommand==PROCESS_REFRESH) messageSummary = Messages.RefreshModelProcess_0;
-		if (fProcessCommand==PROCESS_PUBLISH) messageSummary = Messages.PushModelProcess_0;
-
 		try {
 
         	// Are we enabled to run?
         	if (!isEnabled()) {
-        		logError(messageSummary, Messages.RepositoryModelProcess_7);
+        		logError(Messages.RepositoryModelProcess_8, Messages.RepositoryModelProcess_7);
         		return;
         	}
         	
@@ -166,21 +166,21 @@ public class RepositoryModelProcess {
                 getRepository().exportModelToGraficoFiles();
             }
             catch(Exception ex) {
-                logError(messageSummary, ex);
+                logError(Messages.RepositoryModelProcess_8, ex);
                 return;
             }
             
             // Then commit
             try {
                 if(getRepository().hasChangesToCommit()) {
-            		sendSimpleEvent(NOTIFY_START_COMMIT, messageSummary, Messages.CommitModelProcess_1);
+                	notifyEvent(NOTIFY_START_COMMIT, Messages.RepositoryModelProcess_8, Messages.CommitModelProcess_1);
             		getRepository().commitChanges(fCommitMessage, fAmend);
                     getRepository().saveChecksum();
-                    sendSimpleEvent(NOTIFY_END_COMMIT, messageSummary, Messages.CommitModelProcess_0);
+                    notifyEvent(NOTIFY_END_COMMIT, Messages.RepositoryModelProcess_8, Messages.CommitModelProcess_0);
                 }
             }
             catch(Exception ex) {
-                logError(messageSummary, ex);
+                logError(Messages.RepositoryModelProcess_8, ex);
             }
 
             // Update Proxy
@@ -188,29 +188,29 @@ public class RepositoryModelProcess {
 
 
             if ((fProcessCommand == PROCESS_REFRESH) || (fProcessCommand == PROCESS_PUBLISH)) {
-	            sendSimpleEvent(NOTIFY_START_PULL, messageSummary, Messages.RefreshModelProcess_8);
+            	notifyEvent(NOTIFY_START_PULL, Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_8);
 	            try {
 		            int status = pull();
 		            switch (status) {
-		            	case PULL_STATUS_UP_TO_DATE: 	sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_UP_TO_DATE), "");
-		            									sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_2);
+		            	case PULL_STATUS_UP_TO_DATE: 	notifyEvent(NOTIFY_PULL_STATUS, Messages.RefreshModelProcess_9, String.valueOf(PULL_STATUS_UP_TO_DATE));
+		            									notifyEvent(NOTIFY_END_PULL, Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_2);
 		            									break;
-		            	case PULL_STATUS_OK: 			sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_OK), "");
-														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_11);
+		            	case PULL_STATUS_OK: 			notifyEvent(NOTIFY_PULL_STATUS, Messages.RefreshModelProcess_9, String.valueOf(PULL_STATUS_OK));
+		            									notifyEvent(NOTIFY_END_PULL, Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_11);
 														break;
-		            	case PULL_STATUS_MERGE_CANCEL:	sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_MERGE_CANCEL), "");
-														sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_13);
+		            	case PULL_STATUS_MERGE_CANCEL:	notifyEvent(NOTIFY_PULL_STATUS, Messages.RefreshModelProcess_9, String.valueOf(PULL_STATUS_MERGE_CANCEL));
+		            									notifyEvent(NOTIFY_END_PULL, Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_13);
 		            									break;
-		            	case PULL_STATUS_ERROR:			sendSimpleEvent(NOTIFY_PULL_STATUS, String.valueOf(PULL_STATUS_ERROR), "");
-		            									sendSimpleEvent(NOTIFY_END_PULL, messageSummary, Messages.RefreshModelProcess_14);
+		            	case PULL_STATUS_ERROR:			notifyEvent(NOTIFY_PULL_STATUS, Messages.RefreshModelProcess_9, String.valueOf(PULL_STATUS_ERROR));
+		            									notifyEvent(NOTIFY_END_PULL, Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_14);
 		            									break;
-		            	default:						logError(messageSummary, Messages.RefreshModelProcess_12);
+		            	default:						logError(Messages.RepositoryModelProcess_8, Messages.RefreshModelProcess_12);
 		            									break;
 		            }
 		            
 	                // Push
 	                if((status == PULL_STATUS_OK || status == PULL_STATUS_UP_TO_DATE) && (fProcessCommand == PROCESS_PUBLISH)) {
-	                    sendSimpleEvent(NOTIFY_START_PUSH, messageSummary, Messages.PushModelProcess_3);
+	                	notifyEvent(NOTIFY_START_PUSH, Messages.RepositoryModelProcess_8, Messages.PushModelProcess_3);
 	                    Iterable<PushResult> pushResult = getRepository().pushToRemote(getUsernamePassword(), new ProgressMonitorWrapper(getProgressMonitor()));
 	                    
 	                    // Get any errors in Push Results
@@ -227,13 +227,13 @@ public class RepositoryModelProcess {
 	                    });
 	                    
 	                    if(sb.length() != 0) {
-	                        logError(messageSummary, sb.toString());
+	                        logError(Messages.RepositoryModelProcess_8, sb.toString());
 	                    }
-	                    sendSimpleEvent(NOTIFY_END_PUSH, messageSummary, Messages.PushModelProcess_4);
+	                    notifyEvent(NOTIFY_END_PUSH, Messages.RepositoryModelProcess_8, Messages.PushModelProcess_4);
 	                }
 	
 	            } catch(Exception ex) {
-	            	logError(messageSummary, ex);
+	            	logError(Messages.RepositoryModelProcess_8, ex);
 	            }
 	            finally {
 	                try {
@@ -248,14 +248,14 @@ public class RepositoryModelProcess {
             }
         }
         catch(Exception ex) {
-            logError(messageSummary, ex);
+            logError(Messages.RepositoryModelProcess_8, ex);
         }
     }
     /**
      * Implement the Git pull process
      * 
      * @return int indicating the result of the process
-     * @see #AbstractRepositoryModelProcess.NOTIFY_STATUS_UPDATE
+     * @see #NOTIFY_PULL_STATUS
      * @see #PULL_STATUS_OK
      * @see #PULL_STATUS_UP_TO_DATE
      * @see #PULL_STATUS_MERGE_CANCEL
@@ -322,10 +322,7 @@ public class RepositoryModelProcess {
                 throw ex;
             }
             
-            //boolean result = handler.resolveConflicts(strMessage);
-            boolean result = fEventListener.actionComplexEvent(ACTION_REQUEST_CONFLICT_RESOLUTION, getLogPrefix(), this);
-            
-            if(result) {
+            if(resolveConflicts()) {
             	fMergeConflictHandler.merge();
             }
             // User cancelled - we assume they committed all changes so we can reset
@@ -362,7 +359,7 @@ public class RepositoryModelProcess {
         		commitMessage += "\n\n" + Messages.RefreshModelProcess_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$ 
         	}
 		  
-        	// TODO - not sure if amend should be false or true here?
+        	// Commit any changes resulting from the pull
         	getRepository().commitChanges(commitMessage, false);
         }
         
@@ -379,15 +376,11 @@ public class RepositoryModelProcess {
 		return ((getRepository() != null) && (getRepository().getLocalRepositoryFolder().exists()) && 
 		        ((fProcessCommand == PROCESS_COMMIT) || (fProcessCommand == PROCESS_REFRESH) || (fProcessCommand == PROCESS_PUBLISH)));
 	}
-    
-    public HeadlessMergeConflictHandler getConflictHandler() {
-    	return fMergeConflictHandler;
-    }
 	
     /**
      * Get the repository of this process
      * 
-     * @return repository			The repository managed by this process
+     * @return The repository managed by this process
      */
 	public IArchiRepository getRepository() {
 	    return fRepository;
@@ -396,6 +389,8 @@ public class RepositoryModelProcess {
     /**
      * Attempts to set whether this process is enabled, although it will be constrained by 
      * calling canBeEnabled
+     * 
+     * @param enabled	The desired state of the process
      * 
      * @see #canBeEnabled()
      */
@@ -408,6 +403,8 @@ public class RepositoryModelProcess {
     /**
      * Whether this process is enabled
      * 
+     * @return whether this process instance is enabled
+     * 
      * @see #setEnabled()
      */
 	public boolean isEnabled() {
@@ -415,41 +412,40 @@ public class RepositoryModelProcess {
 	}
 
 	/**
-	 * Sends a simple event to the event listener for this process
+	 * Gets the progress monitor assigned to this process instance
 	 * 
-	 * @param eventType		A string denoting the type of event, allowing the listener to discriminate
-	 * @param summary		A summary of the event, e.g.: to be used in a warning dialog header
-	 * @param detail		Event details, e.g.: the message in a warning dialog
+	 * @return	The progress monitor
 	 */
     protected IProgressMonitor getProgressMonitor() {
     	return pm;
     }
     
 	/**
-	 * Sends a simple event to the event listener for this process
+	 * Sends an asynchronous simple event to the event listener for this process
 	 * 
-	 * @param eventType		A string denoting the type of event, allowing the listener to discriminate
+	 * @param eventType		An int denoting the type of event, allowing the listener to discriminate
 	 * @param summary		A summary of the event, e.g.: to be used in a warning dialog header
 	 * @param detail		Event details, e.g.: the message in a warning dialog
 	 */
-    protected void sendSimpleEvent(String eventType, String summary, String detail) {
-    	if (fEventListener!=null) {
-    		fEventListener.actionSimpleEvent(eventType, getLogPrefix(), summary, detail);
-    	}
+    protected void notifyEvent(int eventType, String summary, String detail) {
+        if (fEventListener!=null) {
+	    	SafeRunner.run(() -> {
+	        	fEventListener.notifyEvent(eventType, getLogPrefix(), summary, detail);
+	        });
+        }
     }
     
 	/**
-	 * Sends a complex event to the event listener for this process
+	 * Convenience method to send a request to the event listener to resolve the merge conflicts
 	 * 
-	 * @param eventType			A string denoting the type of event, allowing the listener to discriminate
-	 * @return 					Indicator from the listener of whether the request was successfully processed
+	 * @return	Indicator from the listener whether to continue with the process
 	 */
-    protected boolean sendComplexEvent(String eventType) {
-    	if (fEventListener!=null) {
-    		return fEventListener.actionComplexEvent(eventType, getLogPrefix(), this);
+    protected boolean resolveConflicts() {
+    	if (fMergeConflictHandler!=null) {
+    		return fEventListener.resolveConflicts(fMergeConflictHandler);
     	} else {
 	    	logMessage(Messages.RepositoryModelProcess_6, Messages.RepositoryModelProcess_5);
-	    	return true;
+	    	return false;
     	}
     }
 
@@ -487,7 +483,7 @@ public class RepositoryModelProcess {
 	 * @param message	Event details, e.g.: the message in a warning dialog
      */
     protected void logMessage(String title, String message) {
-		sendSimpleEvent(NOTIFY_LOG_MESSAGE, title, message);
+    	notifyEvent(NOTIFY_LOG_MESSAGE, title, message);
     }
     
     /**
@@ -497,7 +493,7 @@ public class RepositoryModelProcess {
 	 * @param message	Event details, e.g.: the message in an error dialog
      */
     protected void logError(String title, String message) {
-		sendSimpleEvent(NOTIFY_LOG_ERROR, title, message);
+    	notifyEvent(NOTIFY_LOG_ERROR, title, message);
     }
         
     /**
@@ -533,6 +529,6 @@ public class RepositoryModelProcess {
 	 * @return Prefix that can be used by logging and event handling
 	 */
     protected String getLogPrefix() {
-        return ""; //$NON-NLS-1$
+        return Messages.RepositoryModelProcess_9; //$NON-NLS-1$
     }
 }

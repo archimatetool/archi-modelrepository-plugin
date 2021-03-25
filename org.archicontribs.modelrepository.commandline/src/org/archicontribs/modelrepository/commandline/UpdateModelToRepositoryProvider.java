@@ -19,6 +19,7 @@ import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
+import org.archicontribs.modelrepository.merge.IMergeConflictHandler;
 import org.archicontribs.modelrepository.process.IRepositoryProcessListener;
 import org.archicontribs.modelrepository.process.RepositoryModelProcess;
 import org.eclipse.gef.commands.CommandStack;
@@ -41,8 +42,9 @@ import com.archimatetool.model.ModelVersion;
  * 
  * Archi -consoleLog -nosplash -application com.archimatetool.commandline.app
    --updatemodelrepository.commitModel "cloneFolder"
-   --updatemodelrepository.publishModel "true/false"
    --updatemodelrepository.commitMessage "commit message"
+   --updatemodelrepository.publishModel "true/false"
+   --updatemodelrepository.failOnConflict "true/false"
    --updatemodelrepository.userName "userName"
    --updatemodelrepository.passFile "/pathtoPasswordFile"
    --updatemodelrepository.identityFile "/pathtoIdentityFile"
@@ -57,7 +59,7 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
     
     static final String OPTION_COMMIT_MODEL = "updatemodelrepository.commitModel"; //$NON-NLS-1$
     static final String OPTION_PUBLISH_MODEL = "updatemodelrepository.publishModel"; //$NON-NLS-1$
-    static final String OPTION_REFRESH_MODEL = "updatemodelrepository.refreshModel"; //$NON-NLS-1$
+    static final String OPTION_FAIL_ON_CONFLICT = "updatemodelrepository.failOnConflict"; //$NON-NLS-1$
     static final String OPTION_USERNAME = "updatemodelrepository.userName"; //$NON-NLS-1$
     static final String OPTION_PASSFILE = "updatemodelrepository.passFile"; //$NON-NLS-1$
     static final String OPTION_SSH_IDENTITY_FILE = "updatemodelrepository.identityFile"; //$NON-NLS-1$
@@ -71,6 +73,8 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
     protected static final int USER_CANCEL = 1;
     
     private RepositoryModelProcess fActionHandler;
+    
+    private Options fOptions;
 
     public UpdateModelToRepositoryProvider() {
     }
@@ -110,10 +114,10 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
         saveModel(model);
         
         boolean publish = StringUtils.safeString(commandLine.getOptionValue(OPTION_PUBLISH_MODEL)).equals("true");
-        boolean refresh = StringUtils.safeString(commandLine.getOptionValue(OPTION_REFRESH_MODEL)).equals("true");
+        //boolean refresh = StringUtils.safeString(commandLine.getOptionValue(OPTION_REFRESH_MODEL)).equals("true");
         String sCommitMessage = commandLine.getOptionValue(OPTION_COMMIT_MODEL);
         
-        if (!publish && !refresh) {
+        if (!publish) {
         	fActionHandler = new RepositoryModelProcess(RepositoryModelProcess.PROCESS_COMMIT, model, this, null, null, sCommitMessage, false);
         } else {
         	
@@ -159,37 +163,18 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
             // UsernamePassword is will be null if using SSH
             UsernamePassword npw = new UsernamePassword(username, password.toCharArray());
 
-            if (refresh && !publish) {
-            	fActionHandler = new RepositoryModelProcess(RepositoryModelProcess.PROCESS_REFRESH, model, this, null, npw, "", false);
-            } else if (publish) {
+            //if (refresh && !publish) {
+            //	fActionHandler = new RepositoryModelProcess(RepositoryModelProcess.PROCESS_REFRESH, model, this, null, npw, "", false);
+            //} else if (publish) {
             	fActionHandler = new RepositoryModelProcess(RepositoryModelProcess.PROCESS_PUBLISH, model, this, null, npw, sCommitMessage, false);
-            } else {
-            	logError(Messages.UpdateModelToRepositoryProvider_12);
-            }
+            //} else {
+            //	logError(Messages.UpdateModelToRepositoryProvider_12);
+            //}
         }
         fActionHandler.run();
         
         logMessage(Messages.UpdateModelToRepositoryProvider_5);
     }
-
-/*
-    private IArchimateModel loadModel(File folder) throws IOException {
-        GraficoModelImporter importer = new GraficoModelImporter(folder);
-        IArchimateModel model = importer.importAsModel();
-        
-        if(model == null) {
-            throw new IOException(NLS.bind(Messages.LoadModelFromRepositoryProvider_21, folder));
-        }
-        
-        if(importer.getUnresolvedObjects() != null) {
-            throw new IOException(Messages.LoadModelFromRepositoryProvider_8);
-        }
-        
-        CommandLineState.setModel(model);
-        
-        return model;
-    }
-*/    
     
     private String getPasswordFromFile(CommandLine commandLine) throws IOException {
         String password = null;
@@ -239,6 +224,14 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
         options.addOption(option);
         
         option = Option.builder()
+                .longOpt(OPTION_FAIL_ON_CONFLICT)
+                .hasArg()
+                .argName(Messages.UpdateModelToRepositoryProvider_21)
+                .desc(NLS.bind(Messages.UpdateModelToRepositoryProvider_22, OPTION_FAIL_ON_CONFLICT))
+                .build();
+        options.addOption(option);
+        
+        option = Option.builder()
                 .longOpt(OPTION_USERNAME)
                 .hasArg()
                 .argName(Messages.LoadModelFromRepositoryProvider_13)
@@ -262,21 +255,24 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
                 .build();
         options.addOption(option);
 
+        fOptions = options;
         
         return options;
     }
 
     private boolean hasAnyOptions(CommandLine commandLine) {
         return (commandLine.hasOption(OPTION_COMMIT_MODEL) || 
-        		commandLine.hasOption(OPTION_REFRESH_MODEL) ||
-        		commandLine.hasOption(OPTION_PUBLISH_MODEL) ||
-        		commandLine.hasOption(OPTION_USERNAME) ||
-        		commandLine.hasOption(OPTION_PASSFILE) ||
-        		commandLine.hasOption(OPTION_SSH_IDENTITY_FILE));
+        		commandLine.hasOption(OPTION_PUBLISH_MODEL));
     }
 
     private boolean hasCorrectOptions(CommandLine commandLine) {
-        return (commandLine.hasOption(OPTION_COMMIT_MODEL) || (StringUtils.safeString(commandLine.getOptionValue(OPTION_COMMIT_MODEL)).length() > 0));
+        //return (commandLine.hasOption(OPTION_COMMIT_MODEL) || (StringUtils.safeString(commandLine.getOptionValue(OPTION_COMMIT_MODEL)).length() > 0));
+        return ((commandLine.hasOption(OPTION_COMMIT_MODEL) &&
+        		 (StringUtils.safeString(commandLine.getOptionValue(OPTION_COMMIT_MODEL)).length() > 0)) || 
+        		(commandLine.hasOption(OPTION_PUBLISH_MODEL) &&
+        		 commandLine.hasOption(OPTION_USERNAME) &&
+        		 (commandLine.hasOption(OPTION_PASSFILE) ||
+        		  commandLine.hasOption(OPTION_SSH_IDENTITY_FILE))));
     }
     
     @Override
@@ -321,16 +317,12 @@ public class UpdateModelToRepositoryProvider extends AbstractCommandLineProvider
         return true;
     }
     
-    public void actionSimpleEvent(String eventType, String object, String summary, String detail) {
-    	logMessage(eventType + " from " + object + ": " + summary + " - " + detail);
+    public void notifyEvent(int eventType, String object, String summary, String detail) {
+    	logMessage("Event type " + eventType + " from " + object + ": " + summary + " - " + detail);
     }
     
-    public boolean actionComplexEvent(String eventType, String object, RepositoryModelProcess actionHandler) {
-    	// For now, just continue; needs handlers when refresh/publish is coded
-    	return true;
-    }
-    
-    public RepositoryModelProcess getActionHandler() {
-    	return fActionHandler;
+    public boolean resolveConflicts(IMergeConflictHandler conflictHandler) {
+    	boolean mergeOnConflict = StringUtils.safeString(fOptions.getOption(OPTION_FAIL_ON_CONFLICT).getValue()).equals("false");
+    	return mergeOnConflict;
     }
 }

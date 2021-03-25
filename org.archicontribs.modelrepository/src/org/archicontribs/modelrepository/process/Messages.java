@@ -70,6 +70,10 @@ public class Messages extends NLS {
 
     public static String RepositoryModelProcess_7;
 
+    public static String RepositoryModelProcess_8;
+
+    public static String RepositoryModelProcess_9;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
