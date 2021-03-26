@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -52,14 +51,11 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.eclipse.jgit.util.FS;
-import org.eclipse.jgit.util.SystemReader;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -194,27 +190,9 @@ public class ArchiRepository implements IArchiRepository {
 		cloneCommand.setURI(repoURL);
 		cloneCommand.setTransportConfigCallback(CredentialsAuthenticator.getTransportConfigCallback(repoURL, npw));
 		cloneCommand.setProgressMonitor(monitor);
-		disableSSLVerify(repoURL);
+
 		try (Git git = cloneCommand.call()) {
 			setDefaultConfigSettings(git.getRepository());
-		}
-	}
-
-	private void disableSSLVerify(String repoURL) {
-		try {
-
-			URI gitServer = new URI(repoURL);
-			if (gitServer.getScheme().equals("https")) {
-				FileBasedConfig config = SystemReader.getInstance().openUserConfig(null, FS.DETECTED);
-				synchronized (config) {
-					config.load();
-					config.setBoolean("http", "https://" + gitServer.getHost() + ':'
-							+ (gitServer.getPort() == -1 ? 443 : gitServer.getPort()), "sslVerify", false);
-					config.save();
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
