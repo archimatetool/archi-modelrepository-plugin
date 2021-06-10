@@ -64,7 +64,7 @@ public class UndoLastCommitAction extends AbstractModelAction {
             // Save the checksum
             getRepository().saveChecksum();
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.UndoLastCommitAction_0, ex);
         }
         

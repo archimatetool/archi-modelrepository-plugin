@@ -14,9 +14,9 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 
+import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
 /**
@@ -49,10 +49,23 @@ public class AbortChangesAction extends AbstractModelAction {
             return;
         }
         
+        // Must save the model now because the GraficoModelLoader will close it.
+        // If the user cancels close, then the model will be re-opened twice
+        IArchimateModel model = getRepository().locateModel();
+        if(model != null && IEditorModelManager.INSTANCE.isModelDirty(model)) {
+            try {
+                IEditorModelManager.INSTANCE.saveModel(model);
+            }
+            catch(IOException ex) {
+                displayErrorDialog(Messages.AbortChangesAction_0, ex);
+                return;
+            }
+        }
+        
         try {
             getRepository().resetToRef(IGraficoConstants.HEAD);
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.AbortChangesAction_0, ex);
         }
         

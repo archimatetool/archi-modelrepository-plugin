@@ -22,6 +22,8 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.PartInitException;
@@ -47,7 +49,7 @@ public class GraficoModelLoader {
     private IArchiRepository fRepository;
     
     private List<IIdentifier> fRestoredObjects;
-
+    
     public GraficoModelLoader(IArchiRepository repository) {
         fRepository = repository;
     }
@@ -60,42 +62,59 @@ public class GraficoModelLoader {
     public IArchimateModel loadModel() throws IOException {
         fRestoredObjects = null;
         
-        GraficoModelImporter importer = new GraficoModelImporter(fRepository.getLocalRepositoryFolder());
-        IArchimateModel graficoModel = importer.importAsModel();
-        
-        if(graficoModel == null) {
-            return null;
-        }
-        
         // Store ids of open diagrams
         List<String> openModelIDs = null;
         
-        // Close the real model if it is already open
+        // Close the real model if it is already open - do this first!
         IArchimateModel model = fRepository.locateModel();
         if(model != null) {
             openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
             IEditorModelManager.INSTANCE.closeModel(model);
+            while(Display.getCurrent().readAndDispatch()); // Stops flickering in tree
+        }
+        
+        // Import Grafico Model
+        GraficoModelImporter importer = new GraficoModelImporter(fRepository.getLocalRepositoryFolder());
+        
+        IArchimateModel[] graficoModel = new IArchimateModel[1];
+        IOException[] exception = new IOException[1];
+        
+        BusyIndicator.showWhile(Display.getCurrent(), () -> {
+            try {
+                graficoModel[0] = importer.importAsModel();
+            }
+            catch(IOException ex) {
+                exception[0] = ex;
+            }
+        });
+        
+        if(exception[0] != null) {
+            throw exception[0];
+        }
+        
+        if(graficoModel[0] == null) {
+            return null;
         }
         
         // Set file name on the grafico model so we can locate it
-        graficoModel.setFile(fRepository.getTempModelFile());
+        graficoModel[0].setFile(fRepository.getTempModelFile());
         
         // Resolve missing objects
         List<UnresolvedObject> unresolvedObjects = importer.getUnresolvedObjects();
         if(unresolvedObjects != null) {
-            graficoModel = restoreProblemObjects(unresolvedObjects);
+            graficoModel[0] = restoreProblemObjects(unresolvedObjects);
         }
         
-        // Open it with the new grafico model, this will do the necessary checks and add a command stack and an archive manager
-        IEditorModelManager.INSTANCE.openModel(graficoModel);
+        // Save it
+        IEditorModelManager.INSTANCE.saveModel(graficoModel[0]);
         
-        // And Save it to the temp file
-        IEditorModelManager.INSTANCE.saveModel(graficoModel);
+        // And re-open it if we already had it open
+        if(model != null) {
+            IEditorModelManager.INSTANCE.openModel(graficoModel[0]);
+            reopenEditors(graficoModel[0], openModelIDs);
+        }
         
-        // Re-open editors, if any
-        reopenEditors(graficoModel, openModelIDs);
-
-        return graficoModel;
+        return graficoModel[0];
     }
     
     /**

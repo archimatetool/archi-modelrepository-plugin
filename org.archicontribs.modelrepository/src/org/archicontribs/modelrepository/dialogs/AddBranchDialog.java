@@ -67,13 +67,27 @@ public class AddBranchDialog extends TitleAreaDialog {
                 String currentText = ((Text)e.widget).getText();
                 String newText = (currentText.substring(0, e.start) + e.text + currentText.substring(e.end));
                 
-                boolean hasChars = newText.length() > 0;
-                if(hasChars) {
-                    e.doit = Repository.isValidRefName(Constants.R_HEADS + newText);
+                setMessage(Messages.AddBranchDialog_2, IMessageProvider.INFORMATION);
+                
+                boolean isValidRefName = !newText.isEmpty();
+                
+                if(isValidRefName) {
+                    isValidRefName = Repository.isValidRefName(Constants.R_HEADS + newText);
+                    if(!isValidRefName) {
+                        if(newText.startsWith(".") || newText.endsWith(".")) { //$NON-NLS-1$ //$NON-NLS-2$
+                            setMessage(Messages.AddBranchDialog_4, IMessageProvider.ERROR);
+                        }
+                        else if(newText.startsWith("/") || newText.endsWith("/")) { //$NON-NLS-1$ //$NON-NLS-2$
+                            setMessage(Messages.AddBranchDialog_5, IMessageProvider.ERROR);
+                        }
+                        else {
+                            setMessage(Messages.AddBranchDialog_7, IMessageProvider.ERROR);
+                        }
+                    }
                 }
                 
-                getButton(ADD_BRANCH).setEnabled(hasChars);
-                getButton(ADD_BRANCH_CHECKOUT).setEnabled(hasChars);
+                getButton(ADD_BRANCH).setEnabled(isValidRefName);
+                getButton(ADD_BRANCH_CHECKOUT).setEnabled(isValidRefName);
             }
         });
         

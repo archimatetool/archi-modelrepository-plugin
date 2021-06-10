@@ -92,6 +92,25 @@ public class GraficoUtils {
     }
     
     /**
+     * Get an empty and unique local folder to contain the local repo
+     * @param parentFolder
+     * @param repoURL
+     * @return the folder
+     */
+    public static File getUniqueLocalFolder(File parentFolder, String repoURL) {
+        String folderName = getLocalGitFolderName(repoURL);
+        
+        int count = 1;
+        File file = new File(parentFolder, folderName);
+        
+        while(file.exists() && file.list().length > 0) {
+            file = new File(parentFolder, folderName + "_" + count++); //$NON-NLS-1$
+        }
+        
+        return file;
+    }
+    
+    /**
      * Check if a folder contains a Git repository
      * @param folder
      * @return

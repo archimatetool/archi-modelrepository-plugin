@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
@@ -46,7 +47,7 @@ public final class CredentialsAuthenticator {
     
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
-        String getIdentityPassword() throws IOException;
+        char[] getIdentityPassword() throws IOException, GeneralSecurityException;
     }
     
     /**
@@ -65,15 +66,15 @@ public final class CredentialsAuthenticator {
         }
         
         @Override
-        public String getIdentityPassword() throws IOException {
-            String password = null;
+        public char[] getIdentityPassword() throws IOException, GeneralSecurityException {
+            char[] password = null;
             
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(
+                EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(
                         new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IGraficoConstants.SSH_CREDENTIALS_FILE));
 
-                if(scs.hasCredentialsFile()) {
-                    password = scs.getUsernamePassword().getPassword();
+                if(cs.hasCredentialsFile()) {
+                    password = cs.getPassword();
                 }
                 else {
                     throw new IOException(Messages.CredentialsAuthenticator_1);
@@ -98,6 +99,8 @@ public final class CredentialsAuthenticator {
             return new TransportConfigCallback() {
                 @Override
                 public void configure(Transport transport) {
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
+                    
                     if(transport instanceof SshTransport) {
                         ((SshTransport)transport).setSshSessionFactory(getSshSessionFactory());
                     }
@@ -119,17 +122,17 @@ public final class CredentialsAuthenticator {
                             jsch.removeAllIdentity();
                             
                             File file = null;
-                            String pw = null;
+                            char[] pw = null;
                             try {
                                 file = sshIdentityProvider.getIdentityFile();
                                 pw = sshIdentityProvider.getIdentityPassword();
                             }
-                            catch(IOException ex) {
+                            catch(IOException | GeneralSecurityException ex) {
                                 throw new JSchException(ex.getMessage());
                             }
                             
                             if(pw != null) {
-                                jsch.addIdentity(file.getAbsolutePath(), pw);
+                                jsch.addIdentity(file.getAbsolutePath(), new String(pw));
                             }
                             else {
                                 jsch.addIdentity(file.getAbsolutePath());
@@ -161,6 +164,7 @@ public final class CredentialsAuthenticator {
                             log(">> added http headers:" + headerMap);
                         }
                     }
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
                 };
             };
         }

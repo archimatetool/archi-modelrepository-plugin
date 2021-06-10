@@ -14,7 +14,13 @@ public class Messages extends NLS {
 
     public static String AddBranchDialog_3;
 
+    public static String AddBranchDialog_4;
+
+    public static String AddBranchDialog_5;
+
     public static String AddBranchDialog_6;
+
+    public static String AddBranchDialog_7;
 
     public static String CloneInputDialog_0;
 
@@ -41,6 +47,54 @@ public class Messages extends NLS {
     public static String CommitDialog_6;
 
     public static String NewModelRepoDialog_0;
+
+    public static String NewPrimaryPasswordDialog_0;
+
+    public static String NewPrimaryPasswordDialog_1;
+
+    public static String NewPrimaryPasswordDialog_10;
+
+    public static String NewPrimaryPasswordDialog_11;
+
+    public static String NewPrimaryPasswordDialog_12;
+
+    public static String NewPrimaryPasswordDialog_13;
+
+    public static String NewPrimaryPasswordDialog_14;
+
+    public static String NewPrimaryPasswordDialog_15;
+
+    public static String NewPrimaryPasswordDialog_16;
+
+    public static String NewPrimaryPasswordDialog_17;
+
+    public static String NewPrimaryPasswordDialog_18;
+
+    public static String NewPrimaryPasswordDialog_19;
+
+    public static String NewPrimaryPasswordDialog_2;
+
+    public static String NewPrimaryPasswordDialog_20;
+
+    public static String NewPrimaryPasswordDialog_21;
+
+    public static String NewPrimaryPasswordDialog_3;
+
+    public static String NewPrimaryPasswordDialog_4;
+
+    public static String NewPrimaryPasswordDialog_5;
+
+    public static String NewPrimaryPasswordDialog_6;
+
+    public static String NewPrimaryPasswordDialog_7;
+
+    public static String NewPrimaryPasswordDialog_8;
+
+    public static String NewPrimaryPasswordDialog_9;
+
+    public static String PrimaryPasswordDialog_0;
+
+    public static String PrimaryPasswordDialog_1;
 
     public static String SwitchBranchDialog_0;
 

@@ -5,8 +5,6 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.IOException;
-
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.dialogs.AddBranchDialog;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
@@ -14,7 +12,6 @@ import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -68,7 +65,7 @@ public class AddBranchAction extends AbstractModelAction {
                 notifyChangeListeners(IRepositoryListener.BRANCHES_CHANGED);
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.AddBranchAction_1, ex);
         }
     }
