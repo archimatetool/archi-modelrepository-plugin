@@ -14,6 +14,9 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
@@ -24,6 +27,8 @@ import org.eclipse.jgit.transport.TransportHttp;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -36,6 +41,8 @@ import com.jcraft.jsch.Session;
  * @author Phillip Beauvoir
  */
 public final class CredentialsAuthenticator {
+	private static final Bundle BUNDLE = FrameworkUtil.getBundle(CredentialsAuthenticator.class);
+	private static final ILog LOGGER = Platform.getLog(BUNDLE);
     
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
@@ -151,6 +158,7 @@ public final class CredentialsAuthenticator {
                         if (headerKeyValue.length==2) {
                             headerMap.put(headerKeyValue[0], headerKeyValue[1]);
                             transportHttp.setAdditionalHeaders(headerMap);
+                            log(">> added http headers:" + headerMap);
                         }
                     }
                 };
@@ -159,4 +167,12 @@ public final class CredentialsAuthenticator {
         
         throw new IOException(Messages.CredentialsAuthenticator_2 + " " + repoURL); //$NON-NLS-1$
     }
+    
+    public static void log(String msg) {
+        log(msg, null);
+     }
+
+     public static void log(String msg, Exception e) {
+        LOGGER.log(new Status((e==null? Status.INFO:Status.ERROR), BUNDLE.getSymbolicName(), msg, e));
+     }
 }
