@@ -5,23 +5,21 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -88,11 +86,25 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             message = ex.getMessage();
         }
         
+        displayErrorDialog(title, message);
+    }
+
+    /**
+     * Display an errror dialog
+     * @param title
+     * @param message
+     */
+    protected void displayErrorDialog(String title, String message) {
         MessageDialog.openError(fWindow.getShell(),
                 title,
                 Messages.AbstractModelAction_0 +
-                    " " + //$NON-NLS-1$
+                    "\n" + //$NON-NLS-1$
                     message);
+    }
+    
+    protected void displayCredentialsErrorDialog(Throwable ex) {
+        ex.printStackTrace();
+        displayErrorDialog(Messages.AbstractModelAction_5, Messages.AbstractModelAction_11);
     }
 
     /**
@@ -100,20 +112,21 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @param model
      */
     protected boolean offerToSaveModel(IArchimateModel model) {
-        boolean response = MessageDialog.openConfirm(fWindow.getShell(),
+        boolean doSave = MessageDialog.openConfirm(fWindow.getShell(),
                 Messages.AbstractModelAction_1,
                 Messages.AbstractModelAction_2);
 
-        if(response) {
+        if(doSave) {
             try {
-                IEditorModelManager.INSTANCE.saveModel(model);
+                doSave = IEditorModelManager.INSTANCE.saveModel(model);
             }
             catch(IOException ex) {
+                doSave = false;
                 displayErrorDialog(Messages.AbstractModelAction_1, ex);
             }
         }
         
-        return response;
+        return doSave;
     }
     
     /**
@@ -134,7 +147,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
                 // Save the checksum
                 getRepository().saveChecksum();
             }
-            catch(IOException | GitAPIException ex) {
+            catch(Exception ex) {
                 displayErrorDialog(Messages.AbstractModelAction_6, ex);
                 return false;
             }
@@ -148,22 +161,21 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     /**
      * Get user name and password from credentials file if prefs set or from dialog
      */
-    protected UsernamePassword getUsernamePassword() throws IOException {
+    protected UsernamePassword getUsernamePassword() throws IOException, GeneralSecurityException {
         // SSH
         if(GraficoUtils.isSSH(getRepository().getOnlineRepositoryURL())) {
             return null;
         }
         
-        SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(),
-                IGraficoConstants.REPO_CREDENTIALS_FILE));
+        EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(getRepository());
 
         // Is it stored?
-        if(scs.hasCredentialsFile()) {
-            return scs.getUsernamePassword();
+        if(cs.hasCredentialsFile()) {
+            return cs.getUsernamePassword();
         }
         
         // Else ask the user
-        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), scs);
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), cs);
         if(dialog.open() == Window.OK) {
             return new UsernamePassword(dialog.getUsername(), dialog.getPassword());
         }

@@ -9,11 +9,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
@@ -24,6 +28,8 @@ import org.eclipse.jgit.transport.TransportHttp;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -36,10 +42,12 @@ import com.jcraft.jsch.Session;
  * @author Phillip Beauvoir
  */
 public final class CredentialsAuthenticator {
+	private static final Bundle BUNDLE = FrameworkUtil.getBundle(CredentialsAuthenticator.class);
+	private static final ILog LOGGER = Platform.getLog(BUNDLE);
     
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
-        String getIdentityPassword() throws IOException;
+        char[] getIdentityPassword() throws IOException, GeneralSecurityException;
     }
     
     /**
@@ -58,15 +66,15 @@ public final class CredentialsAuthenticator {
         }
         
         @Override
-        public String getIdentityPassword() throws IOException {
-            String password = null;
+        public char[] getIdentityPassword() throws IOException, GeneralSecurityException {
+            char[] password = null;
             
             if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(
+                EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(
                         new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IGraficoConstants.SSH_CREDENTIALS_FILE));
 
-                if(scs.hasCredentialsFile()) {
-                    password = scs.getUsernamePassword().getPassword();
+                if(cs.hasCredentialsFile()) {
+                    password = cs.getPassword();
                 }
                 else {
                     throw new IOException(Messages.CredentialsAuthenticator_1);
@@ -91,6 +99,8 @@ public final class CredentialsAuthenticator {
             return new TransportConfigCallback() {
                 @Override
                 public void configure(Transport transport) {
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
+                    
                     if(transport instanceof SshTransport) {
                         ((SshTransport)transport).setSshSessionFactory(getSshSessionFactory());
                     }
@@ -112,17 +122,17 @@ public final class CredentialsAuthenticator {
                             jsch.removeAllIdentity();
                             
                             File file = null;
-                            String pw = null;
+                            char[] pw = null;
                             try {
                                 file = sshIdentityProvider.getIdentityFile();
                                 pw = sshIdentityProvider.getIdentityPassword();
                             }
-                            catch(IOException ex) {
+                            catch(IOException | GeneralSecurityException ex) {
                                 throw new JSchException(ex.getMessage());
                             }
                             
                             if(pw != null) {
-                                jsch.addIdentity(file.getAbsolutePath(), pw);
+                                jsch.addIdentity(file.getAbsolutePath(), new String(pw));
                             }
                             else {
                                 jsch.addIdentity(file.getAbsolutePath());
@@ -151,12 +161,22 @@ public final class CredentialsAuthenticator {
                         if (headerKeyValue.length==2) {
                             headerMap.put(headerKeyValue[0], headerKeyValue[1]);
                             transportHttp.setAdditionalHeaders(headerMap);
+                            log(">> added http headers:" + headerMap);
                         }
                     }
+                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
                 };
             };
         }
         
         throw new IOException(Messages.CredentialsAuthenticator_2 + " " + repoURL); //$NON-NLS-1$
     }
+    
+    public static void log(String msg) {
+        log(msg, null);
+     }
+
+     public static void log(String msg, Exception e) {
+        LOGGER.log(new Status((e==null? Status.INFO:Status.ERROR), BUNDLE.getSymbolicName(), msg, e));
+     }
 }

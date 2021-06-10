@@ -51,7 +51,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
         try {
             getRepository().exportModelToGraficoFiles();
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
             return;
         }
@@ -76,7 +76,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
                 }
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_4, ex);
             return;
         }
@@ -88,7 +88,7 @@ public class ResetToRemoteCommitAction extends UndoLastCommitAction {
                 getRepository().resetToRef(currentRemoteBranch.getFullName());
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(Exception ex) {
             displayErrorDialog(Messages.ResetToRemoteCommitAction_0, ex);
         }
 

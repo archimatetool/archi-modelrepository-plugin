@@ -7,11 +7,15 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -81,7 +85,10 @@ public class MergeBranchAction extends AbstractModelAction {
                 doLocalMerge(fBranchInfo);
             }
         }
-        catch(IOException | GitAPIException ex) {
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+        }
+        catch(Exception ex) {
             displayErrorDialog(Messages.MergeBranchAction_1, ex);
         }
     }
@@ -144,7 +151,7 @@ public class MergeBranchAction extends AbstractModelAction {
         });
     }
     
-    private void doOnlineMerge(BranchInfo branchToMerge) throws IOException, GitAPIException {
+    private void doOnlineMerge(BranchInfo branchToMerge) throws IOException, GitAPIException, GeneralSecurityException {
         // Store currentBranch first
         BranchInfo currentBranch = getRepository().getBranchStatus().getCurrentLocalBranch();
         
@@ -156,8 +163,18 @@ public class MergeBranchAction extends AbstractModelAction {
             return;
         }
         
-        // Do this before opening the progress dialog
+        // Check primary key set
+        if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+            return;
+        }
+        
+        // Get for this before opening the progress dialog
+        // UsernamePassword is will be null if using SSH
         UsernamePassword npw = getUsernamePassword();
+        // User cancelled on HTTP
+        if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
+            return;
+        }
         
         // Do main action with PM dialog
         Display.getCurrent().asyncExec(new Runnable() {
@@ -170,6 +187,9 @@ public class MergeBranchAction extends AbstractModelAction {
                         @Override
                         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                             try {
+                                // Update Proxy
+                                ProxyAuthenticator.update();
+                                
                                 monitor.beginTask(Messages.MergeBranchAction_11, -1);
                                 
                                 // Pull
@@ -225,7 +245,7 @@ public class MergeBranchAction extends AbstractModelAction {
                                         pmDialog.getShell().setVisible(true);
                                         pmDialog.getProgressMonitor().subTask(Messages.MergeBranchAction_12);
                                         // Branch will have been pushed at this point so BranchInfo is no longer valid to determine if it's just a local branch
-                                        deleteBranchAction.deleteBranch(branchToMerge, true);
+                                        deleteBranchAction.deleteBranchAndPush(branchToMerge, npw);
                                     }
                                 }
                             }
@@ -240,6 +260,9 @@ public class MergeBranchAction extends AbstractModelAction {
                                 catch(IOException ex) {
                                     ex.printStackTrace();
                                 }
+                                
+                                // Clear Proxy
+                                ProxyAuthenticator.clear();
                             }
                         }
                     });

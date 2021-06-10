@@ -17,6 +17,7 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,82 +27,110 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IStatus;
 
-import com.archimatetool.editor.utils.StringUtils;
-
 /**
- * ProxyAuthenticator
+ * Proxy Authenticator
  * 
  * @author Phillip Beauvoir
  */
 public class ProxyAuthenticator {
     
-    // Store the default before we set ours
-    static final ProxySelector DEFAULT_PROXY_SELECTOR = ProxySelector.getDefault();
+    // Store the default ProxySelector before we set ours
+    private static final ProxySelector DEFAULT_PROXY_SELECTOR = ProxySelector.getDefault();
     
+    // Our Authenticator
+    private static Authenticator AUTHENTICATOR = new Authenticator() {
+        @Override
+        public PasswordAuthentication getPasswordAuthentication() {
+            // If proxy request, return its credentials
+            // Otherwise the requested URL is the endpoint (and not the proxy host)
+            // In this case the authentication should not be proxy so return null (and JGit CredentialsProvider will be used)
+            if(getRequestorType() == RequestorType.PROXY) {
+                try {
+                    // Check primary key is set for access to proxy credentials
+                    if(!EncryptedCredentialsStorage.isPrimaryKeySet()) {
+                        return null;
+                    }
+
+                    // Get the username and password for the proxy from encrypted file
+                    EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                            IGraficoConstants.PROXY_CREDENTIALS_FILE));
+                    UsernamePassword npw = cs.getUsernamePassword();
+                    
+                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword());
+                }
+                catch(GeneralSecurityException | IOException ex) {
+                    ex.printStackTrace();
+                    ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Authentication failed to get credentials", ex); //$NON-NLS-1$
+                    return null;
+                }
+            }
+            
+            // Not a proxy request
+            return null;
+        }
+    };
+    
+    // Initialise
     public static void init() {
         // This needs to be set in order to avoid this exception when using a Proxy:
         // "Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""
         // It needs to be set before any JGit operations, because it can't be set again
         System.setProperty("jdk.http.auth.tunneling.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
         
-        // Added this one too. I thnk it's for HTTP
+        // Added this one too. I think it's for HTTP
         System.setProperty("jdk.http.auth.proxying.disabledSchemes", ""); //$NON-NLS-1$ //$NON-NLS-2$
     }
     
     /**
-     * Update the Proxy Authenticater
-     * Get settings from user prefs
-     * @throws IOException
+     * Whether we are using a proxy as set in preferences
      */
-    public static void update(String repositoryURL) throws IOException {
-        boolean useProxy = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
-        
-        if(!useProxy) {
-            Authenticator.setDefault(null);
-            ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
-            
-            // Test the connection - this is better to do it now
-            testConnection(repositoryURL, null);
-            
+    public static boolean isUsingProxy() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
+    }
+    
+    /**
+     * Whether we are using authentication for the proxy as set in preferences
+     */
+    public static boolean isUsingAuthentication() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
+    }
+
+    /**
+     * Return the Proxy Host as set in preferences
+     */
+    public static String getProxyHost() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
+    }
+
+    /**
+     * Return the Proxy Port as set in preferences
+     */
+    public static int getProxyPort() {
+        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+    }
+
+    // Update the proxy details
+    public static void update() {
+        // Don't use a proxy
+        if(!isUsingProxy()) {
+            clear();
             return;
         }
         
-        boolean useAuthentication = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
-
-        if(useAuthentication) {
-            final SimpleCredentialsStorage sc = new SimpleCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                    IGraficoConstants.PROXY_CREDENTIALS_FILE));
-            
-            final UsernamePassword npw = sc.getUsernamePassword();
-            
-            Authenticator.setDefault(new Authenticator() {
-                @Override
-                public PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(npw.getUsername(), npw.getPassword().toCharArray());
-                }
-            });
+        // Authentication is used
+        if(isUsingAuthentication()) {
+            // Set our Authenticator
+            Authenticator.setDefault(AUTHENTICATOR);
         }
+        // No authentication used
         else {
             Authenticator.setDefault(null);
         }
         
-        final String hostName = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
-        final int port = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+        // The proxy to use
+        final Proxy proxy = createHTTPProxyFromPreferences();
         
-        if(!StringUtils.isSet(hostName)) {
-            return;
-        }
-        
-        // Test the connection is reachable
-        // Removed 26/3/19 - do we need to do this? Does it always work without a port?
-//        InetAddress addr = InetAddress.getByName(hostName);
-//        if(!addr.isReachable(2000)) {
-//            throw new IOException(Messages.ProxyAuthenticator_0 + " " + hostName); //$NON-NLS-1$
-//        }
-
-        final InetSocketAddress socketAddress = new InetSocketAddress(hostName, port);
-        final Proxy proxy = new Proxy(Type.HTTP, socketAddress);
-        
+        // The default ProxySelector
         ProxySelector.setDefault(new ProxySelector() {
             @Override
             public List<Proxy> select(URI uri) {
@@ -113,34 +142,44 @@ public class ProxyAuthenticator {
                 ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
                 ex.printStackTrace();
             }
-        });      
-
-        // Test the connection with the repository URL
-        testConnection(repositoryURL, proxy);
+        });
     }
     
     /**
-     * Test a connection
-     * @param repositoryURL
-     * @param proxy
-     * @throws IOException 
+     * Clear the Proxy settings
      */
-    private static void testConnection(String repositoryURL, Proxy proxy) throws IOException {
-        // TODO - doesn't work with SSH
-        if(GraficoUtils.isSSH(repositoryURL)) {
-            return;
+    public static void clear() {
+        Authenticator.setDefault(null);
+        ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
+    }
+    
+    /**
+     * Create a new Proxy from the hostName and port set in Preferences
+     */
+    private static Proxy createHTTPProxyFromPreferences() {
+        InetSocketAddress socketAddress = new InetSocketAddress(getProxyHost(), getProxyPort());
+        return new Proxy(Type.HTTP, socketAddress);
+    }
+    
+    /**
+     * Test a http connection
+     */
+    public static boolean testHTTPConnection(String url) throws IOException {
+        if(GraficoUtils.isSSH(url)) {
+            return false;
         }
         
-        URL testURL = new URL(repositoryURL);
+        URL testURL = new URL(url);
         
-        // TODO: localhost https connections throw certificate exceptions
+        // localhost https connections throw certificate exceptions
         if("localhost".equals(testURL.getHost()) || "127.0.0.1".equals(testURL.getHost())) { //$NON-NLS-1$ //$NON-NLS-2$
-            return;
+            return false;
         }
         
         URLConnection connection;
         
-        if(proxy != null) {
+        if(isUsingProxy()) {
+            Proxy proxy = createHTTPProxyFromPreferences();
             connection = testURL.openConnection(proxy);
         }
         else {
@@ -148,5 +187,7 @@ public class ProxyAuthenticator {
         }
         
         connection.connect();
+        
+        return true;
     }
 }

@@ -7,22 +7,21 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -52,6 +51,20 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+            return;
+        }
+        catch(IOException ex) {
+            displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
+            return;
+        }
+        
         NewModelRepoDialog dialog = new NewModelRepoDialog(fWindow.getShell());
         if(dialog.open() != Window.OK) {
             return;
@@ -65,7 +78,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && !StringUtils.isSet(npw.getPassword())) {
+        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && npw.getPassword().length == 0) {
             MessageDialog.openError(fWindow.getShell(), 
                     Messages.CreateRepoFromModelAction_0,
                     Messages.CreateRepoFromModelAction_3);
@@ -73,25 +86,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
             return;
         }
         
-        File localRepoFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                GraficoUtils.getLocalGitFolderName(repoURL));
-        
-        // Folder is not empty
-        if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.CreateRepoFromModelAction_1,
-                    Messages.CreateRepoFromModelAction_2 +
-                    " " + localRepoFolder.getAbsolutePath()); //$NON-NLS-1$
-
-            return;
-        }
-        
+        // Create a new local folder
+        File localRepoFolder = GraficoUtils.getUniqueLocalFolder(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), repoURL);
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {
-            // Proxy check
-            ProxyAuthenticator.update(repoURL);
-            
             // Create a new repo
             try(Git git = getRepository().createNewLocalGitRepository(repoURL)) {
             }
@@ -118,11 +117,18 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        // Update Proxy
+                        ProxyAuthenticator.update();
+                        
                         pm.beginTask(Messages.CreateRepoFromModelAction_4, -1);
                         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));
                     }
-                    catch(GitAPIException | IOException ex) {
+                    catch(Exception ex) {
                         exception[0] = ex;
+                    }
+                    finally {
+                        // Clear Proxy
+                        ProxyAuthenticator.clear();
                     }
                 }
             });
@@ -133,8 +139,8 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
 
             // Store repo credentials if HTTP and option is set
             if(GraficoUtils.isHTTP(repoURL) && storeCredentials) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                scs.store(npw);
+                EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(getRepository());
+                cs.store(npw);
             }
             
             // Save the checksum

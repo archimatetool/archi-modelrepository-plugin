@@ -6,24 +6,22 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.File;
-import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CloneInputDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.IProgressService;
@@ -35,8 +33,8 @@ import com.archimatetool.model.IArchimateModel;
 /**
  * Clone a model
  * 
- * 1. Get user credentials
- * 2. Check Proxy
+ * 1. Check Primary Key
+ * 2. Get user credentials
  * 3. Clone from Remote
  * 4. If Grafico files exist load the model from the Grafico files and save it as temp file
  * 5. If Grafico files do not exist create a new temp model and save it
@@ -53,6 +51,21 @@ public class CloneModelAction extends AbstractModelAction {
 
     @Override
     public void run() {
+        // Check primary key set
+        try {
+            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
+                return;
+            }
+        }
+        catch(GeneralSecurityException ex) {
+            displayCredentialsErrorDialog(ex);
+            return;
+        }
+        catch(Exception ex) {
+            displayErrorDialog(Messages.CloneModelAction_0, ex);
+            return;
+        }
+        
         CloneInputDialog dialog = new CloneInputDialog(fWindow.getShell());
         if(dialog.open() != Window.OK) {
             return;
@@ -66,31 +79,18 @@ public class CloneModelAction extends AbstractModelAction {
             return;
         }
         
-        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && !StringUtils.isSet(npw.getPassword())) {
+        if(GraficoUtils.isHTTP(repoURL) && !StringUtils.isSet(npw.getUsername()) && npw.getPassword().length == 0) {
             MessageDialog.openError(fWindow.getShell(), 
                     Messages.CloneModelAction_0,
                     Messages.CloneModelAction_1);
             return;
         }
         
-        File localRepoFolder = new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
-                GraficoUtils.getLocalGitFolderName(repoURL));
-        
-        // Folder is not empty
-        if(localRepoFolder.exists() && localRepoFolder.isDirectory() && localRepoFolder.list().length > 0) {
-            MessageDialog.openError(fWindow.getShell(),
-                    Messages.CloneModelAction_0,
-                    Messages.CloneModelAction_2 + " " + localRepoFolder.getAbsolutePath()); //$NON-NLS-1$
-
-            return;
-        }
-        
+        // Create a new local folder
+        File localRepoFolder = GraficoUtils.getUniqueLocalFolder(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), repoURL);
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {
-            // Proxy check
-            ProxyAuthenticator.update(repoURL);
-            
             // Clone
             Exception[] exception = new Exception[1];
             IProgressService ps = PlatformUI.getWorkbench().getProgressService();
@@ -98,11 +98,18 @@ public class CloneModelAction extends AbstractModelAction {
                 @Override
                 public void run(IProgressMonitor pm) {
                     try {
+                        // Update Proxy
+                        ProxyAuthenticator.update();
+                        
                         pm.beginTask(Messages.CloneModelAction_4, -1);
                         getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));
                     }
-                    catch(GitAPIException | IOException ex) {
+                    catch(Exception ex) {
                         exception[0] = ex;
+                    }
+                    finally {
+                        // Clear Proxy
+                        ProxyAuthenticator.clear();
                     }
                 }
             });
@@ -135,8 +142,8 @@ public class CloneModelAction extends AbstractModelAction {
             
             // Store repo credentials if HTTP and option is set
             if(GraficoUtils.isHTTP(repoURL) && storeCredentials) {
-                SimpleCredentialsStorage scs = new SimpleCredentialsStorage(new File(getRepository().getLocalGitFolder(), IGraficoConstants.REPO_CREDENTIALS_FILE));
-                scs.store(npw);
+                EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(getRepository());
+                cs.store(npw);
             }
             
             // Notify listeners

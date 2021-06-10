@@ -8,6 +8,8 @@ public class Messages extends NLS {
 
     public static String ArchiRepository_0;
 
+    public static String ArchiRepository_1;
+
     public static String GraficoModelLoader_0;
 
     static {

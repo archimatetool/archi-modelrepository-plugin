@@ -151,20 +151,6 @@ public interface IArchiRepository extends IGraficoConstants {
     void resetToRef(String ref) throws IOException, GitAPIException;
 
     /**
-     * @return true if there are unpushed commits in branch
-     * @param branch The branch name
-     * @throws IOException
-     */
-    boolean hasUnpushedCommits(String branch) throws IOException;
-
-    /**
-     * @return true if the are unpulled commits in the remote
-     * @param branch The branch name
-     * @throws IOException
-     */
-    boolean hasRemoteCommits(String branch) throws IOException;
-
-    /**
      * @return if the latest local HEAD commit and the remote commit are the same
      * @throws IOException
      * @throws GitAPIException 

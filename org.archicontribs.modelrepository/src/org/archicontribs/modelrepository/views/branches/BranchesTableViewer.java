@@ -6,6 +6,8 @@
 package org.archicontribs.modelrepository.views.branches;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
@@ -21,9 +23,11 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 
@@ -46,12 +50,28 @@ public class BranchesTableViewer extends TableViewer {
         
         TableViewerColumn column = new TableViewerColumn(this, SWT.NONE, 0);
         column.getColumn().setText(Messages.BranchesTableViewer_0);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(50, false));
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
         column = new TableViewerColumn(this, SWT.NONE, 1);
         column.getColumn().setText(Messages.BranchesTableViewer_1);
-        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(40, false));
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
         
+        column = new TableViewerColumn(this, SWT.NONE, 2);
+        column.getColumn().setText(Messages.BranchesTableViewer_6);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+        
+        column = new TableViewerColumn(this, SWT.NONE, 3);
+        column.getColumn().setText(Messages.BranchesTableViewer_7);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+        
+        column = new TableViewerColumn(this, SWT.NONE, 4);
+        column.getColumn().setText(Messages.BranchesTableViewer_8);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+        
+        column = new TableViewerColumn(this, SWT.NONE, 5);
+        column.getColumn().setText(Messages.BranchesTableViewer_9);
+        tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(10, false));
+
         setContentProvider(new BranchesContentProvider());
         setLabelProvider(new BranchesLabelProvider());
         
@@ -106,9 +126,7 @@ public class BranchesTableViewer extends TableViewer {
                 
                 try {
                     BranchStatus status = repo.getBranchStatus();
-                    if(status != null) {
-                        return status.getLocalAndUntrackedRemoteBranches().toArray();
-                    }
+                    return status.getLocalAndUntrackedRemoteBranches().toArray();
                 }
                 catch(IOException | GitAPIException ex) {
                     ex.printStackTrace();
@@ -118,14 +136,22 @@ public class BranchesTableViewer extends TableViewer {
             return new Object[0];
         }
     }
-    
+
     // ===============================================================================================
 	// ===================================== Label Model ==============================================
 	// ===============================================================================================
 
     class BranchesLabelProvider extends CellLabelProvider {
         
+        DateFormat dateFormat = DateFormat.getDateTimeInstance();
+        
         public String getColumnText(BranchInfo branchInfo, int columnIndex) {
+            RevCommit commit = branchInfo.getLatestCommit();
+            
+            // If we are going to do this then use an ArchiRepositoryStatus class
+            //IArchiRepository repo = (IArchiRepository)getInput();
+            //boolean hasLocalChanges = repo.hasLocalChanges();
+            
             switch(columnIndex) {
                 case 0:
                     String name = branchInfo.getShortName();
@@ -144,9 +170,39 @@ public class BranchesTableViewer extends TableViewer {
                     else {
                         return Messages.BranchesTableViewer_5;
                     }
+                 
+                case 2:
+                    return commit == null ? "" : commit.getCommitterIdent().getName(); //$NON-NLS-1$
+                    
+                case 3:
+                    return commit == null ? "" : dateFormat.format(new Date(commit.getCommitTime() * 1000L)); //$NON-NLS-1$
+                    
+                case 4:
+                    String text;
+                    
+                    if(branchInfo.hasUnpushedCommits()) {
+                        text = Messages.BranchesTableViewer_10;
+                    }
+                    else if(branchInfo.hasRemoteCommits() || branchInfo.isRemote()) {
+                        text = Messages.BranchesTableViewer_11;
+                    }
+                    else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
+                        text = Messages.BranchesTableViewer_12;
+                    }
+                    else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
+                        text = Messages.BranchesTableViewer_13;
+                    }
+                    else {
+                        text = Messages.BranchesTableViewer_14;
+                    }
+                    
+                    return text;
+                    
+                case 5:
+                    return branchInfo.isMerged() ? Messages.BranchesTableViewer_15 : Messages.BranchesTableViewer_16;
                     
                 default:
-                    return null;
+                    return ""; //$NON-NLS-1$
             }
         }
 
@@ -162,6 +218,11 @@ public class BranchesTableViewer extends TableViewer {
                 }
                 else {
                     cell.setFont(null);
+                }
+                
+                // Red text for "deleted" branches
+                if(branchInfo.isRemoteDeleted()) {
+                    cell.setForeground(ColorFactory.get(255, 64, 0));
                 }
                 
                 switch(cell.getColumnIndex()) {

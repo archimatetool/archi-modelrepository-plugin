@@ -5,15 +5,12 @@
  */
 package org.archicontribs.modelrepository.propertysections;
 
-import java.io.File;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 
-import org.archicontribs.modelrepository.authentication.SimpleCredentialsStorage;
-import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
@@ -26,14 +23,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
-import com.archimatetool.editor.utils.StringUtils;
 
 
 /**
@@ -52,57 +46,10 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private IArchiRepository fRepository;
     
-    private Button clearButton;
     private Button prefsButton;
     
-    private TextListener textUserName, textPassword;
-    
-    private class TextListener {
-        Text text;
-        String oldValue;
-
-        Listener listener = new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                switch(event.type) {
-                    case SWT.FocusOut:
-                    case SWT.DefaultSelection:
-                        String newValue = text.getText();
-                        
-                        // Different value so save
-                        if(!oldValue.equals(newValue)) {
-                            oldValue = newValue;
-                            // Save
-                            saveCredentials();
-                            clearButton.setEnabled(true);
-                        }
-                        break;
-                    
-                    default:
-                        break;
-                }
-             }
-        };
-        
-        TextListener(Composite parent, int style) {
-            text = createSingleTextControl(parent, style);
-            text.addListener(SWT.DefaultSelection, listener);
-            text.addListener(SWT.FocusOut, listener);
-        }
-
-        void setText(String oldValue) {
-            this.oldValue = oldValue;
-            text.setText(oldValue);
-        }
-        
-        String getText() {
-            return text.getText().trim();
-        }
-
-        void setEnabled(boolean enabled) {
-            text.setEnabled(enabled);
-        }
-    }
+    private UpdatingTextControl textUserName;
+    private UpdatingTextControl textPassword;
     
     public AuthSection() {
     }
@@ -115,25 +62,27 @@ public class AuthSection extends AbstractArchiPropertySection {
         group1.setLayoutData(gd);
         group1.setLayout(new GridLayout(2, false));
         
+        // User name
         createLabel(group1, Messages.AuthSection_6, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textUserName = new TextListener(group1, SWT.NONE);
-        
-        createLabel(group1, Messages.AuthSection_7, STANDARD_LABEL_WIDTH, SWT.CENTER);
-        textPassword = new TextListener(group1, SWT.PASSWORD);
-
-        clearButton = getWidgetFactory().createButton(group1, Messages.AuthSection_2, SWT.PUSH);
-        clearButton.addSelectionListener(new SelectionAdapter() {
+        textUserName = new UpdatingTextControl(createSingleTextControl(group1, SWT.NONE)) {
             @Override
-            public void widgetSelected(SelectionEvent e) {
-                boolean answer = MessageDialog.openQuestion(parent.getShell(), Messages.AuthSection_3,
-                        Messages.AuthSection_4);
-                if(answer) {
-                    getCredentials().deleteCredentialsFile();
-                    updateControls();
-                }
+            protected void textChanged(String newText) {
+                storeUserName(newText);
             }
-        });
+        };
         
+        // Password
+        createLabel(group1, Messages.AuthSection_7, STANDARD_LABEL_WIDTH, SWT.CENTER);
+        textPassword = new UpdatingTextControl(createSingleTextControl(group1, SWT.PASSWORD)) {
+            @Override
+            protected void textChanged(String newText) {
+                setNotifications(false); // Setting the password might invoke the primary password dialog and cause a focus out event
+                storePassword(newText.toCharArray());
+                setNotifications(true);
+            }
+        };
+
+        // SSH Preferences
         prefsButton = getWidgetFactory().createButton(group1, Messages.AuthSection_8, SWT.PUSH);
         prefsButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -159,62 +108,61 @@ public class AuthSection extends AbstractArchiPropertySection {
     }
     
     private void updateControls() {
-        SimpleCredentialsStorage scs = getCredentials();
-        
-        if(scs.hasCredentialsFile()) {
-            try {
-                UsernamePassword npw = scs.getUsernamePassword();
-                textUserName.setText(StringUtils.safeString(npw.getUsername()));
-                textPassword.setText(StringUtils.safeString(npw.getPassword()));
-            }
-            catch(IOException ex) {
-                ex.printStackTrace();
-                MessageDialog.openError(getPart().getSite().getShell(), Messages.AuthSection_0, ex.getMessage());
-            }
-        }
-        else {
-            textUserName.setText(""); //$NON-NLS-1$
-            textPassword.setText(""); //$NON-NLS-1$
-        }
-        
-        boolean isHTTP = true;
+        textUserName.setText(""); //$NON-NLS-1$
+        textPassword.setText(""); //$NON-NLS-1$
+
         try {
-            isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
+            // Is this HTTP or SSH?
+            boolean isHTTP = GraficoUtils.isHTTP(fRepository.getOnlineRepositoryURL());
+            
+            textUserName.setEnabled(isHTTP);
+            textPassword.setEnabled(isHTTP);
+            prefsButton.setEnabled(!isHTTP);
+            
+            // HTTP so show credentials
+            if(isHTTP) {
+                EncryptedCredentialsStorage credentials = getCredentials();
+                
+                textUserName.setText(credentials.getUserName());
+
+                if(credentials.hasPassword()) {
+                    textPassword.setText("********"); //$NON-NLS-1$
+                }
+            }
         }
         catch(IOException ex) {
-            ex.printStackTrace();
+            showError(ex);
         }
-        
-        textUserName.setEnabled(isHTTP);
-        textPassword.setEnabled(isHTTP);
-        
-        clearButton.setEnabled(scs.hasCredentialsFile());
-        prefsButton.setEnabled(!isHTTP);
     }
     
-    private SimpleCredentialsStorage getCredentials() {
-        return new SimpleCredentialsStorage(new File(fRepository.getLocalGitFolder(),
-                IGraficoConstants.REPO_CREDENTIALS_FILE)); 
+    private EncryptedCredentialsStorage getCredentials() {
+        return EncryptedCredentialsStorage.forRepository(fRepository); 
     }
     
-    private void saveCredentials() {
+    private void storeUserName(String userName) {
         try {
-            getCredentials().store(textUserName.getText(), textPassword.getText());
+            getCredentials().storeUserName(userName);
         }
-        catch(NoSuchAlgorithmException | IOException ex) {
-            ex.printStackTrace();
-            MessageDialog.openError(getPart().getSite().getShell(),
-                    Messages.AuthSection_11,
-                    Messages.AuthSection_12 +
-                            " " + //$NON-NLS-1$
-                            ex.getMessage());
+        catch(IOException ex) {
+            showError(ex);
         }
     }
     
-    @Override
-    public void dispose() {
-        if(textPassword != null) {
-            textPassword.oldValue = null;
+    private void storePassword(char[] password) {
+        try {
+            getCredentials().storePassword(password);
         }
+        catch(IOException | GeneralSecurityException ex) {
+            showError(ex);
+        }
+    }
+    
+    private void showError(Exception ex) {
+        ex.printStackTrace();
+        MessageDialog.openError(Display.getCurrent().getActiveShell(),
+                Messages.AuthSection_11,
+                Messages.AuthSection_12 +
+                        " " + //$NON-NLS-1$
+                        ex.getMessage());
     }
 }

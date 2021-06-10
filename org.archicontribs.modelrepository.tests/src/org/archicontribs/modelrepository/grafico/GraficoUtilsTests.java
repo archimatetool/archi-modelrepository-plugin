@@ -92,6 +92,32 @@ public class GraficoUtilsTests {
         repoURL = "ssh://githosting.org/This_One";
         assertEquals("this_one", GraficoUtils.getLocalGitFolderName(repoURL));        
     }
+    
+    @Test
+    public void getUniqueLocalFolder() throws Exception {
+        String repoURL = "https://githosting.org/path/archi-demo-grafico.git";
+        File tmpFolder = new File(GitHelper.getTempTestsFolder(), "testFolder");
+        
+        // Empty and OK
+        File folder = GraficoUtils.getUniqueLocalFolder(tmpFolder, repoURL);
+        assertEquals(new File(tmpFolder, "archi-demo-grafico"), folder);
+        
+        // Exists and OK
+        folder.mkdirs();
+        folder = GraficoUtils.getUniqueLocalFolder(tmpFolder, repoURL);
+        assertEquals(new File(tmpFolder, "archi-demo-grafico"), folder);
+        
+        // Exists but is not empty so has "_1" appended
+        File.createTempFile("architest", null, folder);
+        folder = GraficoUtils.getUniqueLocalFolder(tmpFolder, repoURL);
+        assertEquals(new File(tmpFolder, "archi-demo-grafico_1"), folder);
+        
+        // Add another folder so has "_2" appended
+        folder.mkdirs();
+        File.createTempFile("architest", null, new File(tmpFolder, "archi-demo-grafico_1"));
+        folder = GraficoUtils.getUniqueLocalFolder(tmpFolder, repoURL);
+        assertEquals(new File(tmpFolder, "archi-demo-grafico_2"), folder);
+    }
 
     @Test
     public void isGitRepository_FileShouldNotBe() throws Exception {

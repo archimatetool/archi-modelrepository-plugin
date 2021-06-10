@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: %Bundle-Name
+Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: org.archicontribs.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.5.3.qualifier
+Bundle-Version: 0.7.1.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: org.eclipse.help.ui,
- com.archimatetool.editor;bundle-version="4.1.0"
+ com.archimatetool.editor;bundle-version="4.6.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
@@ -15,52 +15,18 @@ Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.authentication,
  org.archicontribs.modelrepository.dialogs,
  org.archicontribs.modelrepository.grafico,
+ org.archicontribs.modelrepository.merge,
  org.archicontribs.modelrepository.preferences,
  org.archicontribs.modelrepository.propertysections,
+ org.archicontribs.modelrepository.views.branches,
  org.archicontribs.modelrepository.views.history,
- org.archicontribs.modelrepository.views.repositories,
- org.eclipse.jgit.annotations,
- org.eclipse.jgit.api,
- org.eclipse.jgit.api.errors,
- org.eclipse.jgit.attributes,
- org.eclipse.jgit.blame,
- org.eclipse.jgit.diff,
- org.eclipse.jgit.dircache,
- org.eclipse.jgit.errors,
- org.eclipse.jgit.events,
- org.eclipse.jgit.fnmatch,
- org.eclipse.jgit.gitrepo,
- org.eclipse.jgit.gitrepo.internal,
- org.eclipse.jgit.hooks,
- org.eclipse.jgit.ignore,
- org.eclipse.jgit.ignore.internal,
- org.eclipse.jgit.lib,
- org.eclipse.jgit.merge,
- org.eclipse.jgit.nls,
- org.eclipse.jgit.notes,
- org.eclipse.jgit.patch,
- org.eclipse.jgit.revplot,
- org.eclipse.jgit.revwalk,
- org.eclipse.jgit.revwalk.filter,
- org.eclipse.jgit.storage.file,
- org.eclipse.jgit.storage.pack,
- org.eclipse.jgit.submodule,
- org.eclipse.jgit.transport,
- org.eclipse.jgit.transport.http,
- org.eclipse.jgit.transport.resolver,
- org.eclipse.jgit.treewalk,
- org.eclipse.jgit.treewalk.filter,
- org.eclipse.jgit.util,
- org.eclipse.jgit.util.io,
- org.eclipse.jgit.util.sha1,
- org.eclipse.jgit.util.time
+ org.archicontribs.modelrepository.views.repositories
 Bundle-ClassPath: org.archicontribs.modelrepository.jar,
- lib/org.eclipse.jgit_5.3.0.201903130848-r.jar,
- lib/com.jcraft.jsch_0.1.54.v20170116-1932.jar,
- lib/slf4j-api-1.7.25.jar,
- lib/slf4j-simple-1.7.25.jar,
- lib/javaewah_1.1.6.v20160919-1400.jar,
- lib/org.bouncycastle.bcprov_1.60.0.v20181210-2057.jar,
- lib/org.bouncycastle.bcpg_1.60.0.v20181210-2057.jar,
- lib/org.bouncycastle.bcpkix_1.60.0.v20181210-2057.jar
+ lib/com.jcraft.jsch_0.1.55.v20190404-1902.jar,
+ lib/com.jcraft.jzlib_1.1.1.v201205102305.jar,
+ lib/javaewah_1.1.7.v20200107-0831.jar,
+ lib/org.eclipse.jgit_5.9.0.202009080501-r.jar,
+ lib/org.eclipse.jgit.ssh.jsch_5.9.0.202009080501-r.jar,
+ lib/org.slf4j.api_1.7.2.v20121108-1250.jar,
+ lib/slf4j-simple-1.7.30.jar
 Automatic-Module-Name: org.archicontribs.modelrepository

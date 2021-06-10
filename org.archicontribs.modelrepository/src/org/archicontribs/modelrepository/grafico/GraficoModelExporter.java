@@ -8,11 +8,12 @@ package org.archicontribs.modelrepository.grafico;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
@@ -32,8 +33,6 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
-import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
@@ -57,12 +56,12 @@ import com.archimatetool.model.IIdentifier;
 public class GraficoModelExporter {
 	
     // Use a ProgressMonitor to cancel running Jobs and track Exception
-    static class ExceptionProgressMonitor extends NullProgressMonitor {
+    private static class ExceptionProgressMonitor extends NullProgressMonitor {
         IOException ex;
         
         void catchException(IOException ex) {
             this.ex = ex;
-            setCanceled(true);
+            setCanceled(true); // Cancel running job on exception
         }
     }
     
@@ -151,16 +150,12 @@ public class GraficoModelExporter {
             job.schedule();
         }
         
-        BusyIndicator.showWhile(Display.getDefault(), new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    jobgroup.join(0, pm);
-                }
-                catch(OperationCanceledException | InterruptedException ex) {
-                }
-            }
-        });
+        try {
+            jobgroup.join(0, pm);
+        }
+        catch(OperationCanceledException | InterruptedException ex) {
+            throw new IOException(ex);
+        }
         
         // Throw on any exception
         if(pm.ex != null) {
@@ -253,30 +248,30 @@ public class GraficoModelExporter {
     }
     
     /**
-     * Extract and save images used inside a model
-     * 
-     * @param model
-     * @param folder
-     * @throws IOException
+     * Extract and save images used inside a model as separate image files
      */
     private void saveImages() throws IOException {
-        List<String> added = new ArrayList<String>();
+        Set<String> added = new HashSet<>();
 
         IArchiveManager archiveManager = (IArchiveManager)fModel.getAdapter(IArchiveManager.class);
         if(archiveManager == null) {
             archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         }
         
-        byte[] bytes;
-
         for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
             if(eObject instanceof IDiagramModelImageProvider) {
                 IDiagramModelImageProvider imageProvider = (IDiagramModelImageProvider)eObject;
                 String imagePath = imageProvider.getImagePath();
+                
                 if(imagePath != null && !added.contains(imagePath)) {
-                    bytes = archiveManager.getBytesFromEntry(imagePath);
-                    Files.write(Paths.get(fLocalRepoFolder.getAbsolutePath() + File.separator + imagePath), bytes, StandardOpenOption.CREATE);
+                    byte[] bytes = archiveManager.getBytesFromEntry(imagePath);
+                    if(bytes == null) {
+                        throw new IOException("Could not get image bytes from image path: " + imagePath); //$NON-NLS-1$
+                    }
+                    
+                    File file = new File(fLocalRepoFolder, imagePath);
+                    Files.write(file.toPath(), bytes, StandardOpenOption.CREATE);
                     added.add(imagePath);
                 }
             }
