@@ -26,6 +26,13 @@ import org.eclipse.ui.IWorkbenchWindow;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
+import org.eclipse.core.commands.Parameterization;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.commands.Command;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
+
 /**
  * Abstract ModelAction
  * 
@@ -106,6 +113,25 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         ex.printStackTrace();
         displayErrorDialog(Messages.AbstractModelAction_5, Messages.AbstractModelAction_11);
     }
+    
+    protected boolean callPreCommitScript(String scriptName) {
+    	try {
+			String commandId = "com.archimatetool.scripts.command.runScript";
+			String paramId = "com.archimatetool.scripts.command.runScript.param1";
+	        IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+	        ICommandService commandService = (ICommandService)PlatformUI.getWorkbench().getService(ICommandService.class);
+			Command command = commandService.getCommand(commandId);
+			ParameterizedCommand parmCommand =
+				new ParameterizedCommand(command, new Parameterization[] {
+					new Parameterization(command.getParameter(paramId), scriptName)
+			});
+			handlerService.executeCommand(parmCommand, null);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+    }
 
     /**
      * Offer to save the model
@@ -134,6 +160,10 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
      * @return true if successful, false otherwise
      */
     protected boolean offerToCommitChanges() {
+    	
+        // Call pre-commit Script via jArchi plug-in command
+		callPreCommitScript("ExportSVG.ajs");
+		
         CommitDialog commitDialog = new CommitDialog(fWindow.getShell(), getRepository());
         int response = commitDialog.open();
         
