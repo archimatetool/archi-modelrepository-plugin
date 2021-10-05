@@ -219,7 +219,9 @@ public class GraficoModelExporter {
     private void createAndSaveResource(File file, EObject object) throws IOException {
     	// Update the URIConverter
         // Map the logical name (filename) to the physical name (path+filename)
-        URI key = file.getName().equals(IGraficoConstants.FOLDER_XML) ? URI.createFileURI(file.getAbsolutePath()) : URI.createFileURI(file.getName());
+    	// Folders must be declared with absolute path or else the 'folder.xml' file is not created
+    	// The model object must be declared with relative path or else concepts reference profiles through absolute path (which are gonna be different for each users)
+        URI key = (!(object instanceof IArchimateModel) && file.getName().equals(IGraficoConstants.FOLDER_XML)) ? URI.createFileURI(file.getAbsolutePath()) : URI.createFileURI(file.getName());
         URI value = URI.createFileURI(file.getAbsolutePath());
         fResourceSet.getURIConverter().getURIMap().put(key, value);
 
