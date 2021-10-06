@@ -40,7 +40,6 @@ import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProfile;
-import com.archimatetool.model.IProfiles;
 
 
 
