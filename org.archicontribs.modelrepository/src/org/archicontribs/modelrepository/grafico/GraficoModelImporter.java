@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -37,6 +39,7 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.IProfile;
 
 
 
@@ -184,6 +187,21 @@ public class GraficoModelImporter {
         for(Iterator<EObject> iter = fModel.eAllContents(); iter.hasNext();) {
             EObject eObject = iter.next();
 
+            if(eObject instanceof IArchimateConcept) {
+                // Resolve proxies for profiles
+            	IArchimateConcept concept = (IArchimateConcept)eObject;
+            	EList<IProfile> profiles = concept.getProfiles();
+            	// getProfiles() can't return null so no need to check
+            	// Assumption: most concepts don't have profiles so checking for empty has a positive impact on performance
+            	if(!profiles.isEmpty()) {
+	            	ListIterator<IProfile> iterator = profiles.listIterator();
+	            	while(iterator.hasNext()) {
+	            		IProfile profile = iterator.next();
+	            		iterator.set((IProfile)resolve(profile, concept));
+	            	}
+            	}
+            }
+            
             if(eObject instanceof IArchimateRelationship) {
                 // Resolve proxies for Relations
                 IArchimateRelationship relation = (IArchimateRelationship)eObject;
@@ -302,6 +320,11 @@ public class GraficoModelImporter {
         
         // Update an ID -> Object mapping table (used as a cache to resolve proxies)
         fIDLookup.put(eObject.getId(), eObject);
+        if(eObject instanceof IArchimateModel) {
+        	for(IProfile profile : ((IArchimateModel)eObject).getProfiles()) {
+        		fIDLookup.put(profile.getId(), profile);
+        	}
+        }
 
         return eObject;
     }
