@@ -8,6 +8,8 @@ package org.archicontribs.modelrepository.grafico;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.eclipse.core.runtime.IStatus;
@@ -38,6 +40,14 @@ public class GraficoResourceLoader {
     private static IIdentifier load(XMLResource resource, InputStream inputStream) throws IOException {
         resource.getDefaultLoadOptions().put(XMLResource.OPTION_ENCODING, "UTF-8"); //$NON-NLS-1$
         
+        // Don't allow DTD loading in case of XSS exploits
+        Map<String, Object> parserFeatures = new HashMap<String, Object>();
+        parserFeatures.put("http://apache.org/xml/features/disallow-doctype-decl", Boolean.TRUE); //$NON-NLS-1$
+        parserFeatures.put("http://apache.org/xml/features/nonvalidating/load-external-dtd", Boolean.FALSE); //$NON-NLS-1$
+        parserFeatures.put("http://xml.org/sax/features/external-general-entities", Boolean.FALSE); //$NON-NLS-1$
+        parserFeatures.put("http://xml.org/sax/features/external-parameter-entities", Boolean.FALSE); //$NON-NLS-1$
+        resource.getDefaultLoadOptions().put(XMLResource.OPTION_PARSER_FEATURES, parserFeatures);
+       
         ModelCompatibility modelCompatibility = new ModelCompatibility(resource);
         
         // Load the Resource so we can trap any exceptions
