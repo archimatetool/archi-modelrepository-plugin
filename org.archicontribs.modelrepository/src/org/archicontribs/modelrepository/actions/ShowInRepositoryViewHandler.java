@@ -11,7 +11,6 @@ import org.archicontribs.modelrepository.views.repositories.ModelRepositoryView;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
-import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.editor.ui.services.ViewManager;
 
 
@@ -20,7 +19,7 @@ import com.archimatetool.editor.ui.services.ViewManager;
  * 
  * @author Phillip Beauvoir
  */
-public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
+public class ShowInRepositoryViewHandler extends AbstractModelHandler {
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -30,16 +29,6 @@ public class ShowInRepositoryViewHandler extends AbstractModelSelectionHandler {
         }
         
         return null;
-    }
-
-    @Override
-    public void updateState() {
-        // Do nothing
-    }
-    
-    @Override
-    public boolean isEnabled() {
-        return GraficoUtils.isModelInLocalRepository(getActiveArchimateModel());
     }
 
 }

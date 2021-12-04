@@ -5,12 +5,10 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.model.IArchimateModel;
 
 
@@ -19,7 +17,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class RefreshModelHandler extends AbstractModelSelectionHandler {
+public class RefreshModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -31,15 +29,5 @@ public class RefreshModelHandler extends AbstractModelSelectionHandler {
         }
         
         return null;
-    }
-    
-    @Override
-    public void updateState() {
-        // Do nothing
-    }
-    
-    @Override
-    public boolean isEnabled() {
-        return GraficoUtils.isModelInLocalRepository(getActiveArchimateModel());
     }
 }

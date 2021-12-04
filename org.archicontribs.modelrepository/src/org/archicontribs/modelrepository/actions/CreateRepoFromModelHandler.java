@@ -10,7 +10,6 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
 import com.archimatetool.model.IArchimateModel;
 
 
@@ -19,7 +18,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class CreateRepoFromModelHandler extends AbstractModelSelectionHandler {
+public class CreateRepoFromModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -31,11 +30,6 @@ public class CreateRepoFromModelHandler extends AbstractModelSelectionHandler {
         }
         
         return null;
-    }
-    
-    @Override
-    public void updateState() {
-        // Do nothing
     }
     
     @Override
