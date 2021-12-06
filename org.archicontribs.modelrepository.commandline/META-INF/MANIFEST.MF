@@ -3,10 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi) Command Line
 Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.8.0.qualifier
+Bundle-Version: 0.8.1.qualifier
 Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
 Require-Bundle: com.archimatetool.commandline;bundle-version="4.9.0",
- org.archicontribs.modelrepository;bundle-version="0.8.0"
+ org.archicontribs.modelrepository;bundle-version="0.8.1"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.archicontribs.modelrepository.commandline
