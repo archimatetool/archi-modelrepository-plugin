@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
@@ -17,6 +18,7 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
@@ -162,7 +164,10 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
     protected boolean offerToCommitChanges() {
     	
         // Call pre-commit Script via jArchi plug-in command
-		callPreCommitScript("ExportSVG.ajs");
+    	String scriptname = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_JARCHI_COMMIT_SCRIPT); 
+		if (scriptname != "" && scriptname != null) {
+			callPreCommitScript(scriptname + ".ajs");
+		}
 		
         CommitDialog commitDialog = new CommitDialog(fWindow.getShell(), getRepository());
         int response = commitDialog.open();
