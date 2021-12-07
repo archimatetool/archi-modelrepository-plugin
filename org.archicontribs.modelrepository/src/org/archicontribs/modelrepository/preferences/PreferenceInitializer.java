@@ -50,5 +50,7 @@ implements IPreferenceConstants {
 		store.setDefault(PREFS_PASSWORD_MIN_UPPERCASE_CHARS, 0);
 		store.setDefault(PREFS_PASSWORD_MIN_DIGITS, 0);
 		store.setDefault(PREFS_PASSWORD_MIN_SPECIAL_CHARS, 0);
+		
+		store.setDefault(PREFS_JARCHI_COMMIT_SCRIPT, "");
     }
 }

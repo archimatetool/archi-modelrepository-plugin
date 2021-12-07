@@ -60,4 +60,6 @@ public interface IPreferenceConstants {
     
     String PREFS_PRIMARY_PASSWORD_TIMEOUT = "passwordPrimaryTimeout";
     String PREFS_PASSWORD_INACTIVITY_TIMEOUT = "passwordInactivityTimeout";
+    
+    String PREFS_JARCHI_COMMIT_SCRIPT = "jarchiCommitScript";
  }
