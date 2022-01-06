@@ -94,6 +94,8 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
                 return;
             }
             
+            // If using HTTPS then password is needed for connection
+            // If using SSH them password is optional for the identity file
             if(!isSSH && !StringUtils.isSet(password)) {
                 logError(Messages.LoadModelFromRepositoryProvider_17);
                 return;
@@ -117,12 +119,12 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
 
                 @Override
                 public char[] getIdentityPassword() {
-                    return password.toCharArray();
+                    return password != null ? password.toCharArray() : null;
                 }
             });
             
             IArchiRepository repo = new ArchiRepository(cloneFolder);
-            repo.cloneModel(url, new UsernamePassword(username, password.toCharArray()), null);
+            repo.cloneModel(url, new UsernamePassword(username, password != null ? password.toCharArray() : null), null);
             
             logMessage(Messages.LoadModelFromRepositoryProvider_5);
         }
