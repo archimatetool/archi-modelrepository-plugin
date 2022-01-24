@@ -308,12 +308,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
 
         // Commit Script Hook
         Group commitScriptGroup = new Group(client, SWT.NULL);
-        commitScriptGroup.setText(Messages.ModelRepositoryPreferencePage_25);
+        commitScriptGroup.setText(Messages.ModelRepositoryPreferencePage_26);
         commitScriptGroup.setLayout(new GridLayout(2, false));
         commitScriptGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         label = new Label(commitScriptGroup, SWT.NULL);
-        label.setText(Messages.ModelRepositoryPreferencePage_26);
+        label.setText(Messages.ModelRepositoryPreferencePage_27);
         
         fCommitScriptTextField = UIUtils.createSingleTextControl(commitScriptGroup, SWT.BORDER, false);
         fCommitScriptTextField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
