@@ -14,18 +14,10 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.util.FS;
 import org.eclipse.osgi.util.NLS;
-
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 
 
 /**
@@ -38,6 +30,13 @@ public final class CredentialsAuthenticator {
     public interface SSHIdentityProvider {
         File getIdentityFile() throws IOException;
         char[] getIdentityPassword() throws IOException, GeneralSecurityException;
+    }
+    
+    static {
+        /**
+         * Set the SshSessionFactory instance to our specialised SshSessionFactory 
+         */
+        SshSessionFactory.setInstance(new CustomSshSessionFactory());
     }
     
     /**
@@ -79,73 +78,25 @@ public final class CredentialsAuthenticator {
         CredentialsAuthenticator.sshIdentityProvider = sshIdentityProvider;
     }
     
+    public static SSHIdentityProvider getSSHIdentityProvider() {
+        return sshIdentityProvider;
+    }
+    
     /**
-     * Factory method to get the default TransportConfigCallback for authentication for repoURL
+     * Factory method to get the TransportConfigCallback for authentication for repoURL
      * npw can be null and is ignored if repoURL is SSH
      */
-    public static TransportConfigCallback getTransportConfigCallback(final String repoURL, final UsernamePassword npw) throws IOException {
-        // SSH
-        if(GraficoUtils.isSSH(repoURL)) {
-            return new TransportConfigCallback() {
-                @Override
-                public void configure(Transport transport) {
-                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
-                    
-                    if(transport instanceof SshTransport) {
-                        ((SshTransport)transport).setSshSessionFactory(getSshSessionFactory());
-                    }
-                }
-                
-                protected SshSessionFactory getSshSessionFactory() {
-                    return new JschConfigSessionFactory() {
+    public static TransportConfigCallback getTransportConfigCallback(String repoURL, UsernamePassword npw) {
+        return new TransportConfigCallback() {
+            @Override
+            public void configure(Transport transport) {
+                transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
 
-                        @Override
-                        protected void configure(OpenSshConfig.Host host, Session session) {
-                            session.setConfig("StrictHostKeyChecking", "no"); //$NON-NLS-1$ //$NON-NLS-2$
-                        }
-
-                        @Override
-                        protected JSch createDefaultJSch(FS fs) throws JSchException {
-                            JSch jsch = super.createDefaultJSch(fs);
-                            
-                            // TODO - we might not need to do this as it sets default locations for rsa_pub
-                            jsch.removeAllIdentity();
-                            
-                            File file = null;
-                            char[] pw = null;
-                            try {
-                                file = sshIdentityProvider.getIdentityFile();
-                                pw = sshIdentityProvider.getIdentityPassword();
-                            }
-                            catch(IOException | GeneralSecurityException ex) {
-                                throw new JSchException(ex.getMessage());
-                            }
-                            
-                            if(pw != null) {
-                                jsch.addIdentity(file.getAbsolutePath(), new String(pw));
-                            }
-                            else {
-                                jsch.addIdentity(file.getAbsolutePath());
-                            }
-                            
-                            return jsch;
-                        }
-                    };
-                }
-            };
-        }
-        
-        // HTTP
-        if(npw != null) {
-            return new TransportConfigCallback() {
-                @Override
-                public void configure(Transport transport) {
+                // HTTP
+                if(npw != null && GraficoUtils.isHTTP(repoURL)) {
                     transport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(npw.getUsername(), npw.getPassword()));
-                    transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
-                };
-            };
-        }
-        
-        throw new IOException(Messages.CredentialsAuthenticator_2 + " " + repoURL); //$NON-NLS-1$
+                }
+            }
+        };
     }
 }
