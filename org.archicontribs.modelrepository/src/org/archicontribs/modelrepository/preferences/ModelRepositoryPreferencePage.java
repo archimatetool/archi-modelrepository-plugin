@@ -14,6 +14,7 @@ import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStor
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -63,6 +64,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Text fSSHIdentityFileTextField;
     private Button fSSHIdentityRequiresPasswordButton;
     private Text fSSHIdentityPasswordTextField;
+    private Button fSSHScanDirButton;
     
     private Button fStoreCredentialsButton;
     
@@ -179,6 +181,17 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         sshGroup.setLayout(new GridLayout(3, false));
         sshGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+        fSSHScanDirButton = new Button(sshGroup, SWT.CHECK);
+        fSSHScanDirButton.setText(Messages.ModelRepositoryPreferencePage_26);
+        GridDataFactory.fillDefaults().span(3, 0).applyTo(fSSHScanDirButton);
+        fSSHScanDirButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                fSSHIdentityFileTextField.setEnabled(!fSSHScanDirButton.getSelection());
+                fSSHIdentitySelectButton.setEnabled(!fSSHScanDirButton.getSelection());
+            }
+        });
+        
         label = new Label(sshGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_24);
         
@@ -344,8 +357,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
 
         // SSH details
+        fSSHScanDirButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_SCAN_DIR));
         fSSHIdentityFileTextField.setText(getPreferenceStore().getString(PREFS_SSH_IDENTITY_FILE));
         fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
+        
+        fSSHIdentityFileTextField.setEnabled(!fSSHScanDirButton.getSelection());
+        fSSHIdentitySelectButton.setEnabled(!fSSHScanDirButton.getSelection());
         
         try {
             EncryptedCredentialsStorage sshCredentials = getSSHCredentials();
@@ -402,6 +419,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
+        
+        getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, fSSHScanDirButton.getSelection());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD, fSSHIdentityRequiresPasswordButton.getSelection());
         
@@ -459,6 +478,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fUserNameTextField.setText(result.getName());
         fUserEmailTextField.setText(result.getEmailAddress());
 
+        fSSHScanDirButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_SCAN_DIR));
         fSSHIdentityFileTextField.setText(getPreferenceStore().getDefaultString(PREFS_SSH_IDENTITY_FILE));
         fSSHIdentityRequiresPasswordButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SSH_IDENTITY_REQUIRES_PASSWORD));
         fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$

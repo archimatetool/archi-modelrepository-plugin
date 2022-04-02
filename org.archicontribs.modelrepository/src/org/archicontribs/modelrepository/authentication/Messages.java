@@ -8,8 +8,6 @@ public class Messages extends NLS {
 
     public static String ProxyAuthenticator_0;
 
-    public static String CredentialsAuthenticator_0;
-
     public static String CredentialsAuthenticator_1;
 
     static {

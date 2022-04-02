@@ -1,22 +1,22 @@
 /**
- * This program and the accompanying materials
- * are made available under the terms of the License
- * which accompanies this distribution in the file LICENSE.txt
+ * This program and the accompanying materials are made available under the
+ * terms of the License which accompanies this distribution in the file
+ * LICENSE.txt
  */
 package org.archicontribs.modelrepository.authentication;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator.SSHIdentityProvider;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.util.FS;
-
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
 
 /**
  * Our extended SshSessionFactory
@@ -24,36 +24,69 @@ import com.jcraft.jsch.Session;
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public class CustomSshSessionFactory extends JschConfigSessionFactory {
+public class CustomSshSessionFactory extends SshdSessionFactory {
 
+    /**
+        Ideally we'd like to do something like:
+           Config.setProperty("StrictHostKeyChecking", "no")
+           
+        You can add the following to a ~/.ssh/config file:
+           Host *
+           StrictHostKeyChecking no
+     */
+    private boolean verifyServerKeys = false;
+
+    /**
+     * Whether to scan the ~/.ssh directory for all known keys with names "id_rsa, id_dsa, id_ecdsa, id_ed25519"
+     */
+    private boolean useDefaultIdentities = false;
+    
+    /**
+     * By default the ~/.ssh directory is scanned for all supported private key files
+     * But we can return the identity file as set in Preferences or set of files
+     */
     @Override
-    protected void configure(OpenSshConfig.Host host, Session session) {
-        session.setConfig("StrictHostKeyChecking", "no");
+    protected List<Path> getDefaultIdentities(File sshDir) {
+        if(useDefaultIdentities) {
+            return super.getDefaultIdentities(sshDir);
+        }
+        
+        List<Path> paths = new ArrayList<Path>();
+        
+        // Scan SSH directory for all non-public files
+        if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
+            for(File file : sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.equalsIgnoreCase("known_hosts"))) {
+                paths.add(file.toPath());
+            }
+            return paths;
+        }
+        
+        // Single identity file as specified in prefs
+        paths.add(CredentialsAuthenticator.getSSHIdentityProvider().getIdentityFile().toPath());
+        
+        return paths;
     }
 
+    /**
+     * We can over-ride this to not verify server keys and not write to the known_hosts file
+     */
     @Override
-    protected JSch createDefaultJSch(FS fs) throws JSchException {
-        JSch jsch = super.createDefaultJSch(fs);
-        
-        // TODO - we might not need to do this as it sets default locations for rsa_pub
-        jsch.removeAllIdentity();
-        
-        try {
-            SSHIdentityProvider sshIdentityProvider = CredentialsAuthenticator.getSSHIdentityProvider();
-            File file = sshIdentityProvider.getIdentityFile();
-            char[] pw = sshIdentityProvider.getIdentityPassword();
-            
-            if(pw != null) {
-                jsch.addIdentity(file.getAbsolutePath(), new String(pw));
-            }
-            else {
-                jsch.addIdentity(file.getAbsolutePath());
-            }
+    protected ServerKeyDatabase getServerKeyDatabase(File homeDir, File sshDir) {
+        if(verifyServerKeys) {
+            return super.getServerKeyDatabase(homeDir, sshDir);
         }
-        catch(IOException | GeneralSecurityException ex) {
-            throw new JSchException(ex.getMessage());
-        }
-        
-        return jsch;
+
+        return new ServerKeyDatabase() {
+            @Override
+            public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
+                return new ArrayList<>();
+            }
+
+            @Override
+            public boolean accept(String connectAddress, InetSocketAddress remoteAddress, PublicKey serverKey, Configuration config,
+                    CredentialsProvider provider) {
+                return true;
+            }
+        };
     }
 }

@@ -21,6 +21,7 @@ public interface IPreferenceConstants {
     String PREFS_REPOSITORY_FOLDER = "repoFolder";
     String PREFS_SSH_IDENTITY_FILE = "sshIdentityFile";
     String PREFS_SSH_IDENTITY_REQUIRES_PASSWORD = "sshIdentityRequiresPassword";
+    String PREFS_SSH_SCAN_DIR = "sshScanSshDir";
     String PREFS_STORE_REPO_CREDENTIALS = "storeCredentials";
     
     String PREFS_PROXY_USE = "proxyUse";

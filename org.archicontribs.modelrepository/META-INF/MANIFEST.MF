@@ -22,11 +22,11 @@ Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.views.history,
  org.archicontribs.modelrepository.views.repositories
 Bundle-ClassPath: org.archicontribs.modelrepository.jar,
- lib/com.jcraft.jsch_0.1.55.v20190404-1902.jar,
- lib/com.jcraft.jzlib_1.1.1.v201205102305.jar,
  lib/javaewah_1.1.7.v20200107-0831.jar,
  lib/org.eclipse.jgit_5.9.0.202009080501-r.jar,
- lib/org.eclipse.jgit.ssh.jsch_5.9.0.202009080501-r.jar,
  lib/org.slf4j.api_1.7.2.v20121108-1250.jar,
- lib/slf4j-simple-1.7.30.jar
+ lib/slf4j-simple-1.7.30.jar,
+ lib/org.eclipse.jgit.ssh.apache_5.9.0.202009080501-r.jar,
+ lib/org.apache.sshd.osgi_2.4.0.v20200318-1614.jar,
+ lib/net.i2p.crypto.eddsa_0.3.0.v20181102-1323.jar
 Automatic-Module-Name: org.archicontribs.modelrepository

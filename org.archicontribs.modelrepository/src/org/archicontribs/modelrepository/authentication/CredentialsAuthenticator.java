@@ -14,10 +14,9 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.osgi.util.NLS;
 
 
 /**
@@ -28,8 +27,15 @@ import org.eclipse.osgi.util.NLS;
 public final class CredentialsAuthenticator {
     
     public interface SSHIdentityProvider {
-        File getIdentityFile() throws IOException;
+        File getIdentityFile();
         char[] getIdentityPassword() throws IOException, GeneralSecurityException;
+    }
+    
+    static {
+        /**
+         * Set the SshSessionFactory instance to our specialised SshSessionFactory 
+         */
+        SshSessionFactory.setInstance(new CustomSshSessionFactory());
     }
     
     /**
@@ -37,14 +43,8 @@ public final class CredentialsAuthenticator {
      */
     private static SSHIdentityProvider sshIdentityProvider = new SSHIdentityProvider() {
         @Override
-        public File getIdentityFile() throws IOException {
-            File file = new File(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE));
-            
-            if(!file.exists()) {
-                throw new IOException(NLS.bind(Messages.CredentialsAuthenticator_0, file));
-            }
-            
-            return file;
+        public File getIdentityFile() {
+            return new File(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE));
         }
         
         @Override
@@ -85,13 +85,12 @@ public final class CredentialsAuthenticator {
             public void configure(Transport transport) {
                 transport.setRemoveDeletedRefs(true); // Delete remote branches that we don't have
                 
-                if(transport instanceof SshTransport) {
-                    // For some reason, we have to set a new instance of a SshSessionFactory each time
-                    ((SshTransport)transport).setSshSessionFactory(new CustomSshSessionFactory());
+                // SSH
+                if(GraficoUtils.isSSH(repoURL)) {
+                    transport.setCredentialsProvider(new SSHCredentialsProvider());
                 }
-                
                 // HTTP
-                if(npw != null && GraficoUtils.isHTTP(repoURL)) {
+                else if(npw != null) {
                     transport.setCredentialsProvider(new UsernamePasswordCredentialsProvider(npw.getUsername(), npw.getPassword()));
                 }
             }
