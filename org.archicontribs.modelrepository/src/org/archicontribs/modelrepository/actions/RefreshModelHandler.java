@@ -5,11 +5,10 @@
  */
 package org.archicontribs.modelrepository.actions;
 
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
-
-import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -21,13 +20,19 @@ public class RefreshModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        IArchimateModel model = getActiveArchimateModel();
+        IArchiRepository repository = getActiveArchiRepository();
         
-        if(model != null) {
-            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+        if(repository != null) {
+            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
+            action.setRepository(repository);
             action.run();
         }
         
         return null;
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return getActiveArchiRepository() != null;
     }
 }
