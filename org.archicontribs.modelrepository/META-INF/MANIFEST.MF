@@ -21,7 +21,7 @@ Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.views.branches,
  org.archicontribs.modelrepository.views.history,
  org.archicontribs.modelrepository.views.repositories
-Bundle-ClassPath: org.archicontribs.modelrepository.jar,
+Bundle-ClassPath: .,
  lib/javaewah_1.1.13.v20211029-0839.jar,
  lib/org.eclipse.jgit_6.1.0.202203080745-r.jar,
  lib/org.slf4j.api_1.7.30.v20200204-2150.jar,
