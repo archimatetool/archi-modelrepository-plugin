@@ -27,6 +27,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Fetch in Background Job
@@ -132,21 +133,24 @@ public class FetchJob extends Job {
                 ex.printStackTrace();
                 
                 if(ex instanceof TransportException) {
-                    disablePreference();
-
-                    // Show message
-                    Display.getDefault().syncExec(() -> {
-                        String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
-                        message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
-                        try {
-                            message += repo.getName() + "\n"; //$NON-NLS-1$
-                            message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
-                        }
-                        catch(IOException ex1) {
-                            ex1.printStackTrace();
-                        }
-                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
-                    });
+                    if(PlatformUI.isWorkbenchRunning()) {
+                        // Disable background fetch
+                        disablePreference();
+    
+                        // Show message
+                        Display.getDefault().syncExec(() -> {
+                            String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
+                            message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
+                            try {
+                                message += repo.getName() + "\n"; //$NON-NLS-1$
+                                message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
+                            }
+                            catch(IOException ex1) {
+                                ex1.printStackTrace();
+                            }
+                            MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
+                        });
+                    }
 
                     return Status.OK_STATUS;
                 }
@@ -155,13 +159,16 @@ public class FetchJob extends Job {
             catch(GeneralSecurityException ex) {
                 ex.printStackTrace();
                 
-                // Disable background fetch
-                disablePreference();
-                
-                Display.getDefault().syncExec(() -> {
-                    String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
-                    MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
-                });
+                if(PlatformUI.isWorkbenchRunning()) {
+                    // Disable background fetch
+                    disablePreference();
+                    
+                    // Show message
+                    Display.getDefault().syncExec(() -> {
+                        String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
+                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
+                    });
+                }
 
                 return Status.OK_STATUS;
             }
