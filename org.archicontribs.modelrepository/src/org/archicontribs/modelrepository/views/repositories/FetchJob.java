@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -22,11 +23,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -37,6 +42,56 @@ import org.eclipse.ui.PlatformUI;
 public class FetchJob extends Job {
     
     private ModelRepositoryTreeViewer fViewer;
+    
+    /*
+     * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
+     * So, if the user closes the app this job might be running. So we will wait for this job to finish.
+     */
+    private IWorkbenchListener workBenchListener = new IWorkbenchListener() {
+        @Override
+        public void postShutdown(IWorkbench workbench) {
+        }
+
+        @Override
+        public boolean preShutdown(IWorkbench workbench, boolean forced) {
+            if(getState() == Job.RUNNING) {
+                disablePreference();
+
+                ProgressMonitorDialog dialog = new ProgressMonitorDialog(null) {
+                    @Override
+                    protected void configureShell(Shell shell) {
+                        super.configureShell(shell);
+                        shell.setText(Messages.FetchJob_4);
+                    }
+                };
+                
+                try {
+                    dialog.run(true, false, monitor -> {
+                        final int delay = 100;
+                        int timeout = 0;
+                        monitor.setTaskName(Messages.FetchJob_5);
+                        
+                        while(getState() == Job.RUNNING) {
+                            Thread.sleep(delay);
+                            timeout += delay;
+                            
+                            if(timeout > 10000) { // don't wait longer than this
+                                dialog.setCancelable(true);
+                            }
+                            if(monitor.isCanceled()) {
+                                break;
+                            }
+                        }
+                    });
+                }
+                catch(InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            
+            return true;
+        }
+    };
 
     public FetchJob(ModelRepositoryTreeViewer viewer) {
         super("Fetch Job"); //$NON-NLS-1$
@@ -58,9 +113,10 @@ public class FetchJob extends Job {
         // Listen to preferences
         ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
         
-        // Unlisten to preferences
+        // Unlisten to stuff
         fViewer.getControl().addDisposeListener(event -> {
             ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
+            PlatformUI.getWorkbench().removeWorkbenchListener(workBenchListener);
         });
     }
     
@@ -80,6 +136,7 @@ public class FetchJob extends Job {
         }
         
         if(canRun()) {
+            PlatformUI.getWorkbench().addWorkbenchListener(workBenchListener); // Add listener (duplicate listeners are not added)
             schedule(1000);
         }
     }
@@ -190,32 +247,8 @@ public class FetchJob extends Job {
         return Status.OK_STATUS;
     }
     
-    /*
-     * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
-     * So, if the user closes the app this job might be running. So we will wait for this job to finish
-     */
-    @Override
-    protected void canceling() {
-        int timeout = 0;
-        final int delay = 100;
-        
-        try {
-            while(getState() == Job.RUNNING) {
-                Thread.sleep(delay);
-                timeout += delay;
-                if(timeout > 30000) { // don't wait longer than this
-                    break;
-                }
-            }
-        }
-        catch(InterruptedException ex) {
-            ex.printStackTrace();
-        }
-    }
-    
     protected boolean canRun() {
         return !fViewer.getControl().isDisposed() &&
                 ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND);
     }
-    
 }
