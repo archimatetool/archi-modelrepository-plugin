@@ -13,6 +13,7 @@ import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.Transport;
@@ -51,7 +52,9 @@ public final class CredentialsAuthenticator {
         public char[] getIdentityPassword() throws IOException, GeneralSecurityException {
             char[] password = null;
             
-            if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
+            if(Platform.getPreferencesService() != null // Check Preference Service is running in case background fetch is running and we quit the app
+                    && ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_IDENTITY_REQUIRES_PASSWORD)) {
+                
                 EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(
                         new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), IGraficoConstants.SSH_CREDENTIALS_FILE));
 
