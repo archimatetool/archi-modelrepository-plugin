@@ -41,29 +41,30 @@ import org.eclipse.ui.PlatformUI;
  */
 public class FetchJob extends Job {
     
+    private static FetchJob instance;
+    
+    static FetchJob getInstance() {
+        if(instance == null) {
+            instance = new FetchJob();
+        }
+        
+        return instance;
+    }
+    
     private ModelRepositoryTreeViewer fViewer;
     
     /*
      * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
      * So, if the user closes the app this job might be running. So we will wait for this job to finish.
      */
-    private static class WorkbenchListener implements IWorkbenchListener {
-        private Job currentJob;
-        
-        private void setRunningJob(Job job) {
-            if(currentJob == null) {
-                PlatformUI.getWorkbench().addWorkbenchListener(this);
-            }
-            currentJob = job;
-        }
-
+    private IWorkbenchListener workbenchListener = new IWorkbenchListener() {
         @Override
         public void postShutdown(IWorkbench workbench) {
         }
 
         @Override
         public boolean preShutdown(IWorkbench workbench, boolean forced) {
-            if(currentJob != null && currentJob.getState() == Job.RUNNING) {
+            if(getState() == Job.RUNNING) {
                 disablePreference(); // This will force the run() loop to break
                 
                 ProgressMonitorDialog dialog = new ProgressMonitorDialog(null) {
@@ -80,7 +81,7 @@ public class FetchJob extends Job {
                         int timeout = 0;
                         monitor.setTaskName(Messages.FetchJob_5);
                         
-                        while(currentJob.getState() == Job.RUNNING) {
+                        while(getState() == Job.RUNNING) {
                             Thread.sleep(delay);
                             timeout += delay;
                             
@@ -102,13 +103,34 @@ public class FetchJob extends Job {
         }
     };
     
-    private static WorkbenchListener workbenchListener = new WorkbenchListener();
-
+    /**
+     * Preference changed to fetch in background
+     */
+    private IPropertyChangeListener preferenceChangeListener = event -> {
+        if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
+            if(event.getNewValue() == Boolean.TRUE) {
+                start();
+            }
+            else {
+                cancel();
+            }
+        }
+    };
     
-    public FetchJob(ModelRepositoryTreeViewer viewer) {
+    
+    public FetchJob() {
         super("Fetch Job"); //$NON-NLS-1$
+    }
+    
+    void init(ModelRepositoryTreeViewer viewer) {
         fViewer = viewer;
-        
+
+        // On Tree dispose...
+        fViewer.getControl().addDisposeListener(event -> {
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
+            cancel();
+        });
+
         // Don't start if we don't have primary password set
         if(!EncryptedCredentialsStorage.isPrimaryKeySet()) {
             disablePreference();
@@ -117,26 +139,8 @@ public class FetchJob extends Job {
             start();
         }
 
-        // Preference changed to fetch in background
-        IPropertyChangeListener listener = event -> {
-            if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
-                if(event.getNewValue() == Boolean.TRUE) {
-                    start();
-                }
-                else {
-                    cancel();
-                }
-            }
-        };
-        
-        // Listen to preferences
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
-        
-        // On Tree dispose...
-        fViewer.getControl().addDisposeListener(event -> {
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
-            cancel();
-        });
+        // Now listen to preferences
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
     }
     
     private void start() {
@@ -155,22 +159,19 @@ public class FetchJob extends Job {
         }
         
         if(canRun()) {
-            workbenchListener.setRunningJob(this);
+            // Add workbench listener (duplicate listeners are not added)
+            PlatformUI.getWorkbench().addWorkbenchListener(workbenchListener);
+            
+            // Go...
             schedule(1000);
         }
     }
     
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-        // Check first thing on entry
-        if(!canRun()) {
-            return Status.OK_STATUS;
-        }
-        
         boolean needsRefresh = false;
         
         for(IArchiRepository repo : fViewer.getRepositories(fViewer.getRootFolder())) {
-            // Check also in for loop
             if(!canRun()) {
                 return Status.OK_STATUS;
             }
