@@ -41,17 +41,10 @@ import org.eclipse.ui.PlatformUI;
  */
 public class FetchJob extends Job {
     
-    private static FetchJob instance;
-    
+    private static FetchJob instance = new FetchJob();
     static FetchJob getInstance() {
-        if(instance == null) {
-            instance = new FetchJob();
-        }
-        
         return instance;
     }
-    
-    private ModelRepositoryTreeViewer fViewer;
     
     /*
      * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
@@ -117,8 +110,10 @@ public class FetchJob extends Job {
         }
     };
     
+    private ModelRepositoryTreeViewer fViewer;
     
-    public FetchJob() {
+    
+    private FetchJob() {
         super("Fetch Job"); //$NON-NLS-1$
     }
     
