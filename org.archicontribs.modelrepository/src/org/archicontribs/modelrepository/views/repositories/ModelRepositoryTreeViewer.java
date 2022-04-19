@@ -95,7 +95,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         new RefreshFilesJob(this);
         
         // Fetch Job
-        new FetchJob(this);
+        FetchJob.getInstance().init(this);
     }
 
     protected void refreshInBackground() {

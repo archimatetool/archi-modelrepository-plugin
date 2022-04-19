@@ -6,6 +6,7 @@
 package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -22,11 +23,16 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchListener;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Fetch in Background Job
@@ -35,32 +41,101 @@ import org.eclipse.swt.widgets.Display;
  */
 public class FetchJob extends Job {
     
-    private ModelRepositoryTreeViewer fViewer;
+    private static FetchJob instance = new FetchJob();
+    static FetchJob getInstance() {
+        return instance;
+    }
+    
+    /*
+     * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
+     * So, if the user closes the app this job might be running. So we will wait for this job to finish.
+     */
+    private IWorkbenchListener workbenchListener = new IWorkbenchListener() {
+        @Override
+        public void postShutdown(IWorkbench workbench) {
+        }
 
-    public FetchJob(ModelRepositoryTreeViewer viewer) {
-        super("Fetch Job"); //$NON-NLS-1$
-        fViewer = viewer;
-        
-        // Don't start until we have primary password access
-        // So disable background fetch until then
-        disablePreference();
-
-        // Preference changed to fetch in background
-        IPropertyChangeListener listener = event -> {
-            if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
-                if(event.getNewValue() == Boolean.TRUE && getState() == Job.NONE) {
-                    start();
+        @Override
+        public boolean preShutdown(IWorkbench workbench, boolean forced) {
+            if(getState() == Job.RUNNING) {
+                disablePreference(); // This will force the run() loop to break
+                
+                ProgressMonitorDialog dialog = new ProgressMonitorDialog(null) {
+                    @Override
+                    protected void configureShell(Shell shell) {
+                        super.configureShell(shell);
+                        shell.setText(Messages.FetchJob_4);
+                    }
+                };
+                
+                try {
+                    dialog.run(true, false, monitor -> {
+                        final int delay = 100;
+                        int timeout = 0;
+                        monitor.setTaskName(Messages.FetchJob_5);
+                        
+                        while(getState() == Job.RUNNING) {
+                            Thread.sleep(delay);
+                            timeout += delay;
+                            
+                            if(timeout > 10000) { // don't wait longer than this
+                                dialog.setCancelable(true);
+                            }
+                            if(monitor.isCanceled()) {
+                                break;
+                            }
+                        }
+                    });
+                }
+                catch(InvocationTargetException | InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             }
-        };
-        
-        // Listen to preferences
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(listener);
-        
-        // Unlisten to preferences
+            
+            return true;
+        }
+    };
+    
+    /**
+     * Preference changed to fetch in background
+     */
+    private IPropertyChangeListener preferenceChangeListener = event -> {
+        if(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND == event.getProperty()) {
+            if(event.getNewValue() == Boolean.TRUE) {
+                start();
+            }
+            else {
+                cancel();
+            }
+        }
+    };
+    
+    private ModelRepositoryTreeViewer fViewer;
+    
+    
+    private FetchJob() {
+        super("Fetch Job"); //$NON-NLS-1$
+    }
+    
+    void init(ModelRepositoryTreeViewer viewer) {
+        fViewer = viewer;
+
+        // On Tree dispose...
         fViewer.getControl().addDisposeListener(event -> {
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(listener);
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
+            cancel();
         });
+
+        // Don't start if we don't have primary password set
+        if(!EncryptedCredentialsStorage.isPrimaryKeySet()) {
+            disablePreference();
+        }
+        else {
+            start();
+        }
+
+        // Now listen to preferences
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
     }
     
     private void start() {
@@ -72,32 +147,26 @@ public class FetchJob extends Job {
             }
         }
         catch(GeneralSecurityException | IOException ex) {
-            ex.printStackTrace();
             disablePreference();
+            ex.printStackTrace();
             MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, Messages.FetchJob_3);
             return;
         }
         
         if(canRun()) {
+            // Add workbench listener (duplicate listeners are not added)
+            PlatformUI.getWorkbench().addWorkbenchListener(workbenchListener);
+            
+            // Go...
             schedule(1000);
         }
     }
     
-    private void disablePreference() {
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
-    }
-
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-        // Check first thing on entry
-        if(!canRun()) {
-            return Status.OK_STATUS;
-        }
-        
         boolean needsRefresh = false;
         
         for(IArchiRepository repo : fViewer.getRepositories(fViewer.getRootFolder())) {
-            // Check also in for loop
             if(!canRun()) {
                 return Status.OK_STATUS;
             }
@@ -132,21 +201,24 @@ public class FetchJob extends Job {
                 ex.printStackTrace();
                 
                 if(ex instanceof TransportException) {
-                    disablePreference();
-
-                    // Show message
-                    Display.getDefault().syncExec(() -> {
-                        String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
-                        message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
-                        try {
-                            message += repo.getName() + "\n"; //$NON-NLS-1$
-                            message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
-                        }
-                        catch(IOException ex1) {
-                            ex1.printStackTrace();
-                        }
-                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
-                    });
+                    if(PlatformUI.isWorkbenchRunning()) {
+                        // Disable background fetch
+                        disablePreference();
+    
+                        // Show message
+                        Display.getDefault().syncExec(() -> {
+                            String message = Messages.FetchJob_0 + " "; //$NON-NLS-1$
+                            message += Messages.FetchJob_1 + "\n\n"; //$NON-NLS-1$
+                            try {
+                                message += repo.getName() + "\n"; //$NON-NLS-1$
+                                message += repo.getOnlineRepositoryURL() + "\n"; //$NON-NLS-1$
+                            }
+                            catch(IOException ex1) {
+                                ex1.printStackTrace();
+                            }
+                            MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message);
+                        });
+                    }
 
                     return Status.OK_STATUS;
                 }
@@ -155,13 +227,16 @@ public class FetchJob extends Job {
             catch(GeneralSecurityException ex) {
                 ex.printStackTrace();
                 
-                // Disable background fetch
-                disablePreference();
-                
-                Display.getDefault().syncExec(() -> {
-                    String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
-                    MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
-                });
+                if(PlatformUI.isWorkbenchRunning()) {
+                    // Disable background fetch
+                    disablePreference();
+                    
+                    // Show message
+                    Display.getDefault().syncExec(() -> {
+                        String message = Messages.FetchJob_0 + "\n"; //$NON-NLS-1$
+                        MessageDialog.openError(Display.getCurrent().getActiveShell(), Messages.FetchJob_2, message + ex.getMessage());
+                    });
+                }
 
                 return Status.OK_STATUS;
             }
@@ -183,32 +258,12 @@ public class FetchJob extends Job {
         return Status.OK_STATUS;
     }
     
-    /*
-     * Because the Git Fetch process doesn't respond to cancel requests we can't cancel it when it is running.
-     * So, if the user closes the app this job might be running. So we will wait for this job to finish
-     */
-    @Override
-    protected void canceling() {
-        int timeout = 0;
-        final int delay = 100;
-        
-        try {
-            while(getState() == Job.RUNNING) {
-                Thread.sleep(delay);
-                timeout += delay;
-                if(timeout > 30000) { // don't wait longer than this
-                    break;
-                }
-            }
-        }
-        catch(InterruptedException ex) {
-            ex.printStackTrace();
-        }
-    }
-    
     protected boolean canRun() {
         return !fViewer.getControl().isDisposed() &&
                 ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND);
     }
     
+    private static void disablePreference() {
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
+    }
 }

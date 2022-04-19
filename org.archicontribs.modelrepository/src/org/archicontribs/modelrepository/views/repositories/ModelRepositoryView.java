@@ -381,6 +381,16 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
             return adapter.cast(new TabbedPropertySheetPage(this));
         }
         
+        /*
+         * Return the active repository
+         */
+        if(adapter == IArchiRepository.class) {
+            Object obj = getViewer().getStructuredSelection().getFirstElement();
+            if(obj instanceof IArchiRepository) {
+                return adapter.cast(obj);
+            }
+        }
+        
         return super.getAdapter(adapter);
     }
 
