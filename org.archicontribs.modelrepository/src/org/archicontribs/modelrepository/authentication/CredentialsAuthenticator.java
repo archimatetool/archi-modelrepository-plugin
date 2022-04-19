@@ -125,7 +125,7 @@ public final class CredentialsAuthenticator {
                 }
 
             };
-        }
+        };
  
     }
     
