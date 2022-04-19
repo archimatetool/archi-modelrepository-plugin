@@ -3,8 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: org.archicontribs.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.8.0.qualifier
-Bundle-Vendor: Phillip Beauvoir & Jean-Baptiste Sarrodie
+Bundle-Version: 0.8.3.qualifier
+Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.9.0"
 Bundle-ActivationPolicy: lazy
@@ -21,12 +21,12 @@ Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.views.branches,
  org.archicontribs.modelrepository.views.history,
  org.archicontribs.modelrepository.views.repositories
-Bundle-ClassPath: org.archicontribs.modelrepository.jar,
- lib/com.jcraft.jsch_0.1.55.v20190404-1902.jar,
- lib/com.jcraft.jzlib_1.1.1.v201205102305.jar,
- lib/javaewah_1.1.7.v20200107-0831.jar,
- lib/org.eclipse.jgit_5.9.0.202009080501-r.jar,
- lib/org.eclipse.jgit.ssh.jsch_5.9.0.202009080501-r.jar,
- lib/org.slf4j.api_1.7.2.v20121108-1250.jar,
- lib/slf4j-simple-1.7.30.jar
+Bundle-ClassPath: .,
+ lib/javaewah_1.1.13.v20211029-0839.jar,
+ lib/org.eclipse.jgit_6.1.0.202203080745-r.jar,
+ lib/org.slf4j.api_1.7.30.v20200204-2150.jar,
+ lib/org.slf4j.binding.simple_1.7.30.v20200204-2150.jar,
+ lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar,
+ lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar,
+ lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar
 Automatic-Module-Name: org.archicontribs.modelrepository

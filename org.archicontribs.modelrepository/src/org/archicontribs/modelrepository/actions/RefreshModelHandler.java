@@ -5,13 +5,10 @@
  */
 package org.archicontribs.modelrepository.actions;
 
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
+import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
-
-import com.archimatetool.editor.actions.AbstractModelSelectionHandler;
-import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -19,14 +16,15 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
-public class RefreshModelHandler extends AbstractModelSelectionHandler {
+public class RefreshModelHandler extends AbstractModelHandler {
     
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        IArchimateModel model = getActiveArchimateModel();
+        IArchiRepository repository = getActiveArchiRepository();
         
-        if(model != null) {
-            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event), model);
+        if(repository != null) {
+            RefreshModelAction action = new RefreshModelAction(HandlerUtil.getActiveWorkbenchWindowChecked(event));
+            action.setRepository(repository);
             action.run();
         }
         
@@ -34,12 +32,7 @@ public class RefreshModelHandler extends AbstractModelSelectionHandler {
     }
     
     @Override
-    public void updateState() {
-        // Do nothing
-    }
-    
-    @Override
     public boolean isEnabled() {
-        return GraficoUtils.isModelInLocalRepository(getActiveArchimateModel());
+        return getActiveArchiRepository() != null;
     }
 }

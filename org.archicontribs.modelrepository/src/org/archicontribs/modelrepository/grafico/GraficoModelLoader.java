@@ -62,17 +62,6 @@ public class GraficoModelLoader {
     public IArchimateModel loadModel() throws IOException {
         fRestoredObjects = null;
         
-        // Store ids of open diagrams
-        List<String> openModelIDs = null;
-        
-        // Close the real model if it is already open - do this first!
-        IArchimateModel model = fRepository.locateModel();
-        if(model != null) {
-            openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
-            IEditorModelManager.INSTANCE.closeModel(model);
-            while(Display.getCurrent().readAndDispatch()); // Stops flickering in tree
-        }
-        
         // Import Grafico Model
         GraficoModelImporter importer = new GraficoModelImporter(fRepository.getLocalRepositoryFolder());
         
@@ -108,8 +97,12 @@ public class GraficoModelLoader {
         // Save it
         IEditorModelManager.INSTANCE.saveModel(graficoModel[0]);
         
-        // And re-open it if we already had it open
+        // Close and re-open the corresponding model if it is already open
+        IArchimateModel model = fRepository.locateModel();
         if(model != null) {
+            // Store ids of open diagrams
+            List<String> openModelIDs = getOpenDiagramModelIdentifiers(model); // Store ids of open diagrams
+            IEditorModelManager.INSTANCE.closeModel(model);
             IEditorModelManager.INSTANCE.openModel(graficoModel[0]);
             reopenEditors(graficoModel[0], openModelIDs);
         }

@@ -175,9 +175,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if(currentSelectedMergeInfo != null) {
-                        currentSelectedMergeInfo.setUserChoice((int)e.widget.getData());
                         fTableViewer.cancelEditing();
-                        fTableViewer.update(currentSelectedMergeInfo, null);
+                        int choice = (int)e.widget.getData();
+
+                        for(Object o : fTableViewer.getStructuredSelection().toArray()) {
+                            ((MergeObjectInfo)o).setUserChoice(choice);
+                            fTableViewer.update(o, null);
+                        }
+                        
                         updateButtons(currentSelectedMergeInfo);
                     }
                 }
@@ -543,7 +548,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     // =====================================
     
     private void updateTabs(MergeObjectInfo mergeInfo) {
-        if(currentSelectedMergeInfo == mergeInfo) {
+        if(mergeInfo == null || currentSelectedMergeInfo == mergeInfo) {
             return;
         }
         
@@ -596,7 +601,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         tableComp.setLayout(tableLayout);
         tableComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-        fTableViewer = new TableViewer(tableComp, SWT.FULL_SELECTION);
+        fTableViewer = new TableViewer(tableComp, SWT.FULL_SELECTION | SWT.MULTI);
         fTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         fTableViewer.getTable().setHeaderVisible(true);
         fTableViewer.getTable().setLinesVisible(true);
