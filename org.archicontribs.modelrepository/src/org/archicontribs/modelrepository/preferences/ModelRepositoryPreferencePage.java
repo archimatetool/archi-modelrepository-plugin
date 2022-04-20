@@ -60,8 +60,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     
     private Text fUserRepoFolderTextField;
     
-    private Button fScanUserRepoFolderButton;
-    
     private Button fSSHIdentitySelectButton;
     private Text fSSHIdentityFileTextField;
     private Button fSSHIdentityRequiresPasswordButton;
@@ -147,30 +145,18 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
             }
         });
         
-        // Scan folder in background
-        fScanUserRepoFolderButton = new Button(workspaceGroup, SWT.CHECK);
-        fScanUserRepoFolderButton.setText(Messages.ModelRepositoryPreferencePage_27);
-        
-        
-        
-        // Fetch Group
-        Group fetchGroup = new Group(client, SWT.NULL);
-        fetchGroup.setText(Messages.ModelRepositoryPreferencePage_28);
-        fetchGroup.setLayout(new GridLayout(3, false));
-        fetchGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
         // Fetch in background
-        fFetchInBackgroundButton = new Button(fetchGroup, SWT.CHECK);
+        fFetchInBackgroundButton = new Button(workspaceGroup, SWT.CHECK);
         fFetchInBackgroundButton.setText(Messages.ModelRepositoryPreferencePage_19);
         gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 3;
         fFetchInBackgroundButton.setLayoutData(gd);
         
         // Refresh interval
-        label = new Label(fetchGroup, SWT.NULL);
+        label = new Label(workspaceGroup, SWT.NULL);
         label.setText(Messages.ModelRepositoryPreferencePage_21);
 
-        fFetchInBackgroundIntervalSpinner = new Spinner(fetchGroup, SWT.BORDER);
+        fFetchInBackgroundIntervalSpinner = new Spinner(workspaceGroup, SWT.BORDER);
         fFetchInBackgroundIntervalSpinner.setMinimum(30);
         fFetchInBackgroundIntervalSpinner.setMaximum(3000);
 
@@ -370,9 +356,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         // Workspace folder
         fUserRepoFolderTextField.setText(getPreferenceStore().getString(PREFS_REPOSITORY_FOLDER));
         
-        // Scan folder
-        fScanUserRepoFolderButton.setSelection(getPreferenceStore().getBoolean(PREFS_SCAN_REPOSITORY_FOLDER));
-        
         // Refresh in background
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getBoolean(PREFS_FETCH_IN_BACKGROUND));
         fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
@@ -440,7 +423,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         }
         
         getPreferenceStore().setValue(PREFS_REPOSITORY_FOLDER, fUserRepoFolderTextField.getText());
-        getPreferenceStore().setValue(PREFS_SCAN_REPOSITORY_FOLDER, fScanUserRepoFolderButton.getSelection());
         
         getPreferenceStore().setValue(PREFS_SSH_SCAN_DIR, fSSHScanDirButton.getSelection());
         getPreferenceStore().setValue(PREFS_SSH_IDENTITY_FILE, fSSHIdentityFileTextField.getText());
@@ -506,7 +488,6 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         fSSHIdentityPasswordTextField.setText(""); //$NON-NLS-1$
         
         fUserRepoFolderTextField.setText(getPreferenceStore().getDefaultString(PREFS_REPOSITORY_FOLDER));
-        fScanUserRepoFolderButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_SCAN_REPOSITORY_FOLDER));
         
         fFetchInBackgroundButton.setSelection(getPreferenceStore().getDefaultBoolean(PREFS_FETCH_IN_BACKGROUND));
         fFetchInBackgroundIntervalSpinner.setSelection(getPreferenceStore().getDefaultInt(PREFS_FETCH_IN_BACKGROUND_INTERVAL));
