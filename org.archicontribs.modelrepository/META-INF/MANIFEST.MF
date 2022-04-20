@@ -3,12 +3,13 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Archi Collaboration (coArchi)
 Bundle-SymbolicName: org.archicontribs.modelrepository;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.8.3.qualifier
+Bundle-Version: 0.8.4.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
  com.archimatetool.editor;bundle-version="4.9.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Eclipse-BundleShape: dir
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
 Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.actions,
@@ -21,7 +22,7 @@ Export-Package: org.archicontribs.modelrepository,
  org.archicontribs.modelrepository.views.branches,
  org.archicontribs.modelrepository.views.history,
  org.archicontribs.modelrepository.views.repositories
-Bundle-ClassPath: .,
+Bundle-ClassPath: org.archicontribs.modelrepository.jar,
  lib/javaewah_1.1.13.v20211029-0839.jar,
  lib/org.eclipse.jgit_6.1.0.202203080745-r.jar,
  lib/org.slf4j.api_1.7.30.v20200204-2150.jar,

@@ -92,7 +92,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         setInput(""); //$NON-NLS-1$
         
         // Refresh File System Job
-        new RefreshFilesJob(this);
+        RefreshFilesJob.getInstance().init(this);
         
         // Fetch Job
         FetchJob.getInstance().init(this);
