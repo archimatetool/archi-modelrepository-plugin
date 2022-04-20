@@ -46,6 +46,10 @@ public class Messages extends NLS {
 
     public static String ModelRepositoryPreferencePage_26;
 
+    public static String ModelRepositoryPreferencePage_27;
+
+    public static String ModelRepositoryPreferencePage_28;
+
     public static String ModelRepositoryPreferencePage_3;
 
     public static String ModelRepositoryPreferencePage_4;

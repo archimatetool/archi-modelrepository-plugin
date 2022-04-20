@@ -7,51 +7,71 @@ package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.jface.util.IPropertyChangeListener;
 
 /**
  * Refresh Files in Background Job
  * 
  * @author Phillip Beauvoir
  */
-public class RefreshFilesJob extends Job {
+class RefreshFilesJob extends Job {
     
-    private ModelRepositoryTreeViewer fViewer;
-    
-    private long lastModified = 0L; // last modified
+    private static RefreshFilesJob instance = new RefreshFilesJob();
+    static RefreshFilesJob getInstance() {
+        return instance;
+    }
 
-    public RefreshFilesJob(ModelRepositoryTreeViewer viewer) {
-        super("Refresh File System Job"); //$NON-NLS-1$
-        fViewer = viewer;
-        
-        fViewer.getControl().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
+    private ModelRepositoryTreeViewer fViewer;
+    private long lastModified = 0L; // folder last modified timestamp
+    
+    private final static int DELAY = 5000; // Every 5 seconds
+
+    /**
+     * Preference changed to fetch in background
+     */
+    private IPropertyChangeListener preferenceChangeListener = event -> {
+        if(IPreferenceConstants.PREFS_SCAN_REPOSITORY_FOLDER == event.getProperty()) {
+            if(event.getNewValue() == Boolean.TRUE) {
+                start();
+            }
+            else {
                 cancel();
             }
+        }
+    };
+
+    private RefreshFilesJob() {
+        super("Refresh File System Job"); //$NON-NLS-1$
+    }
+
+    void init(ModelRepositoryTreeViewer viewer) {
+        fViewer = viewer;
+        
+        // On Tree dispose...
+        fViewer.getControl().addDisposeListener(event -> {
+            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
+            cancel();
         });
         
+        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
+
         start();
     }
 
-    protected void start() {
+    private void start() {
         if(canRun()) {
-            schedule(5000);
+            schedule(DELAY);
         }
     }
     
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-        // Check first thing on entry
-        if(!canRun()) {
-            return Status.OK_STATUS;
-        }
-        
         // If rootFolder has been modifed (child folder added/deleted/renamed) refresh
         File rootFolder = fViewer.getRootFolder();
         
@@ -62,14 +82,14 @@ public class RefreshFilesJob extends Job {
         lastModified = rootFolder.lastModified();
 
         if(canRun()) {
-            schedule(5000);// Schedule again in 5 seconds
+            schedule(DELAY);
         }
         
         return Status.OK_STATUS;
     }
 
-    protected boolean canRun() {
-        return !fViewer.getControl().isDisposed();
+    private boolean canRun() {
+        return !fViewer.getControl().isDisposed() &&
+                ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SCAN_REPOSITORY_FOLDER);
     }
-
 }
