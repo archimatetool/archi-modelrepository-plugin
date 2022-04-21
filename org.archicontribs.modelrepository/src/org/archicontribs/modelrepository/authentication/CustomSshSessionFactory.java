@@ -55,7 +55,7 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         
         // Scan SSH directory for all non-public files
         if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
-            for(File file : sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.equalsIgnoreCase("known_hosts"))) {
+            for(File file : sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"))) {
                 paths.add(file.toPath());
             }
             return paths;
