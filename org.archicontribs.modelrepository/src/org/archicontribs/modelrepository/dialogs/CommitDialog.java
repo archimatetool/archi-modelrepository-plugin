@@ -10,13 +10,11 @@ import java.io.IOException;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
@@ -139,18 +137,8 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         gd.horizontalSpan = 2;
         fTextCommitMessage.setLayoutData(gd);
         
-        // TODO: After Archi 4.7 remove this code and use 
-        //UIUtils.applyTraverseListener(fTextCommitMessage, SWT.TRAVERSE_TAB_NEXT | SWT.TRAVERSE_TAB_PREVIOUS | SWT.TRAVERSE_RETURN);
-        fTextCommitMessage.addTraverseListener((e) -> {
-            // Ctrl + Enter
-            if(e.detail == SWT.TRAVERSE_RETURN && (e.stateMask & SWT.MOD1) != 0) {
-                e.doit = true;
-            }
-            // Tabs and other SWT.TRAVERSE_* flags
-            else if(e.detail == SWT.TRAVERSE_TAB_NEXT || e.detail == SWT.TRAVERSE_TAB_PREVIOUS) {
-                e.doit = true;
-            }
-        });
+        // Tab Traversal and Enter key
+        UIUtils.applyTraverseListener(fTextCommitMessage, SWT.TRAVERSE_TAB_NEXT | SWT.TRAVERSE_TAB_PREVIOUS | SWT.TRAVERSE_RETURN);
         
         fAmendLastCommitCheckbox = new Button(container, SWT.CHECK);
         fAmendLastCommitCheckbox.setText(Messages.CommitDialog_5);
@@ -200,32 +188,19 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     @Override
     protected void okPressed() {
         fCommitMessage = fTextCommitMessage.getText();
-        fAmend =fAmendLastCommitCheckbox.getSelection();
+        fAmend = fAmendLastCommitCheckbox.getSelection();
         
+        // Store user name and email
         try {
-            storeUserDetails(fTextUserName.getText().trim(), fTextUserEmail.getText().trim());
+            fRepository.saveUserDetails(fTextUserName.getText().trim(), fTextUserEmail.getText().trim());
         }
-        catch(IOException | ConfigInvalidException ex) {
+        catch(IOException ex) {
             ex.printStackTrace();
         }
         
         super.okPressed();
     }
 
-    /*
-     * Store user name and email
-     * If these are the same as those in .gitconfig don't store
-     */
-    private void storeUserDetails(String name, String email) throws IOException, ConfigInvalidException {
-        PersonIdent global = GraficoUtils.getGitConfigUserDetails();
-        String globalName = global.getName();
-        String globalEmail = global.getEmailAddress();
-
-        if(!globalName.equals(name) || !globalEmail.equals(email)) {
-            fRepository.saveUserDetails(name, email);
-        }
-    }
-    
     /**
      * An amend of last commit is allowed
      * If HEAD and remote are not the same AND
