@@ -59,6 +59,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IArchimateModel;
 
@@ -68,6 +69,7 @@ import com.archimatetool.model.IArchimateModel;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ArchiRepository implements IArchiRepository {
     
     /**
@@ -86,7 +88,7 @@ public class ArchiRepository implements IArchiRepository {
     
     @Override
     public File getLocalGitFolder() {
-        return new File(getLocalRepositoryFolder(), ".git"); //$NON-NLS-1$
+        return new File(getLocalRepositoryFolder(), ".git");
     }
 
     @Override
@@ -94,12 +96,12 @@ public class ArchiRepository implements IArchiRepository {
         String[] result = new String[1];
         
         // Find the "folder.xml" file and read it from there
-        File file = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER + "/" + IGraficoConstants.FOLDER_XML); //$NON-NLS-1$
+        File file = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER + "/" + IGraficoConstants.FOLDER_XML);
         if(file.exists()) {
             try(Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
                 stream.forEach(s -> {
-                    if(result[0] == null && s.indexOf("name=") != -1) { //$NON-NLS-1$
-                        String segments[] = s.split("\""); //$NON-NLS-1$
+                    if(result[0] == null && s.indexOf("name=") != -1) {
+                        String segments[] = s.split("\"");
                         if(segments.length == 2) {
                             result[0] = segments[1];
                         }
@@ -116,13 +118,13 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public File getTempModelFile() {
-        return new File(getLocalRepositoryFolder(), "/.git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME); //$NON-NLS-1$
+        return new File(getLocalRepositoryFolder(), "/.git/" + IGraficoConstants.LOCAL_ARCHI_FILENAME);
     }
     
     @Override
     public String getOnlineRepositoryURL() throws IOException {
         try(Git git = Git.open(getLocalRepositoryFolder())) {
-            return git.getRepository().getConfig().getString("remote", IGraficoConstants.ORIGIN, "url"); //$NON-NLS-1$ //$NON-NLS-2$
+            return git.getRepository().getConfig().getString("remote", IGraficoConstants.ORIGIN, "url");
         }
     }
     
@@ -162,7 +164,7 @@ public class ArchiRepository implements IArchiRepository {
             
             // Add modified files to index
             AddCommand addCommand = git.add();
-            addCommand.addFilepattern("."); //$NON-NLS-1$
+            addCommand.addFilepattern(".");
             addCommand.setUpdate(false);
             addCommand.call();
             
@@ -237,7 +239,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public Git createNewLocalGitRepository(String URL) throws GitAPIException, IOException, URISyntaxException {
         if(getLocalRepositoryFolder().exists() && getLocalRepositoryFolder().list().length > 0) {
-            throw new IOException("Directory: " + getLocalRepositoryFolder().getAbsolutePath() + " is not empty."); //$NON-NLS-1$ //$NON-NLS-2$
+            throw new IOException("Directory: " + getLocalRepositoryFolder().getAbsolutePath() + " is not empty.");
         }
         
         InitCommand initCommand = Git.init();
@@ -294,13 +296,13 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getWorkingTreeFileContents(String path) throws IOException {
-        String str = ""; //$NON-NLS-1$
+        String str = "";
         
         try(Git git = Git.open(getLocalRepositoryFolder())) {
             try(BufferedReader in = new BufferedReader(new FileReader(new File(getLocalRepositoryFolder(), path)))) {
                 String line;
                 while((line = in.readLine()) != null) {
-                    str += line + "\n"; //$NON-NLS-1$
+                    str += line + "\n";
                 }
             }
         }
@@ -382,7 +384,7 @@ public class ArchiRepository implements IArchiRepository {
                         // This will clear any different line endings and calls to git.status() will be faster
                         try(Git git = Git.open(getLocalRepositoryFolder())) {
                             AddCommand addCommand = git.add();
-                            addCommand.addFilepattern("."); //$NON-NLS-1$
+                            addCommand.addFilepattern(".");
                             addCommand.setUpdate(false);
                             addCommand.call();
                         }
@@ -418,7 +420,7 @@ public class ArchiRepository implements IArchiRepository {
     @Override
     public void saveUserDetails(String name, String email) throws IOException {
         // Get global user details from .gitconfig for comparison
-        PersonIdent global = new PersonIdent("", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        PersonIdent global = new PersonIdent("", "");
         
         try {
             global = GraficoUtils.getGitConfigUserDetails();
@@ -472,13 +474,18 @@ public class ArchiRepository implements IArchiRepository {
          * Set Line endings in the config file to autocrlf=input
          * This ensures that files are not seen as different
          */
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input"); //$NON-NLS-1$
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_AUTOCRLF, "input");
         
         /*
          * Set longpaths=true because garbage collection is not possible otherwise
          * See https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
          */
-        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "longpaths", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "longpaths", "true");
+        
+        // Set ignore case on Windows
+        if(PlatformUtils.isWindows()) {
+            config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
+        }
         
         config.save();
     }
@@ -520,7 +527,7 @@ public class ArchiRepository implements IArchiRepository {
             return false;
         }
 
-        File checksumFile = new File(getLocalGitFolder(), "checksum"); //$NON-NLS-1$
+        File checksumFile = new File(getLocalGitFolder(), "checksum");
         Files.write(Paths.get(checksumFile.getAbsolutePath()), checksum.getBytes(), StandardOpenOption.CREATE);
         
         return true;
@@ -532,7 +539,7 @@ public class ArchiRepository implements IArchiRepository {
     }
     
     private String getLatestChecksum() throws IOException {
-        File checksumFile = new File(getLocalGitFolder(), "checksum"); //$NON-NLS-1$
+        File checksumFile = new File(getLocalGitFolder(), "checksum");
         if(!checksumFile.exists()) {
             return null;
         }
@@ -550,10 +557,10 @@ public class ArchiRepository implements IArchiRepository {
         
         MessageDigest digest = null;
         try {
-            digest = MessageDigest.getInstance("MD5"); //$NON-NLS-1$
+            digest = MessageDigest.getInstance("MD5");
         }
         catch(NoSuchAlgorithmException ex) {
-            throw new IOException("NoSuchAlgorithm Exception", ex); //$NON-NLS-1$
+            throw new IOException("NoSuchAlgorithm Exception", ex);
         } 
 
         // Get file input stream for reading the file content
@@ -587,7 +594,7 @@ public class ArchiRepository implements IArchiRepository {
      * In some cases the lock file exists and leads to an error, so we delete it
      */
     private void checkDeleteLockFile() {
-        File lockFile = new File(getLocalGitFolder(), "index.lock"); //$NON-NLS-1$
+        File lockFile = new File(getLocalGitFolder(), "index.lock");
         if(lockFile.exists() && lockFile.canWrite()) {
             lockFile.delete();
         }
