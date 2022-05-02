@@ -482,8 +482,8 @@ public class ArchiRepository implements IArchiRepository {
          */
         config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "longpaths", "true");
         
-        // Set ignore case on Windows
-        if(PlatformUtils.isWindows()) {
+        // Set ignore case on Mac/Windows
+        if(!PlatformUtils.isLinux()) {
             config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, "ignorecase", "true");
         }
         
