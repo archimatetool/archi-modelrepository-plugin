@@ -5,18 +5,11 @@
  */
 package org.archicontribs.modelrepository;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
-import org.archicontribs.modelrepository.grafico.ArchiRepository;
-import org.archicontribs.modelrepository.grafico.GraficoUtils;
-import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.archicontribs.modelrepository.grafico.IRepositoryListener;
-import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
@@ -24,18 +17,16 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.model.IArchimateModel;
 
 
 
 /**
- * Activitor
+ * Activator
  * 
  * @author Phillip Beauvoir
  */
-public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyChangeListener {
+public class ModelRepositoryPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.archicontribs.modelrepository"; //$NON-NLS-1$
     
@@ -51,7 +42,6 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
     @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
-        IEditorModelManager.INSTANCE.addPropertyChangeListener(this);
         
         // Set this first
         ProxyAuthenticator.init();
@@ -59,7 +49,6 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
     
     @Override
     public void stop(BundleContext context) throws Exception {
-        IEditorModelManager.INSTANCE.removePropertyChangeListener(this);
         super.stop(context);
     }
     
@@ -95,18 +84,6 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin implements PropertyC
         // Default
         path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
         return new File(path);
-    }
-    
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        // Notify on Save
-        if(evt.getPropertyName().equals(IEditorModelManager.PROPERTY_MODEL_SAVED)) {
-            IArchimateModel model = (IArchimateModel)evt.getNewValue();
-            if(GraficoUtils.isModelInLocalRepository(model)) {
-                IArchiRepository repo = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
-                RepositoryListenerManager.INSTANCE.fireRepositoryChangedEvent(IRepositoryListener.REPOSITORY_CHANGED, repo);
-            }
-        }
     }
     
     public void log(int severity, String message, Throwable ex) {

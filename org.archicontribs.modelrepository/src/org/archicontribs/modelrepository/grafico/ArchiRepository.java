@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
@@ -93,27 +94,31 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public String getName() {
-        String[] result = new String[1];
+        // If the model is open, return its name
+        IArchimateModel model = locateModel();
+        if(model != null) {
+            return model.getName();
+        }
         
-        // Find the "folder.xml" file and read it from there
+        // If model not open, open the "folder.xml" file and read it from there
         File file = new File(getLocalRepositoryFolder(), IGraficoConstants.MODEL_FOLDER + "/" + IGraficoConstants.FOLDER_XML);
         if(file.exists()) {
-            try(Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
-                stream.forEach(s -> {
-                    if(result[0] == null && s.indexOf("name=") != -1) {
-                        String segments[] = s.split("\"");
-                        if(segments.length == 2) {
-                            result[0] = segments[1];
-                        }
+            try(Stream<String> stream = Files.lines(file.toPath())
+                                             .filter(line -> line.indexOf("name=") != -1)) {
+                Optional<String> result = stream.findFirst();
+                if(result.isPresent()) {
+                    String segments[] = result.get().split("\"");
+                    if(segments.length == 2) {
+                        return segments[1];
                     }
-                });
+                }
             }
-            catch(IOException ex) {
+            catch(Exception ex) { // Catch all exceptions to stop exception dialog
                 ex.printStackTrace();
             }
         }
         
-        return result[0] != null ? result[0] : fLocalRepoFolder.getName();
+        return fLocalRepoFolder.getName();
     }
 
     @Override
