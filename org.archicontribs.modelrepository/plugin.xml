@@ -333,30 +333,29 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyContributor">
       <propertyContributor
-            contributorId="org.archicontribs.modelrepository"
-            labelProvider="org.archicontribs.modelrepository.propertysections.LabelProvider">
+            contributorId="com.archimatetool.editor">
          <propertyCategory
-               category="main.category"></propertyCategory>
+               category="repo.category"></propertyCategory>
       </propertyContributor>
    </extension>
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertyTabs">
       <propertyTabs
-            contributorId="org.archicontribs.modelrepository">
+            contributorId="com.archimatetool.editor">
          <propertyTab
-               category="main.category"
+               category="repo.category"
                id="info.tab"
                label="%infoTab">
          </propertyTab>
          <propertyTab
                afterTab="info.tab"
-               category="main.category"
+               category="repo.category"
                id="user.tab"
                label="%userTab">
          </propertyTab>
          <propertyTab
                afterTab="user.tab"
-               category="main.category"
+               category="repo.category"
                id="auth.tab"
                label="%authTab">
          </propertyTab>
@@ -365,7 +364,7 @@
    <extension
          point="org.eclipse.ui.views.properties.tabbed.propertySections">
       <propertySections
-            contributorId="org.archicontribs.modelrepository">
+            contributorId="com.archimatetool.editor">
          <propertySection
                class="org.archicontribs.modelrepository.propertysections.RepoInfoSection"
                filter="org.archicontribs.modelrepository.propertysections.RepoInfoSection$Filter"
@@ -386,6 +385,13 @@
                tab="auth.tab">
          </propertySection>
       </propertySections>
+   </extension>
+   <extension
+         point="com.archimatetool.editor.labelProvider">
+      <labelProvider
+            class="org.archicontribs.modelrepository.propertysections.LabelProvider"
+            id="org.archicontribs.modelrepository.labelProvider">
+      </labelProvider>
    </extension>
 
 </plugin>

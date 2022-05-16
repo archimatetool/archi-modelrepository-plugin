@@ -7,49 +7,27 @@ package org.archicontribs.modelrepository.propertysections;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
-import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Image;
 
+import com.archimatetool.editor.ui.IArchiLabelProvider;
 
-public class LabelProvider implements ILabelProvider {
 
-    @Override
-    public void addListener(ILabelProviderListener listener) {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @Override
-    public boolean isLabelProperty(Object element, String property) {
-        return false;
-    }
-
-    @Override
-    public void removeListener(ILabelProviderListener listener) {
-    }
+public class LabelProvider implements IArchiLabelProvider {
 
     @Override
     public Image getImage(Object element) {
-        return IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+        if(element instanceof IArchiRepository) {
+            return IModelRepositoryImages.ImageFactory.getImage(IModelRepositoryImages.ICON_MODEL);
+        }
+        return null;
     }
 
     @Override
-    public String getText(Object element) {
-        if(!(element instanceof IStructuredSelection)) {
-            return " "; //$NON-NLS-1$
-        }
-        
-        element = ((IStructuredSelection)element).getFirstElement();
-        
+    public String getLabel(Object element) {
         if(element instanceof IArchiRepository) {
             return ((IArchiRepository)element).getName();
         }
         
         return null;
     }
-
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.preferences.ModelRepositoryPreferencePage;
@@ -28,6 +29,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
+import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -40,7 +42,8 @@ public class AuthSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof IArchiRepository;
+            return object instanceof IArchiRepository ||
+                    (object instanceof IArchimateModel && GraficoUtils.isModelInLocalRepository((IArchimateModel)object));
         }
     }
     
@@ -100,6 +103,15 @@ public class AuthSection extends AbstractArchiPropertySection {
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
             fRepository = (IArchiRepository)selection.getFirstElement();
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fRepository = null;
+        }
+
+        if(fRepository != null) {
             updateControls();
         }
         else {

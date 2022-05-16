@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.propertysections;
 
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.viewers.IFilter;
@@ -26,6 +27,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -38,7 +40,8 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof IArchiRepository;
+            return object instanceof IArchiRepository ||
+                    (object instanceof IArchimateModel && GraficoUtils.isModelInLocalRepository((IArchimateModel)object));
         }
     }
     
@@ -113,7 +116,15 @@ public class UserDetailsSection extends AbstractArchiPropertySection {
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
             fRepository = (IArchiRepository)selection.getFirstElement();
-            
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fRepository = null;
+        }
+
+        if(fRepository != null) {
             String globalName = "", globalEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
             String localName = "", localEmail = ""; //$NON-NLS-1$ //$NON-NLS-2$
             

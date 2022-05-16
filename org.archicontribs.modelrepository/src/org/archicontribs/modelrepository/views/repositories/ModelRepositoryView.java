@@ -61,6 +61,7 @@ import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertySheetPageContributor;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
+import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
 
@@ -369,7 +370,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     
     @Override
     public String getContributorId() {
-        return ModelRepositoryPlugin.PLUGIN_ID;
+        return ArchiPlugin.PLUGIN_ID;
     }
     
     @Override

@@ -7,8 +7,10 @@ package org.archicontribs.modelrepository.propertysections;
 
 import java.io.IOException;
 
+import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
+import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -19,6 +21,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.propertysections.AbstractArchiPropertySection;
 import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.model.IArchimateModel;
 
 
 /**
@@ -31,7 +34,8 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     public static class Filter implements IFilter {
         @Override
         public boolean select(Object object) {
-            return object instanceof IArchiRepository;
+            return object instanceof IArchiRepository ||
+                    (object instanceof IArchimateModel && GraficoUtils.isModelInLocalRepository((IArchimateModel)object));
         }
     }
     
@@ -61,7 +65,15 @@ public class RepoInfoSection extends AbstractArchiPropertySection {
     protected void handleSelection(IStructuredSelection selection) {
         if(selection.getFirstElement() instanceof IArchiRepository) {
             fArchiRepo = (IArchiRepository)selection.getFirstElement();
-            
+        }
+        else if(selection.getFirstElement() instanceof IArchimateModel) {
+            fArchiRepo = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel((IArchimateModel)selection.getFirstElement()));
+        }
+        else {
+            fArchiRepo = null;
+        }
+        
+        if(fArchiRepo != null) {
             try {
                 fFile = fArchiRepo.getLocalRepositoryFolder().getAbsolutePath();
                 fTextFile.setText(fFile);
