@@ -330,9 +330,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         dialog.setText(Messages.ModelRepositoryPreferencePage_20);
 //        dialog.setMessage(Messages.ModelRepositoryPreferencePage_21);
         File file = new File(fSSHIdentityFileTextField.getText());
-        if(file.exists()) {
-            dialog.setFilterPath(fSSHIdentityFileTextField.getText());
-        }
+        dialog.setFilterPath(file.getParent());
+        
         return dialog.open();
     }
 
