@@ -56,7 +56,7 @@ public class BranchInfo {
      * Initialise this BranchInfo from the Repository and the Ref
      */
     private void init(Repository repository, Ref ref) throws IOException, GitAPIException {
-        this.ref = ref;
+        this.ref = ref.getTarget(); // Important! Get the target in case it's a symbolic Ref
         
         hasLocalRef = getHasLocalRef(repository);
         hasRemoteRef = getHasRemoteRef(repository);
