@@ -23,6 +23,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
+import org.eclipse.gef.commands.CommandStack;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
@@ -143,9 +144,13 @@ public class GraficoModelImporter {
     	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
         resource.getContents().remove(fModel);
         
-        // Add Archive Manager so we can save the model
+        // Add Archive Manager and CommandStack
         IArchiveManager archiveManager = IArchiveManager.FACTORY.createArchiveManager(fModel);
         fModel.setAdapter(IArchiveManager.class, archiveManager);
+        
+        // We do need a CommandStack for ACLI
+        CommandStack cmdStack = new CommandStack();
+        fModel.setAdapter(CommandStack.class, cmdStack);
         
     	// Load images
     	loadImages(imagesFolder, archiveManager);
