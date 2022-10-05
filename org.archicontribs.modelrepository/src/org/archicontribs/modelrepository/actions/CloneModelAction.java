@@ -99,7 +99,7 @@ public class CloneModelAction extends AbstractModelAction {
                 public void run(IProgressMonitor pm) {
                     try {
                         // Update Proxy
-                        ProxyAuthenticator.update();
+                        ProxyAuthenticator.update(repoURL);
                         
                         pm.beginTask(Messages.CloneModelAction_4, -1);
                         getRepository().cloneModel(repoURL, npw, new ProgressMonitorWrapper(pm));

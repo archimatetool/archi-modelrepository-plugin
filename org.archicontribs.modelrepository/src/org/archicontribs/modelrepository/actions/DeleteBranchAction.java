@@ -83,7 +83,7 @@ public class DeleteBranchAction extends AbstractModelAction {
                     public void run(IProgressMonitor pm) {
                         try {
                             // Update Proxy
-                            ProxyAuthenticator.update();
+                            ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
                             
                             pm.beginTask(Messages.DeleteBranchAction_2, IProgressMonitor.UNKNOWN);
                             deleteBranchAndPush(branchInfo, npw);

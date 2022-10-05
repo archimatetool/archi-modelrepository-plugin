@@ -188,7 +188,7 @@ public class MergeBranchAction extends AbstractModelAction {
                         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                             try {
                                 // Update Proxy
-                                ProxyAuthenticator.update();
+                                ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
                                 
                                 monitor.beginTask(Messages.MergeBranchAction_11, -1);
                                 

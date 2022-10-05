@@ -118,7 +118,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
                 public void run(IProgressMonitor pm) {
                     try {
                         // Update Proxy
-                        ProxyAuthenticator.update();
+                        ProxyAuthenticator.update(repoURL);
                         
                         pm.beginTask(Messages.CreateRepoFromModelAction_4, -1);
                         getRepository().pushToRemote(npw, new ProgressMonitorWrapper(pm));

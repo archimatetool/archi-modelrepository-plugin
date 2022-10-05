@@ -110,13 +110,13 @@ public class ProxyAuthenticator {
     }
 
     // Update the proxy details
-    public static void update() {
-        // Don't use a proxy
-        if(!isUsingProxy()) {
+    public static void update(String repositoryURL) {
+        // Don't use a proxy or HTTP proxy not used with SSH
+        if(!isUsingProxy() || GraficoUtils.isSSH(repositoryURL)) {
             clear();
             return;
         }
-        
+
         // Authentication is used
         if(isUsingAuthentication()) {
             // Set our Authenticator

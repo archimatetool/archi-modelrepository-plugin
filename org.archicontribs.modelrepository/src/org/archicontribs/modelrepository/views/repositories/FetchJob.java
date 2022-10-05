@@ -182,7 +182,7 @@ public class FetchJob extends Job {
                 }
 
                 // Update ProxyAuthenticator
-                ProxyAuthenticator.update();
+                ProxyAuthenticator.update(url);
 
                 // Fetch
                 FetchResult fetchResult = repo.fetchFromRemote(npw, null, false);

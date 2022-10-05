@@ -107,7 +107,7 @@ public class RefreshModelAction extends AbstractModelAction {
                             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                                 try {
                                     // Update Proxy
-                                    ProxyAuthenticator.update();
+                                    ProxyAuthenticator.update(getRepository().getOnlineRepositoryURL());
                                     
                                     monitor.beginTask(Messages.RefreshModelAction_5, -1);
                                     int status = pull(npw, pmDialog);
