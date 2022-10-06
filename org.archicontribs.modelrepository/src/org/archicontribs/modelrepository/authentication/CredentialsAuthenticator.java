@@ -45,7 +45,11 @@ public final class CredentialsAuthenticator {
     private static SSHIdentityProvider sshIdentityProvider = new SSHIdentityProvider() {
         @Override
         public File getIdentityFile() {
-            return new File(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE));
+            if(Platform.getPreferencesService() != null) { // Check Preference Service is running in case background fetch is running and we quit the app
+                return new File(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_SSH_IDENTITY_FILE)); 
+            }
+            
+            return null;
         }
         
         @Override

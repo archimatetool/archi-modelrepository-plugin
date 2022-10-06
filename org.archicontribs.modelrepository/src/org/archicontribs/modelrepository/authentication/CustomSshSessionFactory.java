@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
@@ -54,7 +55,8 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         List<Path> paths = new ArrayList<Path>();
         
         // Scan SSH directory for all non-public files
-        if(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
+        if(Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
+                && ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
             for(File file : sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"))) {
                 paths.add(file.toPath());
             }
@@ -62,7 +64,10 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         }
         
         // Single identity file as specified in prefs
-        paths.add(CredentialsAuthenticator.getSSHIdentityProvider().getIdentityFile().toPath());
+        File file = CredentialsAuthenticator.getSSHIdentityProvider().getIdentityFile();
+        if(file != null) {
+            paths.add(file.toPath());
+        }
         
         return paths;
     }
