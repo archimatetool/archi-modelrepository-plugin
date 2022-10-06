@@ -18,9 +18,13 @@ public class UsernamePassword {
     
     public UsernamePassword(String username, char[] password) {
         this.username = username;
-        this.password = password.clone();
+        this.password = password != null ? password.clone() : null;
     }
     
+    public UsernamePassword(String username, String password) {
+        this(username, password != null ? password.toCharArray() : null);
+    }
+
     public char[] getPassword() {
         return password;
     }
