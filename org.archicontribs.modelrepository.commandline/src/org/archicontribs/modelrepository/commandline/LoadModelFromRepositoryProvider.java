@@ -83,24 +83,27 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             File identityFile = getSSHIdentityFile(commandLine);
             
             boolean isSSH = GraficoUtils.isSSH(url);
+            boolean isHTTP = !isSSH;
             
             if(!StringUtils.isSet(url)) {
                 logError(Messages.LoadModelFromRepositoryProvider_2);
                 return;
             }
             
-            if(!isSSH && !StringUtils.isSet(username)) {
+            // HTTP requires user name
+            if(isHTTP && !StringUtils.isSet(username)) {
                 logError(Messages.LoadModelFromRepositoryProvider_3);
                 return;
             }
             
-            // If using HTTPS then password is needed for connection
-            // If using SSH them password is optional for the identity file
-            if(!isSSH && !StringUtils.isSet(password)) {
+            // If using HTTP then password is needed for connection
+            // If using SSH then password is optional for the identity file
+            if(isHTTP && !StringUtils.isSet(password)) {
                 logError(Messages.LoadModelFromRepositoryProvider_17);
                 return;
             }
             
+            // SSH needs identity file
             if(isSSH && identityFile == null) {
                 logError(Messages.LoadModelFromRepositoryProvider_18);
                 return;
@@ -108,23 +111,32 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             
             logMessage(NLS.bind(Messages.LoadModelFromRepositoryProvider_4, url, cloneFolder));
             
+            // Delete clone folder
             FileUtils.deleteFolder(cloneFolder);
             
-            // Set this to return our details rather than using the defaults from App prefs
-            CredentialsAuthenticator.setSSHIdentityProvider(new SSHIdentityProvider() {
-                @Override
-                public File getIdentityFile() {
-                    return identityFile;
-                }
-
-                @Override
-                public char[] getIdentityPassword() {
-                    return password != null ? password.toCharArray() : null;
-                }
-            });
-            
             IArchiRepository repo = new ArchiRepository(cloneFolder);
-            repo.cloneModel(url, new UsernamePassword(username, password != null ? password.toCharArray() : null), null);
+
+            // SSH
+            if(isSSH) {
+                // Set this to return our details rather than using the defaults from App prefs
+                CredentialsAuthenticator.setSSHIdentityProvider(new SSHIdentityProvider() {
+                    @Override
+                    public File getIdentityFile() {
+                        return identityFile;
+                    }
+
+                    @Override
+                    public char[] getIdentityPassword() {
+                        return password != null ? password.toCharArray() : null;
+                    }
+                });
+                
+                repo.cloneModel(url, null, null);
+            }
+            // HTTP
+            else {
+                repo.cloneModel(url, new UsernamePassword(username, password), null);
+            }
             
             logMessage(Messages.LoadModelFromRepositoryProvider_5);
         }
