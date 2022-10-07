@@ -42,6 +42,11 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
      */
     private boolean useDefaultIdentities = false;
     
+    public CustomSshSessionFactory() {
+        // Set ProxyDataFactory to null to allow SSH connections through the proxy if it's enabled
+        super(null, null);
+    }
+    
     /**
      * By default the ~/.ssh directory is scanned for all supported private key files
      * But we can return the identity file as set in Preferences or set of files
