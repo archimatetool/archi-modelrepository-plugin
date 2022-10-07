@@ -110,7 +110,7 @@ public class ProxyAuthenticator {
     }
 
     // Update the proxy details
-    public static void update(String repositoryURL) {
+    public static synchronized void update(String repositoryURL) {
         // Don't use a proxy or HTTP proxy not used with SSH
         if(!isUsingProxy() || GraficoUtils.isSSH(repositoryURL)) {
             clear();
@@ -148,7 +148,7 @@ public class ProxyAuthenticator {
     /**
      * Clear the Proxy settings
      */
-    public static void clear() {
+    public static synchronized void clear() {
         Authenticator.setDefault(null);
         ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
     }
