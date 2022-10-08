@@ -120,6 +120,11 @@ public class ProxyAuthenticator {
         // Authentication is used
         if(isUsingAuthentication()) {
             // Set our Authenticator
+            
+            // However, once this is set Java caches the authentication details
+            // So setting it back to null makes no difference
+            // See https://bugs.openjdk.org/browse/JDK-4679480
+            // See https://www.eclipse.org/forums/index.php?t=msg&th=1085879&goto=1816302&#msg_1816302
             Authenticator.setDefault(AUTHENTICATOR);
         }
         // No authentication used
@@ -149,7 +154,7 @@ public class ProxyAuthenticator {
      * Clear the Proxy settings
      */
     public static synchronized void clear() {
-        Authenticator.setDefault(null);
+        Authenticator.setDefault(null); // This does not clear cached authentication details
         ProxySelector.setDefault(DEFAULT_PROXY_SELECTOR);
     }
     
