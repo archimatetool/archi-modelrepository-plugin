@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit.http.apache_6.1.0.202203080745-r.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit_6.1.0.202203080745-r.jar" sourcepath="libsrc/org.eclipse.jgit.source_6.1.0.202203080745-r.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar" sourcepath="libsrc/org.eclipse.jgit.ssh.apache.source_6.1.0.202203080745-r.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar" sourcepath="libsrc/org.apache.sshd.osgi.source_2.8.0.v20211227-1750.jar"/>

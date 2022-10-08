@@ -29,5 +29,10 @@ Bundle-ClassPath: org.archicontribs.modelrepository.jar,
  lib/org.slf4j.binding.simple_1.7.30.v20200204-2150.jar,
  lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar,
  lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar,
- lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar
+ lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar,
+ lib/org.eclipse.jgit.http.apache_6.1.0.202203080745-r.jar,
+ lib/org.apache.commons.codec_1.14.0.v20200818-1422.jar,
+ lib/org.apache.commons.logging_1.2.0.v20180409-1502.jar,
+ lib/org.apache.httpcomponents.httpclient_4.5.13.v20210128-2225.jar,
+ lib/org.apache.httpcomponents.httpcore_4.4.15.v20220209-2345.jar
 Automatic-Module-Name: org.archicontribs.modelrepository

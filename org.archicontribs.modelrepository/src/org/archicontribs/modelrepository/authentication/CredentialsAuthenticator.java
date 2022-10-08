@@ -15,9 +15,11 @@ import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.transport.HttpTransport;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.http.apache.HttpClientConnectionFactory;
 
 
 /**
@@ -37,6 +39,11 @@ public final class CredentialsAuthenticator {
          * Set the SshSessionFactory instance to our specialised SshSessionFactory 
          */
         SshSessionFactory.setInstance(new CustomSshSessionFactory());
+        
+        /*
+         * Use Apache Factory
+         */
+        HttpTransport.setConnectionFactory(new HttpClientConnectionFactory());
     }
     
     /**
