@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;

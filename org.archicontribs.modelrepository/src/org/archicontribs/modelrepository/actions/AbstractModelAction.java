@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
-import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;

@@ -11,9 +11,9 @@ import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
+import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.NewModelRepoDialog;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;

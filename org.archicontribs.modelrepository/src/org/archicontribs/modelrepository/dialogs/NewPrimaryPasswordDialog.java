@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.EncryptedCredentialsStorage;
+import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;

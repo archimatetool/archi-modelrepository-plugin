@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.modelrepository.authentication;
+package org.archicontribs.modelrepository.authentication.internal;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +27,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
