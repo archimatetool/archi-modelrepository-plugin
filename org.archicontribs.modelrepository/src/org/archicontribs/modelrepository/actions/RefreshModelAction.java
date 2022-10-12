@@ -137,6 +137,12 @@ public class RefreshModelAction extends AbstractModelAction {
                     catch(InvocationTargetException | InterruptedException ex) {
                         ex.printStackTrace();
                     }
+                    finally {
+                        // Clear credentials
+                        if(npw != null) {
+                            npw.clear();
+                        }
+                    }
                 }
             });
             

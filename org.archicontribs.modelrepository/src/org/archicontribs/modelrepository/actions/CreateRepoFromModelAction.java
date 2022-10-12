@@ -149,5 +149,11 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         catch(Exception ex) {
             displayErrorDialog(Messages.CreateRepoFromModelAction_7, ex);
         }
+        finally {
+            // Clear credentials
+            if(npw != null) {
+                npw.clear();
+            }
+        }
     }
 }

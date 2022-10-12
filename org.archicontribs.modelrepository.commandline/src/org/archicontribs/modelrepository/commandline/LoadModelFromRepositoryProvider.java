@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.archicontribs.modelrepository.authentication.AuthUtils;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator.SSHIdentityProvider;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
@@ -79,7 +80,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         if(commandLine.hasOption(OPTION_CLONE_MODEL)) {
             String url = commandLine.getOptionValue(OPTION_CLONE_MODEL);
             String username = commandLine.getOptionValue(OPTION_USERNAME);
-            String password = getPasswordFromFile(commandLine);
+            char[] password = getPasswordFromFile(commandLine);
             File identityFile = getSSHIdentityFile(commandLine);
             
             boolean isSSH = GraficoUtils.isSSH(url);
@@ -98,7 +99,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             
             // If using HTTP then password is needed for connection
             // If using SSH then password is optional for the identity file
-            if(isHTTP && !StringUtils.isSet(password)) {
+            if(isHTTP && (password == null || password.length == 0)) {
                 logError(Messages.LoadModelFromRepositoryProvider_17);
                 return;
             }
@@ -127,7 +128,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
 
                     @Override
                     public char[] getIdentityPassword() {
-                        return password != null ? password.toCharArray() : null;
+                        return password;
                     }
                 });
                 
@@ -135,7 +136,13 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             }
             // HTTP
             else {
-                repo.cloneModel(url, new UsernamePassword(username, password), null);
+                UsernamePassword npw = new UsernamePassword(username, password);
+                try {
+                    repo.cloneModel(url, npw, null);
+                }
+                finally {
+                    npw.clear(); // Clear this
+                }
             }
             
             logMessage(Messages.LoadModelFromRepositoryProvider_5);
@@ -164,15 +171,15 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
         return model;
     }
 
-    private String getPasswordFromFile(CommandLine commandLine) throws IOException {
-        String password = null;
+    private char[] getPasswordFromFile(CommandLine commandLine) throws IOException {
+        char[] password = null;
         
         String path = commandLine.getOptionValue(OPTION_PASSFILE);
         if(StringUtils.isSet(path)) {
             File file = new File(path);
             if(file.exists() && file.canRead()) {
-                password = new String(Files.readAllBytes(Paths.get(file.getPath())));
-                password = password.trim();
+                byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
+                return AuthUtils.convertBytesToChars(bytes);
             }
         }
 

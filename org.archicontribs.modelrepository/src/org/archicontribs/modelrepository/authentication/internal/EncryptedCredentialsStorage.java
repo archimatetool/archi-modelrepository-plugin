@@ -27,6 +27,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.AuthUtils;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
@@ -115,7 +116,7 @@ public class EncryptedCredentialsStorage {
         }
         
         // Get password as bytes - Must use UTF-8 !
-        byte[] passwordBytes = new String(password).getBytes("UTF-8");
+        byte[] passwordBytes = AuthUtils.convertCharsToBytes(password);
         
         // Encrypt the password
         Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
@@ -141,7 +142,7 @@ public class EncryptedCredentialsStorage {
             // Get the primary key in order to decrypt it
             SecretKey key = getPrimaryKey();
             if(key == null) {
-                return "".toCharArray();
+                return new char[0];
             }
             
             // Decode password from Base64 string in properties first
@@ -160,10 +161,10 @@ public class EncryptedCredentialsStorage {
             passwordBytes = cipher.doFinal(passwordBytes);
             
             // Use UTF-8 because we used that to encrypt it
-            return new String(passwordBytes, "UTF-8").toCharArray();
+            return AuthUtils.convertBytesToChars(passwordBytes);
         }
         
-        return "".toCharArray();
+        return new char[0];
     }
     
     /**
@@ -409,7 +410,7 @@ public class EncryptedCredentialsStorage {
      */
     private static Cipher makeCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
         // We have to convert the password characters to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        byte[] passwordBytes = new String(password).getBytes();
+        byte[] passwordBytes = AuthUtils.convertCharsToBytes(password);
         String encoded = Base64.getEncoder().encodeToString(passwordBytes);
         
         // Use a KeyFactory to derive the corresponding key from the password

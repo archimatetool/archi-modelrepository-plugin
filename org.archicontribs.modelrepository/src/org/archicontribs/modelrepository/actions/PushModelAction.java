@@ -121,6 +121,11 @@ public class PushModelAction extends RefreshModelAction {
                                         ex.printStackTrace();
                                     }
                                     
+                                    // Clear credentials
+                                    if(npw != null) {
+                                        npw.clear();
+                                    }
+                                    
                                     // Clear Proxy
                                     ProxyAuthenticator.clear();
                                 }

@@ -263,6 +263,11 @@ public class MergeBranchAction extends AbstractModelAction {
                                 
                                 // Clear Proxy
                                 ProxyAuthenticator.clear();
+                                
+                                // Clear credentials
+                                if(npw != null) {
+                                    npw.clear();
+                                }
                             }
                         }
                     });

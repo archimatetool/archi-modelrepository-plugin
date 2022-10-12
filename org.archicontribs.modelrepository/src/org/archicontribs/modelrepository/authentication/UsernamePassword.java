@@ -5,6 +5,7 @@
  */
 package org.archicontribs.modelrepository.authentication;
 
+import java.util.Arrays;
 
 /**
  * Username and Password pair
@@ -21,15 +22,23 @@ public class UsernamePassword {
         this.password = password != null ? password.clone() : null;
     }
     
-    public UsernamePassword(String username, String password) {
-        this(username, password != null ? password.toCharArray() : null);
-    }
-
     public char[] getPassword() {
         return password;
     }
     
     public String getUsername() {
         return username;
+    }
+    
+    /**
+     * Destroy the saved username and password
+     */
+    public void clear() {
+        username = null;
+
+        if(password != null) {
+            Arrays.fill(password, (char)0);
+            password = null;
+        }
     }
 }

@@ -229,7 +229,7 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
         // Change password in existing primary key
         if(changePasswordRadio.getSelection()) {
             try {
-                EncryptedCredentialsStorage.setNewPasswordForPrimaryKey(currentPasswordText.getTextChars(), newPasswordText.getText().toCharArray());
+                EncryptedCredentialsStorage.setNewPasswordForPrimaryKey(currentPasswordText.getTextChars(), newPasswordText.getTextChars());
             }
             catch(GeneralSecurityException | IOException ex) {
                 ex.printStackTrace();

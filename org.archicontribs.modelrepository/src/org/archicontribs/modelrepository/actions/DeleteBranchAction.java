@@ -94,6 +94,11 @@ public class DeleteBranchAction extends AbstractModelAction {
                         finally {
                             // Clear Proxy
                             ProxyAuthenticator.clear();
+                            
+                            // Clear credentials
+                            if(npw != null) {
+                                npw.clear();
+                            }
                         }
                     }
                 });

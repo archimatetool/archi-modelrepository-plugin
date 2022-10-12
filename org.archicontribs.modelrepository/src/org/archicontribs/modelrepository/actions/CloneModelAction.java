@@ -152,6 +152,12 @@ public class CloneModelAction extends AbstractModelAction {
         catch(Exception ex) {
             displayErrorDialog(Messages.CloneModelAction_0, ex);
         }
+        finally {
+            // Clear credentials
+            if(npw != null) {
+                npw.clear();
+            }
+        }
     }
     
     @Override

@@ -171,8 +171,9 @@ public class FetchJob extends Job {
                 return Status.OK_STATUS;
             }
             
+            UsernamePassword npw = null;
+
             try {
-                UsernamePassword npw = null;
                 String url = repo.getOnlineRepositoryURL();
                 
                 if(GraficoUtils.isHTTP(url)) {
@@ -243,6 +244,11 @@ public class FetchJob extends Job {
             finally {
                 // Clear ProxyAuthenticator
                 ProxyAuthenticator.clear();
+                
+                // Clear credentials
+                if(npw != null) {
+                    npw.clear();
+                }
             }
         }
 
