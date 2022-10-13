@@ -410,11 +410,10 @@ public class EncryptedCredentialsStorage {
      */
     private static Cipher makeCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
         // We have to convert the password characters to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        byte[] passwordBytes = AuthUtils.convertCharsToBytes(password);
-        String encoded = Base64.getEncoder().encodeToString(passwordBytes);
+        char[] encoded = AuthUtils.encodeCharsToBase64(password);
         
         // Use a KeyFactory to derive the corresponding key from the password
-        PBEKeySpec keySpec = new PBEKeySpec(encoded.toCharArray());
+        PBEKeySpec keySpec = new PBEKeySpec(encoded);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
         SecretKey key = keyFactory.generateSecret(keySpec);
 

@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * AuthUtils
@@ -41,6 +42,16 @@ public class AuthUtils {
         charBuffer.get(charArray);  
         Arrays.fill(buf.array(), (byte) 0); // clear ByteBuffer
         return charArray;
+    }
+
+    /**
+     * Encode a char array to a Base64 encoded char array
+     * the chars are converted to UTF-8
+     */
+    public static char[] encodeCharsToBase64(char[] chars) {
+        byte[] bytes = convertCharsToBytes(chars); // convert to bytes using UTF-8
+        String encoded = Base64.getEncoder().encodeToString(bytes); // Encode bytes to Base64 String
+        return encoded.toCharArray(); // Return string chars
     }
 
 }
