@@ -132,7 +132,7 @@ public class CryptoUtils {
      */
     public static SecretKey generateKeyFromPassword(String algorithm, char[] password) throws GeneralSecurityException {
         // Convert the password bytes to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        char[] encodedPassword = CryptoUtils.encodeCharsToBase64(password);
+        char[] encodedPassword = encodeCharsToBase64(password);
 
         PBEKeySpec keySpec = new PBEKeySpec(encodedPassword);
         
@@ -153,7 +153,7 @@ public class CryptoUtils {
      */
     public static SecretKey generateKeyFromPassword(String algorithm, char[] password, byte[] salt, int iterations) throws Exception {
         // Convert the password bytes to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        char[] encodedPassword = CryptoUtils.encodeCharsToBase64(password);
+        char[] encodedPassword = encodeCharsToBase64(password);
         
         PBEKeySpec pbeKeySpec = new PBEKeySpec(encodedPassword, salt, iterations, 256);
         
