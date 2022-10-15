@@ -22,15 +22,9 @@ import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 
-import junit.framework.JUnit4TestAdapter;
-
 
 @SuppressWarnings("nls")
 public class GraficoUtilsTests {
-    
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(GraficoUtilsTests.class);
-    }
     
     @Before
     public void runOnceBeforeEachTest() {

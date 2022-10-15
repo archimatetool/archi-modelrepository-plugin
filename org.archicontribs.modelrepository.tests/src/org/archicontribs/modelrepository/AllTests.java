@@ -6,21 +6,19 @@
 package org.archicontribs.modelrepository;
 
 
+import org.archicontribs.modelrepository.authentication.CryptoDataTests;
 import org.archicontribs.modelrepository.grafico.ArchiRepositoryTests;
 import org.archicontribs.modelrepository.grafico.GraficoUtilsTests;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-import junit.framework.TestSuite;
+@RunWith(Suite.class)
 
-@SuppressWarnings("nls")
+@Suite.SuiteClasses({
+    ArchiRepositoryTests.class,
+    GraficoUtilsTests.class,
+    CryptoDataTests.class
+})
+
 public class AllTests {
-
-    public static junit.framework.Test suite() {
-		TestSuite suite = new TestSuite("org.archicontribs.modelrepository");
-
-		suite.addTest(ArchiRepositoryTests.suite());
-		suite.addTest(GraficoUtilsTests.suite());
-		
-        return suite;
-	}
-
 }
