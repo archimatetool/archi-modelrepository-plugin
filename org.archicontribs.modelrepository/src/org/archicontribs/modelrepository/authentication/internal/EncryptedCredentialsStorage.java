@@ -11,19 +11,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
@@ -64,6 +57,23 @@ public class EncryptedCredentialsStorage {
             Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_INACTIVITY_TIMEOUT) * 1000 * 60, 0);
     private static long PASSWORD_INACTIVITY_TIMEOUT_MARK = 0;
 
+    
+    // =========================== CIPHER STUFF ==========================================
+    
+    // Used for encrypting passwords
+    private static final String CIPHER_ALGORITHM = "AES";
+    
+    // Used for PBE of primary key
+    private static final String PBE_ALGORITHM = "PBEWithMD5AndDES";
+    
+    // Number of iterations for PBEKeySpec and PBEParameterSpec
+    private static final int PBE_ITERATIONS = 28;
+
+    // Salt length for PBE of primary key
+    private static final int PBE_SALT_LENGTH = 8;
+    
+ // =======================================================================================
+    
     /**
      * Convenience method to create new a EncryptedCredentialsStorage for a repository
      */
@@ -119,7 +129,7 @@ public class EncryptedCredentialsStorage {
         byte[] passwordBytes = CryptoUtils.convertCharsToBytes(password);
         
         // Encrypt the password
-        Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
+        Cipher cipher = CryptoUtils.getCipher(key, CIPHER_ALGORITHM, Cipher.ENCRYPT_MODE);
         byte[] encrypted = cipher.doFinal(passwordBytes);
         
         // Store in properties file as a Base64 encoded string
@@ -157,7 +167,7 @@ public class EncryptedCredentialsStorage {
             }
             
             // Decrypt the password
-            Cipher cipher = makeCipherWithKey(key, Cipher.DECRYPT_MODE);
+            Cipher cipher = CryptoUtils.getCipher(key, CIPHER_ALGORITHM, Cipher.DECRYPT_MODE);
             passwordBytes = cipher.doFinal(passwordBytes);
             
             // Use UTF-8 because we used that to encrypt it
@@ -222,20 +232,6 @@ public class EncryptedCredentialsStorage {
         }
     }
     
-    /**
-     * Make a Cipher from a given Key
-     */
-    private Cipher makeCipherWithKey(Key key, int mode) throws GeneralSecurityException {
-        // Set up the cipher
-        Cipher cipher = Cipher.getInstance("AES");
-
-        // Set the cipher mode to decryption or encryption
-        cipher.init(mode, key);
-
-        return cipher;
-    }
-    
-    
     // ==============================================================================================
     // Primary Key Storage
     // ==============================================================================================
@@ -270,7 +266,7 @@ public class EncryptedCredentialsStorage {
      * Create and save a new primary key
      */
     public static void createNewPrimaryKey(char[] password) throws GeneralSecurityException, IOException {
-        primaryKey = generatePrimaryKey();
+        primaryKey = CryptoUtils.generateRandomSecretKey();
         savePrimaryKey(primaryKey, password);
     }
     
@@ -338,13 +334,13 @@ public class EncryptedCredentialsStorage {
             
             if(bytes != null) {
                 // Get the salt from the first 8 bytes
-                byte[] salt = Arrays.copyOfRange(bytes, 0, 8);
+                byte[] salt = Arrays.copyOfRange(bytes, 0, PBE_SALT_LENGTH);
                 
                 // Get the remaining encrypted key bytes
-                byte[] keybytes = Arrays.copyOfRange(bytes, 8, bytes.length);
+                byte[] keybytes = Arrays.copyOfRange(bytes, PBE_SALT_LENGTH, bytes.length);
                 
                 // Decrypt the key bytes with the password and salt
-                Cipher cipher = makeCipherWithPassword(password, Cipher.DECRYPT_MODE, salt);
+                Cipher cipher = getCipherWithPassword(password, Cipher.DECRYPT_MODE, salt);
                 keybytes = cipher.doFinal(keybytes);
                 
                 // Return the key
@@ -360,10 +356,10 @@ public class EncryptedCredentialsStorage {
      */
     private static void savePrimaryKey(SecretKey key, char[] password) throws GeneralSecurityException, IOException {
         // Generate a new random salt
-        byte[] salt = generateSalt();
+        byte[] salt = CryptoUtils.generateRandomBytes(PBE_SALT_LENGTH);
         
         // Encrypt the key
-        Cipher cipher = makeCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
+        Cipher cipher = getCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
         byte[] keybytes = cipher.doFinal(key.getEncoded());
         
         File primaryKeyFile = getPrimaryKeyFile();
@@ -385,48 +381,16 @@ public class EncryptedCredentialsStorage {
     }
     
     /**
-     * Generate a new primary key
-     */
-    private static SecretKey generatePrimaryKey() throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(256, SecureRandom.getInstanceStrong());
-        return keyGenerator.generateKey();
-    }
-    
-    /**
-     * Generate a new random salt
-     */
-    private static byte[] generateSalt() {
-        byte[] salt = new byte[8];
-        SecureRandom random = new SecureRandom();
-        random.nextBytes(salt);
-        return salt;
-    }
-    
-    /**
      * Create a Cipher using a password rather than a key
      * The key is generated from the the password
      * See https://stackoverflow.com/questions/13673556/using-password-based-encryption-on-a-file-in-java
      */
-    private static Cipher makeCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
-        // We have to convert the password characters to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        char[] encoded = CryptoUtils.encodeCharsToBase64(password);
-        
-        // Use a KeyFactory to derive the corresponding key from the password
-        PBEKeySpec keySpec = new PBEKeySpec(encoded);
-        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
-        SecretKey key = keyFactory.generateSecret(keySpec);
+    private static Cipher getCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
+        // Generate the SecretKey from the password
+        SecretKey key = CryptoUtils.generateKeyFromPassword(PBE_ALGORITHM, password);
 
-        // Create parameters from the salt and an arbitrary number of iterations:
-        PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, 28);
-
-        // Set up the cipher
-        Cipher cipher = Cipher.getInstance("PBEWithMD5AndDES");
-
-        // Set the cipher mode to decryption or encryption
-        cipher.init(mode, key, pbeParamSpec);
-
-        return cipher;
+        // Return the Cipher using the key, salt, no iv, and iteration count
+        return CryptoUtils.getPBECipher(key, PBE_ALGORITHM, mode, salt, null, PBE_ITERATIONS);
     }
     
     private static char[] askUserForPrimaryPassword() {
