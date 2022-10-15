@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.archicontribs.modelrepository.authentication.AuthUtils;
+import org.archicontribs.modelrepository.authentication.CryptoUtils;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator.SSHIdentityProvider;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
@@ -179,7 +179,7 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
             File file = new File(path);
             if(file.exists() && file.canRead()) {
                 byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-                return AuthUtils.convertBytesToChars(bytes);
+                return CryptoUtils.convertBytesToChars(bytes);
             }
         }
 

@@ -12,12 +12,12 @@ import java.util.Arrays;
 import java.util.Base64;
 
 /**
- * AuthUtils
+ * CryptoUtils
  * 
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public class AuthUtils {
+public class CryptoUtils {
     
     /**
      * Convert char array to byte array without using intermediate String

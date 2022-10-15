@@ -27,7 +27,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.archicontribs.modelrepository.authentication.AuthUtils;
+import org.archicontribs.modelrepository.authentication.CryptoUtils;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
 import org.archicontribs.modelrepository.dialogs.PrimaryPasswordDialog;
@@ -116,7 +116,7 @@ public class EncryptedCredentialsStorage {
         }
         
         // Get password as bytes - Must use UTF-8 !
-        byte[] passwordBytes = AuthUtils.convertCharsToBytes(password);
+        byte[] passwordBytes = CryptoUtils.convertCharsToBytes(password);
         
         // Encrypt the password
         Cipher cipher = makeCipherWithKey(key, Cipher.ENCRYPT_MODE);
@@ -161,7 +161,7 @@ public class EncryptedCredentialsStorage {
             passwordBytes = cipher.doFinal(passwordBytes);
             
             // Use UTF-8 because we used that to encrypt it
-            return AuthUtils.convertBytesToChars(passwordBytes);
+            return CryptoUtils.convertBytesToChars(passwordBytes);
         }
         
         return new char[0];
@@ -410,7 +410,7 @@ public class EncryptedCredentialsStorage {
      */
     private static Cipher makeCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
         // We have to convert the password characters to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
-        char[] encoded = AuthUtils.encodeCharsToBase64(password);
+        char[] encoded = CryptoUtils.encodeCharsToBase64(password);
         
         // Use a KeyFactory to derive the corresponding key from the password
         PBEKeySpec keySpec = new PBEKeySpec(encoded);
