@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.SecureRandom;
@@ -129,17 +128,8 @@ public class CryptoUtils {
     
     /**
      * Generate a SecretKey from a password using a PBE based algorithm
-     * 
-     * Algorithms supported:
-     * 
-     * PBEwithHmacSHA256AndAES_256
-     * PBEWithHmacSHA1AndAES_256
-     * PBEWithHmacSHA512AndAES_128
-     * PBEWithHmacSHA1AndAES_128
-     * PBEWithHmacSHA384AndAES_256
-     * PBEWithMD5AndDES
      */
-    public static SecretKey generateKeyFromPassword(String algorithm, char[] password) throws GeneralSecurityException {
+    public static SecretKey generateKeyFromPassword(char[] password, String algorithm) throws GeneralSecurityException {
         // Convert the password bytes to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
         char[] encodedPassword = encodeCharsToBase64(password);
 
@@ -150,17 +140,9 @@ public class CryptoUtils {
     }
     
     /**
-     * Generate a SecretKey from a password using a PBK based algorithm with salt and iterations
-     * 
-     * Algorithms supported:
-     * 
-     * PBKDF2WithHmacSHA1
-     * PBKDF2WithHmacSHA224
-     * PBKDF2WithHmacSHA256
-     * PBKDF2WithHmacSHA384
-     * PBKDF2WithHmacSHA512
+     * Generate a SecretKey from a password using a PBK based algorithm
      */
-    public static SecretKey generateKeyFromPassword(String algorithm, char[] password, byte[] salt, int iterations) throws Exception {
+    public static SecretKey generateKeyFromPassword(char[] password, String algorithm, byte[] salt, int iterations) throws GeneralSecurityException {
         // Convert the password bytes to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
         char[] encodedPassword = encodeCharsToBase64(password);
         
@@ -169,44 +151,94 @@ public class CryptoUtils {
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(algorithm);
         SecretKey pbeKey = keyFactory.generateSecret(pbeKeySpec);
         
+        // Wrap the pbeKey in a SecretKeySpec
         return new SecretKeySpec(pbeKey.getEncoded(), "AES");
     }
 
     /**
-     * Get and initialise Cipher based on PBE key from generateKeyFromPassword
+     * Encrypt/ Decrypt bytes with a password using a PBE based algorithm
      * 
-     * @param key The secret PBE key generated from calling generateKeyFromPassword
-     * @param algorithm The PBE transformation algorithm to use
+     * @param password Password 
+     * @param pbeAlgorithm The PBE algorithm to use
      * @param mode Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
-     * @param salt Salt needed for PBEParameterSpec
-     * @param iv Optional IV - some PBE algorithms don't use one
-     * @param iterations
+     * @param bytes The bytes to encrypt/decypt
+     * @param salt Salt (required)
+     * @param iv IV (optional)
+     * @param iterations Iterations for the PBEParameterSpec
+     * @return The encrypted or decrypted bytes
      */
-    public static Cipher getPBECipher(Key key, String algorithm, int mode, byte[] salt, byte[] iv, int iterations) throws GeneralSecurityException {
-        Cipher cipher = Cipher.getInstance(algorithm);
+    public static byte[] transformWithPassword(char[] password, String pbeAlgorithm, int mode, byte[] bytes, byte[] salt, byte[] iv,
+                                               int iterations) throws GeneralSecurityException {
+        // Generate a PBE key for the Cipher
+        SecretKey secretKey = generateKeyFromPassword(password, pbeAlgorithm);
+
+        // Encrypt the input with the Cipher
+        Cipher keyCipher = Cipher.getInstance(pbeAlgorithm);
         
-        // PBEParameterSpec with salt and (optional) iv spec
+        // IvParameterSpec is optional depending on the algorithm
         IvParameterSpec paramSpec = iv != null ? new IvParameterSpec(iv) : null;
         
-        // Create parameters from the salt and an arbitrary number of iterations (paramSpec will be null if iv is null)
+        // Create parameters from the salt and the iterations (paramSpec will be null if iv is null)
         PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, iterations, paramSpec);
-
+        
         // Set the cipher mode to decryption or encryption
-        cipher.init(mode, key, pbeParamSpec);
+        keyCipher.init(mode, secretKey, pbeParamSpec);
+        
+        // Encypt/Decrypt the bytes
+        return keyCipher.doFinal(bytes);
+    }
 
-        return cipher;
+    /**
+     * Encrypt/ Decrypt bytes with a password using a PBK based algorithm
+     * 
+     * @param password Password 
+     * @param pbkAlgorithm  The PBK algorithm to use
+     * @param cipherAlgorithm The Cipher algorithm to use - AES or AES/CBC/PKCS5Padding or AES/GCM/NoPadding
+     * @param mode Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
+     * @param bytes The bytes to encrypt/decypt
+     * @param salt Salt (required)
+     * @param iv IV (required)
+     * @param iterations Iterations for the PBEKeySpec
+     * @return The encrypted or decrypted bytes
+     */
+    public static byte[] transformWithPassword2(char[] password, String pbkAlgorithm, String cipherAlgorithm, int mode, byte[] bytes, byte[] salt, byte[] iv,
+                                                int iterations) throws GeneralSecurityException {
+        // Generate a key with the PBK Algorithm
+        SecretKey secretKey = generateKeyFromPassword(password, pbkAlgorithm, salt, iterations);
+
+        // Get the cipher from the key and cipher algorithm
+        Cipher keyCipher = getCipher(secretKey, cipherAlgorithm, mode, iv);
+        
+        // Encypt/Decrypt the bytes
+        return keyCipher.doFinal(bytes);
+    }
+    
+    /**
+     * Encrypt/ Decrypt bytes with a SecretKey 
+     * 
+     * @param key The secret key to use for the Cipher
+     * @param cipherAlgorithm The Cipher algorithm to use - AES or AES/CBC/PKCS5Padding or AES/GCM/NoPadding
+     * @param mode Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
+     * @param bytes The bytes to encrypt/decypt
+     * @param iv IV (optional)
+     * @return The encrypted or decrypted bytes
+     * @throws GeneralSecurityException
+     */
+    public static byte[] transformWithKey(SecretKey key, String cipherAlgorithm, int mode, byte[] bytes, byte[] iv) throws GeneralSecurityException {
+        Cipher cipher = getCipher(key, cipherAlgorithm, mode, iv);
+        return cipher.doFinal(bytes);
     }
 
     /**
      * Get and initialise Cipher with a secret key and optional iv
-     * param @iv is optional and not used for AES
+     * param @iv is optional and not used for AES, AES/CBC/PKCS5Padding or AES/GCM/NoPadding
      * 
-     * @param key The scret key 
-     * @param algorithm The transformation algorithm to use
+     * @param key The secret key 
+     * @param algorithm The transformation algorithm to use - AES, 
      * @param mode Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
      * @param iv Optional IV
      */
-    public static Cipher getCipher(Key key, String algorithm, int mode, byte... iv) throws GeneralSecurityException {
+    public static Cipher getCipher(SecretKey key, String algorithm, int mode, byte... iv) throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(algorithm);
         
         switch(algorithm) {

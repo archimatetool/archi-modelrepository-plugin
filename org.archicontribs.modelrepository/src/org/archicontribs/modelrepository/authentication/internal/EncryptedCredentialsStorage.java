@@ -129,8 +129,7 @@ public class EncryptedCredentialsStorage {
         byte[] passwordBytes = CryptoUtils.convertCharsToBytes(password);
         
         // Encrypt the password
-        Cipher cipher = CryptoUtils.getCipher(key, CIPHER_ALGORITHM, Cipher.ENCRYPT_MODE);
-        byte[] encrypted = cipher.doFinal(passwordBytes);
+        byte[] encrypted = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.ENCRYPT_MODE, passwordBytes, null);
         
         // Store in properties file as a Base64 encoded string
         getProperties().setProperty(PASSWORD, Base64.getEncoder().encodeToString(encrypted)); // Use Base64 because this is a string
@@ -167,8 +166,7 @@ public class EncryptedCredentialsStorage {
             }
             
             // Decrypt the password
-            Cipher cipher = CryptoUtils.getCipher(key, CIPHER_ALGORITHM, Cipher.DECRYPT_MODE);
-            passwordBytes = cipher.doFinal(passwordBytes);
+            passwordBytes = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.DECRYPT_MODE, passwordBytes, null);
             
             // Use UTF-8 because we used that to encrypt it
             return CryptoUtils.convertBytesToChars(passwordBytes);
@@ -340,8 +338,13 @@ public class EncryptedCredentialsStorage {
                 byte[] keybytes = Arrays.copyOfRange(bytes, PBE_SALT_LENGTH, bytes.length);
                 
                 // Decrypt the key bytes with the password and salt
-                Cipher cipher = getCipherWithPassword(password, Cipher.DECRYPT_MODE, salt);
-                keybytes = cipher.doFinal(keybytes);
+                keybytes = CryptoUtils.transformWithPassword(password,
+                                                             PBE_ALGORITHM,
+                                                             Cipher.DECRYPT_MODE,
+                                                             keybytes,
+                                                             salt,
+                                                             null, // no iv
+                                                             PBE_ITERATIONS);
                 
                 // Return the key
                 return new SecretKeySpec(keybytes, "AES");
@@ -359,8 +362,13 @@ public class EncryptedCredentialsStorage {
         byte[] salt = CryptoUtils.generateRandomBytes(PBE_SALT_LENGTH);
         
         // Encrypt the key
-        Cipher cipher = getCipherWithPassword(password, Cipher.ENCRYPT_MODE, salt);
-        byte[] keybytes = cipher.doFinal(key.getEncoded());
+        byte[] keybytes = CryptoUtils.transformWithPassword(password,
+                                                            PBE_ALGORITHM,
+                                                            Cipher.ENCRYPT_MODE,
+                                                            key.getEncoded(),
+                                                            salt,
+                                                            null, // no iv
+                                                            PBE_ITERATIONS);
         
         File primaryKeyFile = getPrimaryKeyFile();
         
@@ -378,19 +386,6 @@ public class EncryptedCredentialsStorage {
             // Then store the encypted key
             fos.write(keybytes);
         }
-    }
-    
-    /**
-     * Create a Cipher using a password rather than a key
-     * The key is generated from the the password
-     * See https://stackoverflow.com/questions/13673556/using-password-based-encryption-on-a-file-in-java
-     */
-    private static Cipher getCipherWithPassword(char[] password, int mode, byte[] salt) throws GeneralSecurityException {
-        // Generate the SecretKey from the password
-        SecretKey key = CryptoUtils.generateKeyFromPassword(PBE_ALGORITHM, password);
-
-        // Return the Cipher using the key, salt, no iv, and iteration count
-        return CryptoUtils.getPBECipher(key, PBE_ALGORITHM, mode, salt, null, PBE_ITERATIONS);
     }
     
     private static char[] askUserForPrimaryPassword() {
