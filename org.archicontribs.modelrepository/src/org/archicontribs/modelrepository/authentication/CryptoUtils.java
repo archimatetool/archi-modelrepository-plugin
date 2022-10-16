@@ -128,7 +128,16 @@ public class CryptoUtils {
     }
     
     /**
-     * Generate a SecretKey from a password 
+     * Generate a SecretKey from a password using a PBE based algorithm
+     * 
+     * Algorithms supported:
+     * 
+     * PBEwithHmacSHA256AndAES_256
+     * PBEWithHmacSHA1AndAES_256
+     * PBEWithHmacSHA512AndAES_128
+     * PBEWithHmacSHA1AndAES_128
+     * PBEWithHmacSHA384AndAES_256
+     * PBEWithMD5AndDES
      */
     public static SecretKey generateKeyFromPassword(String algorithm, char[] password) throws GeneralSecurityException {
         // Convert the password bytes to Base64 characters because PBEKey class will not accept non-Ascii characters in a password
@@ -141,7 +150,7 @@ public class CryptoUtils {
     }
     
     /**
-     * Generate a SecretKey from a password using a stronger algorithm with salt and iterations
+     * Generate a SecretKey from a password using a PBK based algorithm with salt and iterations
      * 
      * Algorithms supported:
      * 
