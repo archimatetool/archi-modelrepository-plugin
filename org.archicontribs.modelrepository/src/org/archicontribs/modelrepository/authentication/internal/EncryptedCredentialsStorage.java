@@ -11,8 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Properties;
 
 import javax.crypto.Cipher;
@@ -20,6 +18,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
+import org.archicontribs.modelrepository.authentication.CryptoData;
 import org.archicontribs.modelrepository.authentication.CryptoUtils;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.dialogs.NewPrimaryPasswordDialog;
@@ -39,7 +38,7 @@ import com.archimatetool.editor.utils.StringUtils;
  * @author Phillip Beauvoir
  */
 @SuppressWarnings("nls")
-public class EncryptedCredentialsStorage {
+public final class EncryptedCredentialsStorage {
     
     /**
      * File name of secure primary key for encrypted files
@@ -61,18 +60,24 @@ public class EncryptedCredentialsStorage {
     // =========================== CIPHER STUFF ==========================================
     
     // Used for encrypting passwords
-    private static final String CIPHER_ALGORITHM = "AES";
+    private static final String CIPHER_ALGORITHM = "AES/GCM/NoPadding";
+    
+    // IV length has to be 12 bytes (96 bits) for GCM
+    private static final int GCM_IV_LENGTH = 12;
     
     // Used for PBE of primary key
-    private static final String PBE_ALGORITHM = "PBEWithMD5AndDES";
+    private static final String PBE_ALGORITHM = "PBEwithHmacSHA256AndAES_256";
     
     // Number of iterations for PBEKeySpec and PBEParameterSpec
-    private static final int PBE_ITERATIONS = 28;
+    private static final int PBE_ITERATIONS = 1000;
 
     // Salt length for PBE of primary key
     private static final int PBE_SALT_LENGTH = 8;
     
- // =======================================================================================
+    // IV length for PBE of primary key - has to be 16
+    private static final int PBE_IV_LENGTH = 16;
+
+    // =======================================================================================
     
     /**
      * Convenience method to create new a EncryptedCredentialsStorage for a repository
@@ -125,14 +130,18 @@ public class EncryptedCredentialsStorage {
             return false;
         }
         
-        // Get password as bytes - Must use UTF-8 !
+        // Generate a new random iv for the Cipher
+        byte[] iv = CryptoUtils.generateRandomBytes(GCM_IV_LENGTH);
+
+        // Get password chars as bytes - Must use UTF-8
         byte[] passwordBytes = CryptoUtils.convertCharsToBytes(password);
         
         // Encrypt the password
-        byte[] encrypted = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.ENCRYPT_MODE, passwordBytes, null);
+        byte[] encrypted = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.ENCRYPT_MODE, passwordBytes, iv);
         
         // Store in properties file as a Base64 encoded string
-        getProperties().setProperty(PASSWORD, Base64.getEncoder().encodeToString(encrypted)); // Use Base64 because this is a string
+        CryptoData cd = new CryptoData(null, iv, encrypted);
+        getProperties().setProperty(PASSWORD, cd.getBase64String()); // Use Base64 because this is a string
         saveProperties();
         
         return true;
@@ -154,21 +163,25 @@ public class EncryptedCredentialsStorage {
                 return new char[0];
             }
             
-            // Decode password from Base64 string in properties first
-            String pw = getProperties().getProperty(PASSWORD, "");
-            byte[] passwordBytes = null;
+            // Decode password from Base64 string in properties
+            String encodedPassword = getProperties().getProperty(PASSWORD, "");
+            
+            CryptoData cd = new CryptoData(encodedPassword);
+            
+            // Get iv
+            byte[] iv = cd.getIV();
+            
+            // Get password
+            byte[] passwordBytes = cd.getEncryptedData();
+            
+            if(iv == null || passwordBytes == null) {
+                throw new GeneralSecurityException("Could not get password");
+            }
 
-            try {
-                passwordBytes = Base64.getDecoder().decode(pw);
-            }
-            catch(IllegalArgumentException ex) {
-                throw new GeneralSecurityException(ex);
-            }
-            
             // Decrypt the password
-            passwordBytes = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.DECRYPT_MODE, passwordBytes, null);
+            passwordBytes = CryptoUtils.transformWithKey(key, CIPHER_ALGORITHM, Cipher.DECRYPT_MODE, passwordBytes, iv);
             
-            // Use UTF-8 because we used that to encrypt it
+            // Convert back to UTF-8 chars
             return CryptoUtils.convertBytesToChars(passwordBytes);
         }
         
@@ -325,25 +338,27 @@ public class EncryptedCredentialsStorage {
         File file = getPrimaryKeyFile();
         
         if(file.exists()) {
-            byte[] bytes = null;
+            // Read in the Base64 encoded String
+            String encoded = Files.readString(file.toPath());
             
-            // Read in all bytes
-            bytes = Files.readAllBytes(file.toPath());
-            
-            if(bytes != null) {
-                // Get the salt from the first 8 bytes
-                byte[] salt = Arrays.copyOfRange(bytes, 0, PBE_SALT_LENGTH);
+            if(encoded != null) {
+                CryptoData cd = new CryptoData(encoded);
                 
-                // Get the remaining encrypted key bytes
-                byte[] keybytes = Arrays.copyOfRange(bytes, PBE_SALT_LENGTH, bytes.length);
+                byte[] salt = cd.getSalt();
+                byte[] iv = cd.getIV();
+                byte[] keybytes = cd.getEncryptedData();
                 
-                // Decrypt the key bytes with the password and salt
+                if(salt == null || iv == null || keybytes == null) {
+                    throw new GeneralSecurityException("Bad Primary Key format");
+                }
+                
+                // Decrypt the key bytes
                 keybytes = CryptoUtils.transformWithPassword(password,
                                                              PBE_ALGORITHM,
                                                              Cipher.DECRYPT_MODE,
                                                              keybytes,
                                                              salt,
-                                                             null, // no iv
+                                                             iv,
                                                              PBE_ITERATIONS);
                 
                 // Return the key
@@ -361,13 +376,16 @@ public class EncryptedCredentialsStorage {
         // Generate a new random salt
         byte[] salt = CryptoUtils.generateRandomBytes(PBE_SALT_LENGTH);
         
+        // Generate a new random iv - has to be 16 bytes
+        byte[] iv = CryptoUtils.generateRandomBytes(PBE_IV_LENGTH);
+
         // Encrypt the key
         byte[] keybytes = CryptoUtils.transformWithPassword(password,
                                                             PBE_ALGORITHM,
                                                             Cipher.ENCRYPT_MODE,
                                                             key.getEncoded(),
                                                             salt,
-                                                            null, // no iv
+                                                            iv,
                                                             PBE_ITERATIONS);
         
         File primaryKeyFile = getPrimaryKeyFile();
@@ -379,13 +397,8 @@ public class EncryptedCredentialsStorage {
         }
         
         // Save it
-        try(FileOutputStream fos = new FileOutputStream(primaryKeyFile)) {
-            // Store the password salt first
-            fos.write(salt);
-            
-            // Then store the encypted key
-            fos.write(keybytes);
-        }
+        CryptoData cd = new CryptoData(salt, iv, keybytes);
+        Files.write(primaryKeyFile.toPath(), cd.getBase64String().getBytes());
     }
     
     private static char[] askUserForPrimaryPassword() {
