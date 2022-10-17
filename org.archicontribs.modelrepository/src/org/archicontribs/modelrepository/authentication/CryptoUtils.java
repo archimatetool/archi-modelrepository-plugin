@@ -231,10 +231,10 @@ public class CryptoUtils {
 
     /**
      * Get and initialise Cipher with a secret key and optional iv
-     * param @iv is optional and not used for AES, AES/CBC/PKCS5Padding or AES/GCM/NoPadding
+     * param @iv is optional and not used for AES
      * 
      * @param key The secret key 
-     * @param algorithm The transformation algorithm to use - AES, 
+     * @param algorithm The transformation algorithm to use - AES, AES/CBC/PKCS5Padding or AES/GCM/NoPadding
      * @param mode Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
      * @param iv Optional IV
      */
