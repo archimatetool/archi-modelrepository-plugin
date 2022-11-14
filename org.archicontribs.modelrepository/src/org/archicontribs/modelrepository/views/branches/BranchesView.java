@@ -25,6 +25,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -39,7 +40,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 import com.archimatetool.model.IArchimateModel;
 
 
@@ -111,7 +111,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
 
     private void createTableSection(Composite parent) {
         Composite tableComp = new Composite(parent, SWT.NONE);
-        tableComp.setLayout(new UpdatingTableColumnLayout(tableComp));
+        tableComp.setLayout(new TableColumnLayout());
         
         // This ensures a minumum and equal size and no horizontal size creep for the table
         GridData gd = new GridData(GridData.FILL_BOTH);

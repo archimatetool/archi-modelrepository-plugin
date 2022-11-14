@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
-import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
 
 
 /**
@@ -89,7 +88,7 @@ public class BranchesTableViewer extends TableViewer {
         setInput(archiRepo);
         
         // Do the Layout kludge
-        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+        getTable().getParent().layout();
 
         // Select first row
         //Object element = getElementAt(0);

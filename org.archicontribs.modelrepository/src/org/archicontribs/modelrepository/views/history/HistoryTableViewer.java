@@ -33,8 +33,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-
-import com.archimatetool.editor.ui.components.UpdatingTableColumnLayout;
+import org.eclipse.swt.widgets.Display;
 
 
 /**
@@ -102,8 +101,12 @@ public class HistoryTableViewer extends TableViewer {
         
         setInput(archiRepo);
         
-        // Do the Layout kludge
-        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
+        // avoid bogus horizontal scrollbar cheese
+        Display.getCurrent().asyncExec(() -> {
+            if(!getTable().getParent().isDisposed()) {
+                getTable().getParent().layout();
+            }
+        });
 
         // Select first row
         //Object element = getElementAt(0);
@@ -120,9 +123,6 @@ public class HistoryTableViewer extends TableViewer {
         fSelectedBranch = branchInfo;
         
         setInput(getInput());
-        
-        // Layout kludge
-        ((UpdatingTableColumnLayout)getTable().getParent().getLayout()).doRelayout();
     }
     
     // ===============================================================================================
