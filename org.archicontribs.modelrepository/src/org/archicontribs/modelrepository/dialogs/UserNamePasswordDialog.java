@@ -11,6 +11,8 @@ import java.security.GeneralSecurityException;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
+import org.eclipse.equinox.security.storage.ISecurePreferences;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
@@ -42,6 +44,13 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
     private char[] password;
     
     private EncryptedCredentialsStorage credentialsStorage;
+    private ISecurePreferences repoNode;
+
+    public UserNamePasswordDialog(Shell parentShell, ISecurePreferences repoNode) {
+        super(parentShell);
+        setTitle(Messages.UserNamePasswordDialog_0);
+        this.repoNode = repoNode;
+    }
 
     public UserNamePasswordDialog(Shell parentShell, EncryptedCredentialsStorage credentialsStorage) {
         super(parentShell);
@@ -97,7 +106,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         return true;
     }
 
-    private void saveInput() {
+    private void saveInputCredentialsStorage() {
         username = txtUsername.getText();
         password = txtPassword.getTextChars();
         
@@ -123,9 +132,45 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         }
     }
 
+    private void saveSecurePreferences() {
+        username = txtUsername.getText();
+        password = txtPassword.getTextChars();
+        
+        boolean doStoreInCredentialsFile = storeCredentialsButton.getSelection();
+        
+        try {
+            // Store Secure Preferences
+            if(doStoreInCredentialsFile) {
+                repoNode.put("username", username, true); //$NON-NLS-1$
+                repoNode.put("password", txtPassword.getText(), true); //$NON-NLS-1$
+            }
+            // Delete Secure Preferences
+            else {
+                repoNode.remove("username"); //$NON-NLS-1$
+                repoNode.remove("password"); //$NON-NLS-1$
+            }
+            
+            repoNode.flush();
+        }
+        catch(StorageException | IOException ex) {
+            ex.printStackTrace();
+            MessageDialog.openError(getShell(),
+                    Messages.UserNamePasswordDialog_5,
+                    Messages.UserNamePasswordDialog_6 +
+                        " " + //$NON-NLS-1$
+                        ex.getMessage());
+        }
+    }
+
     @Override
     protected void okPressed() {
-        saveInput();
+        if(credentialsStorage != null) {
+            saveInputCredentialsStorage();
+        }
+        else if(repoNode != null) {
+            saveSecurePreferences();
+        }
+        
         super.okPressed();
     }
 

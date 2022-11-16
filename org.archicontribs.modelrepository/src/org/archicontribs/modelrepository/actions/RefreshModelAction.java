@@ -7,12 +7,10 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
-import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.grafico.ArchiRepository;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
@@ -82,14 +80,9 @@ public class RefreshModelAction extends AbstractModelAction {
                 return;
             }
             
-            // Check primary key set
-            if(!EncryptedCredentialsStorage.checkPrimaryKeySet()) {
-                return;
-            }
-
             // Get this before opening the progress dialog
             // UsernamePassword will be null if using SSH
-            UsernamePassword npw = getUsernamePassword();
+            UsernamePassword npw = getUsernamePasswordFromSecurePreferences();
             // User cancelled on HTTP
             if(npw == null && GraficoUtils.isHTTP(getRepository().getOnlineRepositoryURL())) {
                 return;
@@ -146,9 +139,6 @@ public class RefreshModelAction extends AbstractModelAction {
                 }
             });
             
-        }
-        catch(GeneralSecurityException ex) {
-            displayCredentialsErrorDialog(ex);
         }
         catch(Exception ex) {
             displayErrorDialog(Messages.RefreshModelAction_0, ex);

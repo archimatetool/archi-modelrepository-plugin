@@ -7,8 +7,11 @@ package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
+import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
@@ -17,6 +20,9 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
+import org.eclipse.equinox.security.storage.ISecurePreferences;
+import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
@@ -156,6 +162,39 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
         }
         
         return false;
+    }
+    
+    /**
+     * POC get username and password from Eclipse SecurePreferences
+     */
+    protected UsernamePassword getUsernamePasswordFromSecurePreferences() throws IOException, StorageException {
+        // SSH
+        if(GraficoUtils.isSSH(getRepository().getOnlineRepositoryURL())) {
+            return null;
+        }
+
+        // Get Secure Prefs root node
+        ISecurePreferences rootNode = SecurePreferencesFactory.getDefault();
+        // This is the coArchi node for all secure entries. We could clear it with coArchiNode.removeNode()
+        ISecurePreferences coArchiNode = rootNode.node(ModelRepositoryPlugin.PLUGIN_ID);
+        // This is the child node for this repository
+        ISecurePreferences repoNode = coArchiNode.node(URLEncoder.encode(getRepository().getOnlineRepositoryURL(), StandardCharsets.UTF_8));
+        
+        // Get user name and password
+        String username = repoNode.get("username", null); //$NON-NLS-1$
+        String password = repoNode.get("password", null); //$NON-NLS-1$
+        
+        if(username != null) {
+            return new UsernamePassword(username, password != null ? password.toCharArray() : "".toCharArray()); //$NON-NLS-1$
+        }
+        
+        // Else ask the user
+        UserNamePasswordDialog dialog = new UserNamePasswordDialog(fWindow.getShell(), repoNode);
+        if(dialog.open() == Window.OK) {
+            return new UsernamePassword(dialog.getUsername(), dialog.getPassword());
+        }
+
+        return null;
     }
     
     /**
