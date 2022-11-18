@@ -61,6 +61,10 @@ public class GraficoResourceLoader {
             }
         }
         catch(IOException ex) {
+            // No errors so must be something else
+            if(resource.getErrors().isEmpty()) {
+                throw ex;
+            }
             // Check to see if it's an exception that is OK or not
             try {
                 modelCompatibility.checkErrors();
