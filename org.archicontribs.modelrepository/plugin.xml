@@ -4,70 +4,87 @@
    <extension
          point="org.eclipse.ui.commands">
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showRepositoryView"
             name="%command.name">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showHistoryView"
             name="%command.name.0">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowBranchesViewHandler"
             id="org.archicontribs.modelrepository.command.showBranchesView"
             name="%command.name.1">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.CreateRepoFromModelHandler"
             id="org.archicontribs.modelrepository.command.createRepoFromModel"
             name="%command.name.2">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.CloneModelHandler"
             id="org.archicontribs.modelrepository.command.cloneModel"
             name="%command.name.3">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.RefreshModelHandler"
             id="org.archicontribs.modelrepository.command.refreshModel"
             name="%command.name.4">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.CommitModelHandler"
             id="org.archicontribs.modelrepository.command.commitModel"
             name="%command.name.5">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.PushModelHandler"
             id="org.archicontribs.modelrepository.command.pushModel"
             name="%command.name.6">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.AbortChangesHandler"
             id="org.archicontribs.modelrepository.command.abortChanges"
             name="%command.name.7">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInHistoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInHistoryView"
             name="%command.name.8">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInRepositoryViewHandler"
             id="org.archicontribs.modelrepository.command.showInRepositoryView"
             name="%command.name.9">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.ShowInBranchesViewHandler"
             id="org.archicontribs.modelrepository.command.showInBranchesView"
             name="%command.name.10">
       </command>
       <command
+            categoryId="org.archicontribs.modelrepository.category"
             defaultHandler="org.archicontribs.modelrepository.actions.DeleteModelHandler"
             id="org.archicontribs.modelrepository.command.deleteModel"
             name="%command.name.11">
       </command>
+      <category
+            id="org.archicontribs.modelrepository.category"
+            name="coArchi">
+      </category>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
