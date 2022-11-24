@@ -103,7 +103,7 @@ public class HistoryTableViewer extends TableViewer {
         
         // avoid bogus horizontal scrollbar cheese
         Display.getCurrent().asyncExec(() -> {
-            if(!getTable().getParent().isDisposed()) {
+            if(!getTable().isDisposed()) {
                 getTable().getParent().layout();
             }
         });
