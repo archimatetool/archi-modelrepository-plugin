@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.archicontribs.modelrepository.feature"
-      label="Archi Model Repository"
+      label="coArchi"
       version="1.0.0.qualifier"
-      provider-name="Phillip Beauvoir &amp; Jean-Baptiste Sarrodie">
+      provider-name="Archi">
 
    <description>
       Archi Model Repository
