@@ -87,6 +87,61 @@
       </category>
    </extension>
    <extension
+         point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.archicontribs.modelrepository.command.showRepositoryView"
+            icon="img/plugin.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.showHistoryView"
+            icon="img/history_view.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.showBranchesView"
+            icon="img/branches_obj.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.createRepoFromModel"
+            icon="img/createRepository.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.cloneModel"
+            icon="img/add_obj.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.refreshModel"
+            icon="img/pull.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.commitModel"
+            icon="img/commit.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.pushModel"
+            icon="img/push.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.abortChanges"
+            icon="img/abort.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.showInHistoryView"
+            icon="img/history_view.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.showInRepositoryView"
+            icon="img/plugin.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.showInBranchesView"
+            icon="img/branches_obj.png">
+      </image>
+      <image
+            commandId="org.archicontribs.modelrepository.command.deleteModel"
+            icon="img/delete.png">
+      </image>
+   </extension>
+   <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="true"
