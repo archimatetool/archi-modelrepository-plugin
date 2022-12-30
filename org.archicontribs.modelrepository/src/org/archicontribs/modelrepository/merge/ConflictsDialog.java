@@ -5,6 +5,7 @@
  */
 package org.archicontribs.modelrepository.merge;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -373,7 +374,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             propertiesTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.FULL_SELECTION);
             propertiesTableViewer.getTable().setHeaderVisible(true);
             propertiesTableViewer.getTable().setLinesVisible(true);
-            propertiesTableViewer.setComparator(new ViewerComparator());
+            propertiesTableViewer.setComparator(new ViewerComparator(Collator.getInstance()));
             
             TableViewerColumn columnKey = new TableViewerColumn(propertiesTableViewer, SWT.NONE, 0);
             columnKey.getColumn().setText(Messages.ConflictsDialog_19);
@@ -605,14 +606,14 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
         fTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         fTableViewer.getTable().setHeaderVisible(true);
         fTableViewer.getTable().setLinesVisible(true);
-        fTableViewer.setComparator(new ViewerComparator() {
+        fTableViewer.setComparator(new ViewerComparator(Collator.getInstance()) {
             @Override
             public int compare(Viewer viewer, Object object1, Object object2) {
                 EObject eObject1 = ((MergeObjectInfo)object1).getDefaultEObject();
                 EObject eObject2 = ((MergeObjectInfo)object2).getDefaultEObject();
                 String s1 = ArchiLabelProvider.INSTANCE.getDefaultName(eObject1.eClass());
                 String s2 = ArchiLabelProvider.INSTANCE.getDefaultName(eObject2.eClass());
-                return s1.compareToIgnoreCase(s2);
+                return getComparator().compare(s1, s2);
             }
         });
 

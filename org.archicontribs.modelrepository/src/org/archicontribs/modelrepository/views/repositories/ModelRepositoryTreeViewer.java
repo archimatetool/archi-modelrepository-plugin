@@ -7,6 +7,7 @@ package org.archicontribs.modelrepository.views.repositories;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -80,12 +81,12 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
         
         ColumnViewerToolTipSupport.enableFor(this);
         
-        setComparator(new ViewerComparator() {
+        setComparator(new ViewerComparator(Collator.getInstance()) {
             @Override
             public int compare(Viewer viewer, Object e1, Object e2) {
                 IArchiRepository r1 = (IArchiRepository)e1;
                 IArchiRepository r2 = (IArchiRepository)e2;
-                return r1.getName().compareToIgnoreCase(r2.getName());
+                return getComparator().compare(r1.getName(), r2.getName());
             }
         });
         
