@@ -8,12 +8,10 @@ package org.archicontribs.modelrepository.commandline;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.archicontribs.modelrepository.authentication.CryptoUtils;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator;
 import org.archicontribs.modelrepository.authentication.CredentialsAuthenticator.SSHIdentityProvider;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
@@ -172,18 +170,16 @@ public class LoadModelFromRepositoryProvider extends AbstractCommandLineProvider
     }
 
     private char[] getPasswordFromFile(CommandLine commandLine) throws IOException {
-        char[] password = null;
-        
         String path = commandLine.getOptionValue(OPTION_PASSFILE);
         if(StringUtils.isSet(path)) {
             File file = new File(path);
             if(file.exists() && file.canRead()) {
-                byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-                return CryptoUtils.convertBytesToChars(bytes);
+                // Read in as string and trim because some Linux text apps can append a new line char
+                String s = Files.readString(file.toPath()).trim();
+                return s.toCharArray();
             }
         }
-
-        return password;
+        return null;
     }
             
     private File getSSHIdentityFile(CommandLine commandLine) {
