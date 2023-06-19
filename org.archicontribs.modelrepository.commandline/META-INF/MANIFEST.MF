@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: coArchi Command Line
 Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.8.7.qualifier
+Bundle-Version: 0.8.8.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: com.archimatetool.commandline;bundle-version="4.9.0",
  org.archicontribs.modelrepository;bundle-version="0.8.4"
