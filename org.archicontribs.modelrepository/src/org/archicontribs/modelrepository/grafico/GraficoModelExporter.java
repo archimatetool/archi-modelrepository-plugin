@@ -154,7 +154,7 @@ public class GraficoModelExporter {
             jobgroup.join(0, pm);
         }
         catch(OperationCanceledException | InterruptedException ex) {
-            throw new IOException(ex);
+            ex.printStackTrace();
         }
         
         // Throw on any exception
