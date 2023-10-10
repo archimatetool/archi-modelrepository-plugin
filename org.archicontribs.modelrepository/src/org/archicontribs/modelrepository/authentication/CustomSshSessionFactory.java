@@ -62,10 +62,17 @@ public class CustomSshSessionFactory extends SshdSessionFactory {
         // Scan SSH directory for all non-public files
         if(Platform.getPreferencesService() != null  // Check Preference Service is running in case background fetch is running and we quit the app
                 && ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SSH_SCAN_DIR)) {
-            for(File file : sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"))) {
-                paths.add(file.toPath());
+            
+            File[] files = sshDir.listFiles((dir, name) -> !name.endsWith(".pub") && !name.startsWith("known_hosts"));
+            if(files != null) {
+                for(File file : files) {
+                    paths.add(file.toPath());
+                }
             }
-            return paths;
+            
+            if(!paths.isEmpty()) {
+                return paths;
+            }
         }
         
         // Single identity file as specified in prefs
