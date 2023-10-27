@@ -6,13 +6,13 @@
 package org.archicontribs.modelrepository.actions;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
 import org.archicontribs.modelrepository.authentication.internal.EncryptedCredentialsStorage;
 import org.archicontribs.modelrepository.dialogs.CommitDialog;
+import org.archicontribs.modelrepository.dialogs.ErrorMessageDialog;
 import org.archicontribs.modelrepository.dialogs.UserNamePasswordDialog;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
@@ -22,7 +22,6 @@ import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -68,33 +67,14 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	
     /**
      * Display an errror dialog
-     * @param title
-     * @param ex
      */
     protected void displayErrorDialog(String title, Throwable ex) {
         ex.printStackTrace();
-        
-        String message = ex.getMessage();
-        
-        if(ex instanceof InvocationTargetException) {
-            ex = ex.getCause();
-        }
-        
-        if(ex instanceof JGitInternalException) {
-            ex = ex.getCause();
-        }
-        
-        if(ex != null) {
-            message = ex.getMessage();
-        }
-        
-        displayErrorDialog(title, message);
+        ErrorMessageDialog.open(fWindow.getShell(), title, Messages.AbstractModelAction_0, ex);
     }
 
     /**
      * Display an errror dialog
-     * @param title
-     * @param message
      */
     protected void displayErrorDialog(String title, String message) {
         MessageDialog.openError(fWindow.getShell(),
