@@ -99,10 +99,11 @@ public class PushModelAction extends RefreshModelAction {
                                                     .filter(update -> update.getStatus() != RemoteRefUpdate.Status.OK)
                                                     .filter(update -> update.getStatus() != RemoteRefUpdate.Status.UP_TO_DATE)
                                                     .forEach(update -> {
+                                                        sb.append(update.getStatus().name() + "\n"); // Status enum name //$NON-NLS-1$
+                                                        sb.append(update.getRemoteName() + "\n"); //$NON-NLS-1$
                                                         if(StringUtils.isSet(result.getMessages())) {
                                                             sb.append(result.getMessages() + "\n"); //$NON-NLS-1$
                                                         }
-                                                        sb.append(update.getStatus().name() + "\n"); // Status enum name //$NON-NLS-1$
                                                     });
                                         });
                                         
