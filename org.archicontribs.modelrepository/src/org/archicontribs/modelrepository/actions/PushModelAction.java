@@ -101,8 +101,15 @@ public class PushModelAction extends RefreshModelAction {
                                                     .forEach(update -> {
                                                         sb.append(update.getStatus().name() + "\n"); // Status enum name //$NON-NLS-1$
                                                         sb.append(update.getRemoteName() + "\n"); //$NON-NLS-1$
-                                                        if(StringUtils.isSet(result.getMessages())) {
-                                                            sb.append(result.getMessages() + "\n"); //$NON-NLS-1$
+                                                        
+                                                        String msgs = result.getMessages();
+                                                        if(StringUtils.isSet(msgs)) {
+                                                            // First char can be zero byte and message will not show on Windows
+                                                            if(msgs.charAt(0) == 0) {
+                                                                msgs = msgs.substring(1);
+                                                            }
+                                                            
+                                                            sb.append(msgs + "\n"); //$NON-NLS-1$
                                                         }
                                                     });
                                         });
