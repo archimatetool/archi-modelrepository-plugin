@@ -42,6 +42,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
 import com.archimatetool.model.IArchimateModel;
@@ -52,7 +53,7 @@ import com.archimatetool.model.IArchimateModel;
  */
 public class HistoryView
 extends ViewPart
-implements IContextProvider, ISelectionListener, IRepositoryListener {
+implements IContextProvider, ISelectionListener, IRepositoryListener, IContributedContentsView {
 
 	public static String ID = ModelRepositoryPlugin.PLUGIN_ID + ".historyView"; //$NON-NLS-1$
     public static String HELP_ID = ModelRepositoryPlugin.PLUGIN_ID + ".modelRepositoryViewHelp"; //$NON-NLS-1$
@@ -378,6 +379,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener {
                     break;
             }
         }
+    }
+    
+    /**
+     * Return null so that the Properties View displays "The active part does not provide properties" instead of a table
+     */
+    @Override
+    public IWorkbenchPart getContributingPart() {
+        return null;
     }
     
     @Override
