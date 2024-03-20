@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
+import com.archimatetool.editor.ui.UIUtils;
 
 
 /**
@@ -42,6 +43,9 @@ public class BranchesTableViewer extends TableViewer {
      */
     public BranchesTableViewer(Composite parent) {
         super(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+        
+        // Mac Item height
+        UIUtils.fixMacSiliconItemHeight(getTable());
         
         getTable().setHeaderVisible(true);
         getTable().setLinesVisible(false);

@@ -39,6 +39,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ColorFactory;
+import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.utils.StringUtils;
 
 
@@ -65,6 +66,9 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      */
     public ModelRepositoryTreeViewer(Composite parent) {
         super(parent, SWT.MULTI);
+        
+        // Mac Item height
+        UIUtils.fixMacSiliconItemHeight(getTree());
         
         setContentProvider(new ModelRepoTreeContentProvider());
         setLabelProvider(new ModelRepoTreeLabelProvider());
