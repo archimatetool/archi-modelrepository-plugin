@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -105,13 +106,15 @@ public class ArchiRepositoryTests {
         }
     }
     
-    @Test (expected=IOException.class)
+    @Test
     public void createNewLocalGitRepository_ThrowsExceptionIfNotEmptyDir() throws Exception {
         File tmpFile = File.createTempFile("architest", null, GitHelper.getTempTestsFolder());
         IArchiRepository repo = new ArchiRepository(tmpFile.getParentFile());
         
         // Should throw exception
-        repo.createNewLocalGitRepository("");
+        assertThrows(IOException.class, () -> {
+            repo.createNewLocalGitRepository("");
+        });
     }
     
     @Test
