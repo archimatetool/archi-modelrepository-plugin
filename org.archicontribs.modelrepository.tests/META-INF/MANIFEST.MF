@@ -4,7 +4,9 @@ Bundle-Name: JUnit Tests for Model Repository
 Bundle-SymbolicName: org.archicontribs.modelrepository.tests
 Bundle-Version: 1.0.0
 Fragment-Host: org.archicontribs.modelrepository
+Import-Package: org.junit.jupiter.api,
+ org.junit.jupiter.api.function,
+ org.junit.platform.suite.api
 Bundle-Vendor: Archi
-Require-Bundle: org.junit
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.archicontribs.modelrepository.tests

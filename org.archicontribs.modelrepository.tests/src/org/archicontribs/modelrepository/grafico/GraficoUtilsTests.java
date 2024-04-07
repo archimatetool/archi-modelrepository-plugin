@@ -5,18 +5,18 @@
  */
 package org.archicontribs.modelrepository.grafico;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.GitHelper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.IArchimateFactory;
@@ -26,11 +26,11 @@ import com.archimatetool.model.IArchimateModel;
 @SuppressWarnings("nls")
 public class GraficoUtilsTests {
     
-    @Before
+    @BeforeEach
     public void runOnceBeforeEachTest() {
     }
     
-    @After
+    @AfterEach
     public void runOnceAfterEachTest() throws IOException {
         FileUtils.deleteFolder(GitHelper.getTempTestsFolder());
     }

@@ -9,16 +9,16 @@ package org.archicontribs.modelrepository;
 import org.archicontribs.modelrepository.authentication.CryptoDataTests;
 import org.archicontribs.modelrepository.grafico.ArchiRepositoryTests;
 import org.archicontribs.modelrepository.grafico.GraficoUtilsTests;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
+import org.junit.platform.suite.api.SuiteDisplayName;
 
-@RunWith(Suite.class)
-
-@Suite.SuiteClasses({
+@Suite
+@SelectClasses({
     ArchiRepositoryTests.class,
     GraficoUtilsTests.class,
     CryptoDataTests.class
 })
-
+@SuiteDisplayName("All Model Repository Tests")
 public class AllTests {
 }
