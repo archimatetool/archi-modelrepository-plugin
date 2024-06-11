@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.ui.IArchiImages;
+import com.archimatetool.editor.ui.UIUtils;
 
 /**
  * Add Branch Dialog
@@ -98,7 +99,7 @@ public class AddBranchDialog extends TitleAreaDialog {
         Label label = new Label(container, SWT.NONE);
         label.setText(message);
         
-        Text txt = new Text(container, SWT.BORDER | style);
+        Text txt = UIUtils.createSingleTextControl(container, SWT.BORDER | style, false);
         txt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         return txt;
