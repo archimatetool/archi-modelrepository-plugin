@@ -6,12 +6,9 @@
 package org.archicontribs.modelrepository.grafico;
 
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.jface.util.SafeRunnable;
 
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateModel;
@@ -26,7 +23,7 @@ public class RepositoryListenerManager {
 
     public static final RepositoryListenerManager INSTANCE = new RepositoryListenerManager();
     
-    private List<IRepositoryListener> listeners = new ArrayList<IRepositoryListener>();
+    private CopyOnWriteArrayList<IRepositoryListener> listeners = new CopyOnWriteArrayList<>();
     
     private RepositoryListenerManager() {
         // Listen to open model changes
@@ -34,9 +31,7 @@ public class RepositoryListenerManager {
     }
 
     public void addListener(IRepositoryListener listener) {
-        if(!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
+        listeners.addIfAbsent(listener);
     }
 
     public void removeListener(IRepositoryListener listener) {
@@ -49,12 +44,7 @@ public class RepositoryListenerManager {
         }
         
         for(IRepositoryListener listener : listeners) {
-            SafeRunner.run(new SafeRunnable() {
-                @Override
-                public void run() {
-                    listener.repositoryChanged(eventName, repository);
-                }
-            });
+            listener.repositoryChanged(eventName, repository);
         }
     }
 
