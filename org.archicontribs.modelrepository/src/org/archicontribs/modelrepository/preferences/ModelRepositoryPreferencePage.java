@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -326,7 +325,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     }
 
     private String chooseIdentityFile() {
-        FileDialog dialog = new FileDialog(Display.getCurrent().getActiveShell());
+        FileDialog dialog = new FileDialog(getShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_20);
 //        dialog.setMessage(Messages.ModelRepositoryPreferencePage_21);
         File file = new File(fSSHIdentityFileTextField.getText());
@@ -336,7 +335,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     }
 
     private String chooseFolderPath() {
-        DirectoryDialog dialog = new DirectoryDialog(Display.getCurrent().getActiveShell());
+        DirectoryDialog dialog = new DirectoryDialog(getShell());
         dialog.setText(Messages.ModelRepositoryPreferencePage_17);
         dialog.setMessage(Messages.ModelRepositoryPreferencePage_18);
         File file = new File(fUserRepoFolderTextField.getText());

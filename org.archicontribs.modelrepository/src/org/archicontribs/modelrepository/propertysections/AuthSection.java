@@ -23,7 +23,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
@@ -159,7 +158,7 @@ public class AuthSection extends AbstractArchiPropertySection {
     
     private void showError(Exception ex) {
         ex.printStackTrace();
-        MessageDialog.openError(Display.getCurrent().getActiveShell(),
+        MessageDialog.openError(getPart().getSite().getShell(),
                 Messages.AuthSection_11,
                 Messages.AuthSection_12 +
                         " " + //$NON-NLS-1$
