@@ -15,6 +15,7 @@ import java.net.Proxy.Type;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.GeneralSecurityException;
@@ -170,12 +171,12 @@ public class ProxyAuthenticator {
     /**
      * Test a http connection
      */
-    public static boolean testHTTPConnection(String url) throws IOException {
+    public static boolean testHTTPConnection(String url) throws IOException, URISyntaxException {
         if(GraficoUtils.isSSH(url)) {
             return false;
         }
         
-        URL testURL = new URL(url);
+        URL testURL = new URI(url).toURL();
         
         // localhost https connections throw certificate exceptions
         if("localhost".equals(testURL.getHost()) || "127.0.0.1".equals(testURL.getHost())) { //$NON-NLS-1$ //$NON-NLS-2$
