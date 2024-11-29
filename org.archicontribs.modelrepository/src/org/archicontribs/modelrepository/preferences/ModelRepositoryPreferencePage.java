@@ -501,6 +501,8 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
         
         updateIdentityControls();
         updateProxyControls();
+        
+        super.performDefaults();
     }
     
     
