@@ -8,6 +8,7 @@ package org.archicontribs.modelrepository.actions;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
+import java.util.logging.Logger;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
@@ -18,6 +19,7 @@ import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.GraficoModelLoader;
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
+import org.archicontribs.modelrepository.grafico.ShellArchiRepository.PullOutcome;
 import org.archicontribs.modelrepository.merge.MergeConflictHandler;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -51,7 +53,7 @@ import com.archimatetool.model.IArchimateModel;
  * @author Phillip Beauvoir
  */
 public class RefreshModelAction extends AbstractModelAction {
-    
+	
     protected static final int PULL_STATUS_ERROR = -1;
     protected static final int PULL_STATUS_OK = 0;
     protected static final int PULL_STATUS_UP_TO_DATE = 1;
@@ -59,6 +61,8 @@ public class RefreshModelAction extends AbstractModelAction {
     
     protected static final int USER_OK = 0;
     protected static final int USER_CANCEL = 1;
+
+    private static final Logger LOGGER = Logger.getLogger(RefreshModelAction.class.getName());
     
     public RefreshModelAction(IWorkbenchWindow window) {
         super(window);
@@ -66,11 +70,12 @@ public class RefreshModelAction extends AbstractModelAction {
         setText(Messages.RefreshModelAction_0);
         setToolTipText(Messages.RefreshModelAction_0);
     }
-    
+        
     public RefreshModelAction(IWorkbenchWindow window, IArchimateModel model) {
         this(window);
+        
         if(model != null) {
-            setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
+    		setRepository(new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model)));
         }
     }
     
@@ -169,7 +174,8 @@ public class RefreshModelAction extends AbstractModelAction {
         getRepository().exportModelToGraficoFiles();
         
         // Then offer to Commit
-        if(getRepository().hasChangesToCommit()) {
+        if((super.isShellModeAvailable() && super.getShellRepository().hasChanges()) 
+        		|| getRepository().hasChangesToCommit()) {
             if(!offerToCommitChanges()) {
                 return USER_CANCEL;
             }
@@ -186,7 +192,21 @@ public class RefreshModelAction extends AbstractModelAction {
         Display.getCurrent().readAndDispatch(); // update dialog
         
         try {
-            pullResult = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pmDialog.getProgressMonitor()));
+        	if (super.isShellModeAvailable()) {
+        		PullOutcome pullOutcome = super.getShellRepository().pullFromRemote(npw);
+        		switch(pullOutcome) {
+        		case ALREADY_UP_TO_DATE:
+        			return PULL_STATUS_UP_TO_DATE;
+        		case PULLED_SUCCESSFULLY:
+    				// places loaded in model in IEditorModelManager
+        			new GraficoModelLoader(getRepository()).loadModel();
+    				return PULL_STATUS_OK;
+        		case PULL_INCOMPLETE:
+        			LOGGER.warning("Shell mode run into trouble, falling back to jgit handlings.");
+        		}
+        	}
+        	
+        	pullResult = getRepository().pullFromRemote(npw, new ProgressMonitorWrapper(pmDialog.getProgressMonitor()));
         }
         catch(Exception ex) {
             // If this exception is thrown then the remote doesn't have the ref which can happen when pulling on a branch,
@@ -289,7 +309,6 @@ public class RefreshModelAction extends AbstractModelAction {
                 commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
             }
 
-            // TODO - not sure if amend should be false or true here?
             getRepository().commitChanges(commitMessage, false);
         }
         

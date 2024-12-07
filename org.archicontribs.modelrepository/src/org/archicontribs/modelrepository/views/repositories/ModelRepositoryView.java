@@ -103,6 +103,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
         fTreeViewer = new ModelRepositoryTreeViewer(parent);
+
         
         makeActions();
         registerGlobalActions();
