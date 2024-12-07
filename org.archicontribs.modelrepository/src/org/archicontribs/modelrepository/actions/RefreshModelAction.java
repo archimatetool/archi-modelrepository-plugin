@@ -289,7 +289,6 @@ public class RefreshModelAction extends AbstractModelAction {
                 commitMessage += "\n\n" + Messages.RefreshModelAction_3 + "\n" + restoredObjects; //$NON-NLS-1$ //$NON-NLS-2$
             }
 
-            // TODO - not sure if amend should be false or true here?
             getRepository().commitChanges(commitMessage, false);
         }
         
