@@ -18,6 +18,7 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
+import org.archicontribs.modelrepository.grafico.ShellArchiRepository;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -35,6 +36,7 @@ import com.archimatetool.model.IArchimateModel;
 public abstract class AbstractModelAction extends Action implements IGraficoModelAction {
 	
 	private IArchiRepository fRepository;
+	private ShellArchiRepository shellRepository;
 	
 	protected IWorkbenchWindow fWindow;
 	
@@ -52,8 +54,20 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	public IArchiRepository getRepository() {
 	    return fRepository;
 	}
+
+	public boolean isShellModeAvailable() {
+		return this.shellRepository != null;
+	}
 	
-    @Override
+	public void setShellRepository(ShellArchiRepository shellRepository) {
+		this.shellRepository = shellRepository;
+	}
+
+	public ShellArchiRepository getShellRepository() {
+		return shellRepository;
+	}
+
+	@Override
 	public void update() {
         setEnabled(shouldBeEnabled());
 	}
