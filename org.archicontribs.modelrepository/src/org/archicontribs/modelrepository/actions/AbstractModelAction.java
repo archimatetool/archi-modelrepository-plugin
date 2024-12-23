@@ -36,19 +36,22 @@ import com.archimatetool.model.IArchimateModel;
 public abstract class AbstractModelAction extends Action implements IGraficoModelAction {
 	
 	private IArchiRepository fRepository;
+	
 	private ShellArchiRepository shellRepository;
 	
 	protected IWorkbenchWindow fWindow;
 	
 	protected AbstractModelAction(IWorkbenchWindow window) {
 	    fWindow = window;
+
+	    this.shellRepository = new ShellArchiRepository();
 	}
 	
 	@Override
 	public void setRepository(IArchiRepository repository) {
 	    fRepository = repository;
 	    setEnabled(shouldBeEnabled());
-	    setShellRepository(new ShellArchiRepository(repository.getLocalRepositoryFolder()));
+	    getShellRepository().setLocalRepoFolder(repository.getLocalRepositoryFolder());
 	}
 	
 	@Override

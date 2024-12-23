@@ -4,15 +4,22 @@ import java.io.File;
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.authentication.UsernamePassword;
-import org.archicontribs.modelrepository.grafico.GitExecutor.PullMode;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
 import com.archimatetool.editor.actions.AbstractModelAction;
+
+import git_executor.GitExecutionException;
+import git_executor.GitExecutionResult;
+import git_executor.GitExecutor;
+import git_executor.GitExecutor.PullMode;
 
 /**
  * ShellArchiRepository challenges ArchiRepository with alternative GIT
  * back-end.
  * 
- * Hexagonal force field: driven by: descendants of {@link AbstractModelAction}, driver: git-executor
+ * Hexagonal force field: driven by: descendants of {@link AbstractModelAction},
+ * driver: git-executor
  */
 public class ShellArchiRepository {
 
@@ -20,22 +27,25 @@ public class ShellArchiRepository {
 		ALREADY_UP_TO_DATE, PULLED_SUCCESSFULLY, PULL_INCOMPLETE
 	}
 
-	private final GitExecutor executor;
-
-	public ShellArchiRepository(File localRepoFolder) {
-		try {
-			this.executor = new GitExecutor(new File("/snap/eclipse-pde/current/usr/bin/git"), localRepoFolder);
-		} catch (GitExecutionException e) {
-			throw new RuntimeException(e);
-		}
+	private GitExecutor executor;
+	
+	public ShellArchiRepository() {		
+		// inject manually as this isn't managed instance
+		BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+		this.executor = bundleContext.getService(bundleContext.getServiceReference(GitExecutor.class));
+		this.executor.setGitExecutable(new File("/snap/eclipse-pde/current/usr/bin/git"));
 	}
 
+	public void setLocalRepoFolder(File localRepoFolder) {
+		this.executor.setGitRepo(localRepoFolder);		
+	}
+	
 	public PullOutcome pullFromRemote(UsernamePassword npw) throws IOException {
 		try {
 			GitExecutionResult result = executor.pull(PullMode.REBASE_MERGE);
 			switch (result.exitCode()) {
 			case 0:
-				if (result.outputLine().endsWith("."))
+				if (result.outputText().endsWith("."))
 					return PullOutcome.ALREADY_UP_TO_DATE;
 				else
 					return PullOutcome.PULLED_SUCCESSFULLY;
