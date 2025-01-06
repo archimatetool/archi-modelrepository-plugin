@@ -18,6 +18,7 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
+import org.archicontribs.modelrepository.grafico.ShellArchiRepository;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -36,24 +37,41 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
 	
 	private IArchiRepository fRepository;
 	
+	private ShellArchiRepository shellRepository;
+	
 	protected IWorkbenchWindow fWindow;
 	
 	protected AbstractModelAction(IWorkbenchWindow window) {
 	    fWindow = window;
+
+	    this.shellRepository = new ShellArchiRepository();
 	}
 	
 	@Override
 	public void setRepository(IArchiRepository repository) {
 	    fRepository = repository;
 	    setEnabled(shouldBeEnabled());
+	    getShellRepository().setLocalRepoFolder(repository.getLocalRepositoryFolder());
 	}
 	
 	@Override
 	public IArchiRepository getRepository() {
 	    return fRepository;
 	}
+
+	public boolean isShellModeAvailable() {
+		return this.shellRepository != null;
+	}
 	
-    @Override
+	public void setShellRepository(ShellArchiRepository shellRepository) {
+		this.shellRepository = shellRepository;
+	}
+
+	public ShellArchiRepository getShellRepository() {
+		return shellRepository;
+	}
+
+	@Override
 	public void update() {
         setEnabled(shouldBeEnabled());
 	}
@@ -124,8 +142,12 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             boolean amend = commitDialog.getAmend();
             
             try {
-                getRepository().commitChanges(commitMessage, amend);
-
+                if (isShellModeAvailable()) {
+                	getShellRepository().commit(commitMessage, amend);
+                } else {
+	            	getRepository().commitChanges(commitMessage, amend);
+	
+                }
                 // Save the checksum
                 getRepository().saveChecksum();
             }

@@ -5,6 +5,7 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
+import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
 import org.archicontribs.modelrepository.actions.ExtractModelFromCommitAction;
 import org.archicontribs.modelrepository.actions.ResetToRemoteCommitAction;
@@ -19,6 +20,7 @@ import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -45,7 +47,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IContributedContentsView;
 import org.eclipse.ui.part.ViewPart;
 
+import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimateModelObject;
 
 
 /**
@@ -73,12 +77,14 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     private RestoreCommitAction fActionRestoreCommit;
     private UndoLastCommitAction fActionUndoLastCommit;
     private ResetToRemoteCommitAction fActionResetToRemoteCommit;
-    
+	private Action fActionToggleObjectFilter;    
     
     /*
-     * Selected repository
+     * Selected repository, model-object and filtering toggle
      */
     private IArchiRepository fSelectedRepository;
+	private IArchimateModelObject fSelectedModelObject;
+	private boolean fModelObjectFiltered = false;
 
     
     @Override
@@ -195,9 +201,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         fActionResetToRemoteCommit = new ResetToRemoteCommitAction(getViewSite().getWorkbenchWindow());
         fActionResetToRemoteCommit.setEnabled(false);
         
-        // Register the Keybinding for actions
-//        IHandlerService service = (IHandlerService)getViewSite().getService(IHandlerService.class);
-//        service.activateHandler(fActionRefresh.getActionDefinitionId(), new ActionHandler(fActionRefresh));
+        fActionToggleObjectFilter = new ToggleObjectFilter("Link Selected Object", Action.AS_CHECK_BOX);
     }
 
     /**
@@ -219,23 +223,6 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         
         getSite().registerContextMenu(menuMgr, getHistoryViewer());
     }
-    
-    /**
-     * Make Any Local Bar Menu Actions
-     */
-//    protected void makeLocalMenuActions() {
-//        IActionBars actionBars = getViewSite().getActionBars();
-//
-//        // Local menu items go here
-//        IMenuManager manager = actionBars.getMenuManager();
-//        manager.add(new Action("&View Management...") {
-//            public void run() {
-//                MessageDialog.openInformation(getViewSite().getShell(),
-//                        "View Management",
-//                        "This is a placeholder for the View Management Dialog");
-//            }
-//        });
-//    }
 
     /**
      * Make Local Toolbar items
@@ -251,8 +238,9 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         manager.add(new Separator());
         manager.add(fActionUndoLastCommit);
         manager.add(fActionResetToRemoteCommit);
-        
         manager.add(new Separator());
+		manager.add(fActionToggleObjectFilter);
+		manager.add(new Separator());
     }
     
     /**
@@ -309,39 +297,39 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     }
     
     @Override
-    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(part == null || part == this || selection == null) {
-            return;
-        }
-        
-        Object selected = ((IStructuredSelection)selection).getFirstElement();
+    public void selectionChanged(IWorkbenchPart iPart, ISelection iSelection) {
+    	
+        if (iPart == null || iSelection == null)
+        	return;     
+        if (iPart == this)
+        	return;
+
         
         IArchiRepository selectedRepository = null;
+        IArchimateModelObject selectedObject = null;
         
+        Object selected = ((IStructuredSelection)iSelection).getFirstElement();
+
         // Repository selected
         if(selected instanceof IArchiRepository) {
             selectedRepository = (IArchiRepository)selected;
-        }
+        }  
         // Model selected, but is it in a git repo?
         else {
-            IArchimateModel model = part.getAdapter(IArchimateModel.class);
+            IArchimateModel model = iPart.getAdapter(IArchimateModel.class);
             if(GraficoUtils.isModelInLocalRepository(model)) {
                 selectedRepository = new ArchiRepository(GraficoUtils.getLocalRepositoryFolderForModel(model));
             }
+            
+            if (selected != null && selected instanceof IArchimateModelObject)
+            	selectedObject = (IArchimateModelObject) selected;
         }
         
-        // Update if selectedRepository is different 
-        if(selectedRepository != null && !selectedRepository.equals(fSelectedRepository)) {
-            // Store last selected
-            fSelectedRepository = selectedRepository;
-
-            // Set label text
-            fRepoLabel.setText(Messages.HistoryView_0 + " " + selectedRepository.getName()); //$NON-NLS-1$
-            
-            // Set History first
-            getHistoryViewer().doSetInput(selectedRepository);
-            
-            // Set Branches
+        
+        if (selectedRepository != null && selectedRepository != fSelectedRepository) {
+        	fSelectedRepository = selectedRepository;
+        	
+        	// Set Branches
             getBranchesViewer().doSetInput(selectedRepository);
             
             // Update actions
@@ -350,25 +338,51 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             fActionUndoLastCommit.setRepository(selectedRepository);
             fActionResetToRemoteCommit.setRepository(selectedRepository);
         }
+        
+        if (selectedObject != null && selectedObject != fSelectedModelObject)
+        	fSelectedModelObject = selectedObject;
+
+        if (fSelectedRepository != null) // no distinct repo selected yet
+        	setSelectedRepoAndObject();
     }
     
-    @Override
+    private void setSelectedRepoAndObject() {
+    	if (fModelObjectFiltered)
+        	getHistoryViewer().doSetInput(fSelectedRepository, fSelectedModelObject);
+        else
+        	getHistoryViewer().doSetInput(fSelectedRepository);
+        updateLabel();
+    }
+    
+    private void updateLabel() {
+    	String objectLabel = ArchiLabelProvider.INSTANCE.getLabelNormalised(fSelectedModelObject);
+    	
+		String label = Messages.HistoryView_0 
+			+ " " + fSelectedRepository.getName();
+
+		if (fModelObjectFiltered  && objectLabel.length() > 0)
+			label += " (" + objectLabel+ ")"; //$NON-NLS-1$
+		    	
+    	fRepoLabel.setText(label); 
+	}
+
+	@Override
     public void repositoryChanged(String eventName, IArchiRepository repository) {
         if(repository.equals(fSelectedRepository)) {
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
-                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                	updateLabel();
                     getHistoryViewer().setInput(repository);
                     break;
                     
                 case IRepositoryListener.REPOSITORY_DELETED:
-                    fRepoLabel.setText(Messages.HistoryView_0);
-                    getHistoryViewer().setInput(""); //$NON-NLS-1$
+                	updateLabel();
+                	getHistoryViewer().setInput(""); //$NON-NLS-1$
                     fSelectedRepository = null; // Reset this
                     break;
                     
                 case IRepositoryListener.REPOSITORY_CHANGED:
-                    fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                	updateLabel();
                     break;
 
                 case IRepositoryListener.BRANCHES_CHANGED:
@@ -415,4 +429,18 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
     public String getSearchExpression(Object target) {
         return Messages.HistoryView_1;
     }
+    
+	private final class ToggleObjectFilter extends Action {
+		private ToggleObjectFilter(String text, int style) {
+			super(text, style);
+			super.setImageDescriptor(IModelRepositoryImages.ImageFactory.getImageDescriptor(IModelRepositoryImages.ICON_SYNCED));
+		}
+
+		@Override
+		public void run() {
+			fModelObjectFiltered = this.isChecked();
+			setSelectedRepoAndObject();
+		}
+	}
+
 }
