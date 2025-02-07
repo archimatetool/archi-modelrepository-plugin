@@ -36,12 +36,10 @@ import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
-import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFolderContainer;
-import com.archimatetool.model.IIdentifier;
 
 
 /**
@@ -177,7 +175,7 @@ public class GraficoModelExporter {
         allFolders.addAll(folderContainer.getFolders());
         
         for(IFolder tmpFolder : allFolders) {
-            File tmpFolderFile = new File(folder, getNameFor(tmpFolder));
+            File tmpFolderFile = GraficoFileConventions.forFolder(folder, tmpFolder);
             tmpFolderFile.mkdirs();
             createAndSaveResource(new File(tmpFolderFile, IGraficoConstants.FOLDER_XML), tmpFolder);
             createAndSaveResourceForFolder(tmpFolder, tmpFolderFile);
@@ -190,7 +188,7 @@ public class GraficoModelExporter {
             allElements.addAll(((IFolder)folderContainer).getElements());
             for(EObject tmpElement : allElements) {
                 createAndSaveResource(
-                        new File(folder, tmpElement.getClass().getSimpleName() + "_" + ((IIdentifier)tmpElement).getId() + ".xml"), //$NON-NLS-1$ //$NON-NLS-2$
+                        GraficoFileConventions.forElement(folder, tmpElement),
                         tmpElement);
             }
         }
@@ -198,17 +196,7 @@ public class GraficoModelExporter {
             createAndSaveResource(new File(folder, IGraficoConstants.FOLDER_XML), folderContainer);
         }
     }
-    
-    /**
-     * Generate a proper name for directory creation
-     *  
-     * @param folder
-     * @return
-     */
-    private String getNameFor(IFolder folder) {
-    	return folder.getType() == FolderType.USER ? folder.getId().toString() : folder.getType().toString();
-    }
-    
+        
     /**
      * Save the model to Resource
      * 

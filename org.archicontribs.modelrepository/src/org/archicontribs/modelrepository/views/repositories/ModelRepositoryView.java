@@ -50,6 +50,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.tm.terminal.view.ui.actions.NewTerminalViewAction;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -103,6 +104,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
     public void createPartControl(Composite parent) {
         // Create the Tree Viewer first
         fTreeViewer = new ModelRepositoryTreeViewer(parent);
+
         
         makeActions();
         registerGlobalActions();
@@ -259,6 +261,14 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
                 store.removePropertyChangeListener(listener);
             }
         });
+        
+        // TODO add show terminal view for debugging
+        // FIXME broken pty in there
+        // BASHOPTS=checkwinsize:cmdhist:complete_fullquote:extquote:force_fignore:globasciiranges:globskipdots:hostcomplete:interactive_comments:patsub_replacement:progcomp:promptvars:sourcepath
+        // BASHOPTS=checkwinsize:cmdhist:complete_fullquote:expand_aliases:extquote:force_fignore:globasciiranges:globskipdots:hostcomplete:interactive_comments:patsub_replacement:progcomp:promptvars:sourcepath
+        IAction newTerminalViewAction = new NewTerminalViewAction(null);
+        newTerminalViewAction.setEnabled(true);
+        manager.add(newTerminalViewAction);
     }
 
     /**
