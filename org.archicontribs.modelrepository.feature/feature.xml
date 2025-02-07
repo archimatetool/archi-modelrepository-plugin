@@ -36,6 +36,23 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
    </license>
 
+   <includes
+         id="org.eclipse.tm.terminal.connector.local.feature"
+         version="0.0.0"
+         os="linux,macosx,win32"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.control.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.eclipse.tm.terminal.view.feature"
+         version="0.0.0"/>
+
    <requires>
       <import plugin="org.eclipse.help.ui"/>
       <import plugin="com.archimatetool.editor"/>
@@ -43,16 +60,15 @@ OTHER DEALINGS IN THE SOFTWARE.
 
    <plugin
          id="org.archicontribs.modelrepository"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.archicontribs.modelrepository.commandline"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
+
+   <plugin
+         id="org.eclipse.cdt.core.native"
+         os="linux,macosx,win32"
+         version="0.0.0"/>
 
 </feature>
