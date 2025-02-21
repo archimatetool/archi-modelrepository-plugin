@@ -3,10 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: coArchi Command Line
 Bundle-SymbolicName: org.archicontribs.modelrepository.commandline;singleton:=true
 Bundle-Localization: plugin
-Bundle-Version: 0.9.2.qualifier
+Bundle-Version: 0.9.3.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: com.archimatetool.commandline;bundle-version="4.9.0",
- org.archicontribs.modelrepository;bundle-version="0.9.2"
+ org.archicontribs.modelrepository;bundle-version="0.9.3"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.archicontribs.modelrepository.commandline
