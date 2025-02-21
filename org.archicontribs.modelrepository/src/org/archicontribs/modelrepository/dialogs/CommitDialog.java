@@ -5,6 +5,8 @@
  */
 package org.archicontribs.modelrepository.dialogs;
 
+import static org.eclipse.swt.events.SelectionListener.widgetSelectedAdapter;
+
 import java.io.IOException;
 
 import org.archicontribs.modelrepository.IModelRepositoryImages;
@@ -13,6 +15,7 @@ import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -49,6 +52,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     private Button fAmendLastCommitCheckbox;
     
     private String fCommitMessage;
+    private String fPreviousCommitMessage;
     private boolean fAmend;
     
     private IArchiRepository fRepository;
@@ -85,6 +89,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
                 BranchInfo branchInfo = status.getCurrentLocalBranch();
                 if(branchInfo != null) {
                     shortBranchName = branchInfo.getShortName();
+                    fPreviousCommitMessage = branchInfo.getLatestCommit() != null ? branchInfo.getLatestCommit().getFullMessage() : null;
                 }
             }
         }
@@ -147,10 +152,24 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         fAmendLastCommitCheckbox.setLayoutData(gd);
         
         try {
-            fAmendLastCommitCheckbox.setEnabled(isAmendAllowed());
+            // An amend of the last commit is allowed:
+            // If HEAD and Remote Ref are not the same && the HEAD commit does not have more than one parent (i.e HEAD commit is not a merged commit)
+            boolean isAmendable = !fRepository.isHeadAndRemoteSame() && getLatestLocalCommitParentCount() < 2;
+            fAmendLastCommitCheckbox.setEnabled(isAmendable);
+            
+            // Set commit message to last commit message on checkbox click
+            if(isAmendable && fPreviousCommitMessage != null) {
+                fAmendLastCommitCheckbox.addSelectionListener(widgetSelectedAdapter(event -> {
+                    if(fAmendLastCommitCheckbox.getSelection()) {
+                        if(fTextCommitMessage.getText().isEmpty() || (!fTextCommitMessage.getText().equals(fPreviousCommitMessage) && MessageDialog.openQuestion(getShell(),
+                                Messages.CommitDialog_0, Messages.CommitDialog_7))) {
+                            fTextCommitMessage.setText(fPreviousCommitMessage);
+                        }
+                    }
+                }));
+            }
         }
         catch(IOException | GitAPIException ex) {
-            fAmendLastCommitCheckbox.setEnabled(false);
             ex.printStackTrace();
         }
         
@@ -201,15 +220,6 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
         super.okPressed();
     }
 
-    /**
-     * An amend of last commit is allowed
-     * If HEAD and remote are not the same AND
-     * The latest local commit does not have more than one parent (i.e last commit was a merge)
-     */
-    private boolean isAmendAllowed() throws IOException, GitAPIException {
-        return !fRepository.isHeadAndRemoteSame() && getLatestLocalCommitParentCount() < 2;
-    }
-    
     private int getLatestLocalCommitParentCount() throws IOException {
         try(Repository repository = Git.open(fRepository.getLocalRepositoryFolder()).getRepository()) {
             Ref head = repository.exactRef(IGraficoConstants.HEAD);
