@@ -4,7 +4,11 @@
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit_6.1.0.202203080745-r.jar" sourcepath="libsrc/org.eclipse.jgit.source_6.1.0.202203080745-r.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jgit.ssh.apache_6.1.0.202203080745-r.jar" sourcepath="libsrc/org.eclipse.jgit.ssh.apache.source_6.1.0.202203080745-r.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/org.apache.sshd.osgi_2.8.0.v20211227-1750.jar" sourcepath="libsrc/org.apache.sshd.osgi.source_2.8.0.v20211227-1750.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="lib/javaewah_1.1.13.v20211029-0839.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.slf4j.api_1.7.30.v20200204-2150.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.slf4j.binding.simple_1.7.30.v20200204-2150.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/net.i2p.crypto.eddsa_0.3.0.v20210923-1401.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

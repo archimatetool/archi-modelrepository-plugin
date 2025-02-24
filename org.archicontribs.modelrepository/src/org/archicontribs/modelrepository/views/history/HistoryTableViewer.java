@@ -5,7 +5,9 @@
  */
 package org.archicontribs.modelrepository.views.history;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,6 +16,7 @@ import java.util.List;
 import org.archicontribs.modelrepository.IModelRepositoryImages;
 import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
+import org.archicontribs.modelrepository.grafico.GraficoFileConventions;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -30,12 +33,15 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.ui.UIUtils;
+import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IFolder;
 
 
 /**
@@ -119,6 +125,15 @@ public class HistoryTableViewer extends TableViewer {
         //    setSelection(new StructuredSelection(element), true);
         //}
     }
+	    
+    private static record HistoryInput(IArchiRepository repo, IArchimateModelObject obj) {} 
+    
+	public void doSetInput(IArchiRepository selectedRepository, Object selected) {
+		if (selected instanceof IArchimateModelObject)
+			setInput(new HistoryInput(selectedRepository, (IArchimateModelObject)selected));
+		else
+			doSetInput(selectedRepository);
+	}
     
     public void setSelectedBranch(BranchInfo branchInfo) {
         if(branchInfo != null && branchInfo.equals(fSelectedBranch)) {
@@ -155,27 +170,47 @@ public class HistoryTableViewer extends TableViewer {
             fLocalCommit = null;
             fOriginCommit = null;
             
-            if(!(parent instanceof IArchiRepository) || fSelectedBranch == null) {
+            IArchiRepository repo = null;
+            File elemFile = null;
+            
+            if (parent instanceof HistoryInput && ((HistoryInput) parent).obj().eContainer() instanceof IFolder) {
+            	HistoryInput input = (HistoryInput) parent;
+            	repo = input.repo();
+            	IFolder folder = (IFolder) input.obj().eContainer();
+            	elemFile = GraficoFileConventions.forElement(
+            			new File(repo.getLocalRepositoryFolder(), "model"), 
+            			folder, 
+            			input.obj());
+            } else if (parent instanceof IArchiRepository)
+            	repo = (IArchiRepository) parent;
+            
+            if(fSelectedBranch == null) {
                 return commits;
             }
             
-            IArchiRepository repo = (IArchiRepository)parent;
-            
             // Local Repo was deleted
-            if(!repo.getLocalRepositoryFolder().exists()) {
+            if(repo == null || !repo.getLocalRepositoryFolder().exists()) {
                 return commits;
             }
 
             try(Repository repository = Git.open(repo.getLocalRepositoryFolder()).getRepository()) {
                 // a RevWalk allows to walk over commits based on some filtering that is defined
                 try(RevWalk revWalk = new RevWalk(repository)) {
+					if (elemFile != null) {
+						String elemPath = Path.of(repo.getLocalRepositoryFolder().getAbsolutePath())
+								.relativize(
+										Path.of(elemFile.getAbsolutePath())
+								).toString();
+						revWalk.setTreeFilter(PathFilter.create(elemPath));
+					}
+					
                     // Find the local branch
                     ObjectId objectID = repository.resolve(fSelectedBranch.getLocalBranchNameFor());
                     if(objectID != null) {
                         fLocalCommit = revWalk.parseCommit(objectID);
                         revWalk.markStart(fLocalCommit); 
                     }
-                    
+                                        
                     // Find the remote branch
                     objectID = repository.resolve(fSelectedBranch.getRemoteBranchNameFor());
                     if(objectID != null) {
