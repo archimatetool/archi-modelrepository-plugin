@@ -47,7 +47,6 @@ public class CloneInputDialog extends TitleAreaDialog {
 
     public CloneInputDialog(Shell parentShell) {
         super(parentShell);
-        setTitle(Messages.CloneInputDialog_0);
     }
 
     @Override
@@ -60,6 +59,7 @@ public class CloneInputDialog extends TitleAreaDialog {
     protected Control createDialogArea(Composite parent) {
         setMessage(Messages.CloneInputDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
+        setTitle(Messages.CloneInputDialog_0);
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);

@@ -95,7 +95,6 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
 
     public NewPrimaryPasswordDialog(Shell parentShell) {
         super(parentShell, "NewPrimaryPasswordDialog"); //$NON-NLS-1$
-        setTitle(Messages.NewPrimaryPasswordDialog_0);
     }
 
     @Override
@@ -108,6 +107,7 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
     protected Control createDialogArea(Composite parent) {
         setMessage(Messages.NewPrimaryPasswordDialog_1, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_NEW_WIZARD));
+        setTitle(Messages.NewPrimaryPasswordDialog_0);
 
         Composite area = (Composite) super.createDialogArea(parent);
         

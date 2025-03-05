@@ -111,7 +111,6 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     
     ConflictsDialog(Shell parentShell, MergeConflictHandler handler, String message) {
         super(parentShell, DIALOG_ID);
-        setTitle(Messages.ConflictsDialog_2);
         fHandler = handler;
         fMessage = message;
     }
@@ -126,6 +125,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
     protected Control createDialogArea(Composite parent) {
         setMessage(fMessage == null ? Messages.ConflictsDialog_4 : fMessage, IMessageProvider.INFORMATION);
         setTitleImage(IArchiImages.ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_IMPORT_PREF_WIZARD));
+        setTitle(Messages.ConflictsDialog_2);
 
         Composite area = (Composite) super.createDialogArea(parent);
         Composite container = new Composite(area, SWT.NONE);

@@ -59,7 +59,6 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     
     public CommitDialog(Shell parentShell, IArchiRepository repo) {
         super(parentShell, DIALOG_ID);
-        setTitle(Messages.CommitDialog_0);
         fRepository = repo;
     }
 
@@ -67,6 +66,7 @@ public class CommitDialog extends ExtendedTitleAreaDialog {
     protected void configureShell(Shell shell) {
         super.configureShell(shell);
         shell.setText(Messages.CommitDialog_0);
+        setTitle(Messages.CommitDialog_0);
     }
 
     @Override
