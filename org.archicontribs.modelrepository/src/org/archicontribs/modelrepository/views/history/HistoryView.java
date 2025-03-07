@@ -358,6 +358,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
             switch(eventName) {
                 case IRepositoryListener.HISTORY_CHANGED:
                     fRepoLabel.setText(Messages.HistoryView_0 + " " + repository.getName()); //$NON-NLS-1$
+                    fCommentViewer.setCommit(null);
                     getHistoryViewer().setInput(repository);
                     break;
                     
