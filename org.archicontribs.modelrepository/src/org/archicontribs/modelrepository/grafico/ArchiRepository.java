@@ -495,6 +495,11 @@ public class ArchiRepository implements IArchiRepository {
         // Set GPG signing false
         config.setString(ConfigConstants.CONFIG_COMMIT_SECTION, null, ConfigConstants.CONFIG_KEY_GPGSIGN, "false");
         
+        // Set hooksPath to null in case the user has set a global hooksPath and cause problems
+        // such as git-lfs not being found on the system path.
+        // JGit will resolve hooksPath to localrepo/.git/hooks
+        config.setString(ConfigConstants.CONFIG_CORE_SECTION, null, ConfigConstants.CONFIG_KEY_HOOKS_PATH, null);
+
         config.save();
     }
     
