@@ -1,0 +1,14 @@
+name: 💡 Feature Request
+description: Describe what you'd like to see in coArchi
+title: "[Feature Request] "
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Describe the feature you'd like to see implemented in coArchi. Please provide as much detail as possible - use cases, steps to fulfil the task, mockups, etc.
+      placeholder: |
+        Describe the feature you'd like to see implemented in coArchi.
+    validations:
+      required: true
