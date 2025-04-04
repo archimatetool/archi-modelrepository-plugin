@@ -55,11 +55,11 @@ class RefreshFilesJob extends Job {
         
         // On Tree dispose...
         fViewer.getControl().addDisposeListener(event -> {
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
+            ModelRepositoryPlugin.getInstance().getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
             cancel();
         });
         
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
+        ModelRepositoryPlugin.getInstance().getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
 
         start();
     }
@@ -90,6 +90,6 @@ class RefreshFilesJob extends Job {
 
     private boolean canRun() {
         return !fViewer.getControl().isDisposed() &&
-                ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SCAN_REPOSITORY_FOLDER);
+                ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_SCAN_REPOSITORY_FOLDER);
     }
 }

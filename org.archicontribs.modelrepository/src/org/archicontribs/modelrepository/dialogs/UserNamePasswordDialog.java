@@ -90,7 +90,7 @@ public class UserNamePasswordDialog extends TitleAreaDialog {
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         gd.horizontalSpan = 2;
         storeCredentialsButton.setLayoutData(gd);
-        storeCredentialsButton.setSelection(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS));
+        storeCredentialsButton.setSelection(ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS));
     }
     
     @Override

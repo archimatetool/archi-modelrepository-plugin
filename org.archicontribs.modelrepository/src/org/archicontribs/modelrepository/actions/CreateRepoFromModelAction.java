@@ -87,7 +87,7 @@ public class CreateRepoFromModelAction extends AbstractModelAction {
         }
         
         // Create a new local folder
-        File localRepoFolder = GraficoUtils.getUniqueLocalFolder(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), repoURL);
+        File localRepoFolder = GraficoUtils.getUniqueLocalFolder(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(), repoURL);
         setRepository(new ArchiRepository(localRepoFolder));
         
         try {

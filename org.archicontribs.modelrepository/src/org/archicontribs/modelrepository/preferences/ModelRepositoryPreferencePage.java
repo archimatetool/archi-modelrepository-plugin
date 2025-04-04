@@ -83,7 +83,7 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     private Button fChangePrimaryPasswordButton;
     
 	public ModelRepositoryPreferencePage() {
-		setPreferenceStore(ModelRepositoryPlugin.INSTANCE.getPreferenceStore());
+		setPreferenceStore(ModelRepositoryPlugin.getInstance().getPreferenceStore());
 	}
 	
     @Override
@@ -537,12 +537,12 @@ implements IWorkbenchPreferencePage, IPreferenceConstants {
     }
     
     private EncryptedCredentialsStorage getSSHCredentials() {
-        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(),
                 IGraficoConstants.SSH_CREDENTIALS_FILE));
     }
     
     private EncryptedCredentialsStorage getProxyCredentials() {
-        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+        return new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(),
                 IGraficoConstants.PROXY_CREDENTIALS_FILE));
     }
     

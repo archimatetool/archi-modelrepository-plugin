@@ -138,7 +138,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
      * @return Root folder of model repos
      */
     protected File getRootFolder() {
-        return ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder();
+        return ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder();
     }
     
     /**
@@ -178,7 +178,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
-                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Error getting Model Repository Status", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error getting Model Repository Status", ex); //$NON-NLS-1$
             }
         }
     }

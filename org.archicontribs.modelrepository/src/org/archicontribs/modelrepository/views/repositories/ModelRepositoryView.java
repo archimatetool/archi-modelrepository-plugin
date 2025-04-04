@@ -232,7 +232,7 @@ implements IContextProvider, ISelectionListener, ITabbedPropertySheetPageContrib
         IMenuManager manager = actionBars.getMenuManager();
         
         // Fetch in Background preference
-        IPreferenceStore store = ModelRepositoryPlugin.INSTANCE.getPreferenceStore();
+        IPreferenceStore store = ModelRepositoryPlugin.getInstance().getPreferenceStore();
         
         IAction fetchAction = new Action(Messages.ModelRepositoryView_1, IAction.AS_CHECK_BOX) {
             @Override

@@ -70,7 +70,7 @@ public class GraficoResourceLoader {
                 modelCompatibility.checkErrors();
             }
             catch(IncompatibleModelException ex1) {
-                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
                 throw ex;
             }
         }

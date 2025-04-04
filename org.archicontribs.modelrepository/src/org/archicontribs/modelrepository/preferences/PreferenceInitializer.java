@@ -26,7 +26,7 @@ implements IPreferenceConstants {
 
     @Override
     public void initializeDefaultPreferences() {
-		IPreferenceStore store = ModelRepositoryPlugin.INSTANCE.getPreferenceStore();
+		IPreferenceStore store = ModelRepositoryPlugin.getInstance().getPreferenceStore();
         
         store.setDefault(PREFS_COMMIT_USER_NAME, System.getProperty("user.name"));
 		store.setDefault(PREFS_COMMIT_USER_EMAIL, "");

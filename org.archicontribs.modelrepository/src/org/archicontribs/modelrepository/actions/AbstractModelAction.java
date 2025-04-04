@@ -149,7 +149,7 @@ public abstract class AbstractModelAction extends Action implements IGraficoMode
             return null;
         }
         
-        boolean doStoreInCredentialsFile = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS);
+        boolean doStoreInCredentialsFile = ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_STORE_REPO_CREDENTIALS);
         
         EncryptedCredentialsStorage cs = EncryptedCredentialsStorage.forRepository(getRepository());
 

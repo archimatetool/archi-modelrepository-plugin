@@ -54,7 +54,7 @@ public class ProxyAuthenticator {
                     }
 
                     // Get the username and password for the proxy from encrypted file
-                    EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(),
+                    EncryptedCredentialsStorage cs = new EncryptedCredentialsStorage(new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(),
                             IGraficoConstants.PROXY_CREDENTIALS_FILE));
                     UsernamePassword npw = cs.getUsernamePassword();
                     
@@ -62,7 +62,7 @@ public class ProxyAuthenticator {
                 }
                 catch(GeneralSecurityException | IOException ex) {
                     ex.printStackTrace();
-                    ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Authentication failed to get credentials", ex); //$NON-NLS-1$
+                    ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Authentication failed to get credentials", ex); //$NON-NLS-1$
                     return null;
                 }
             }
@@ -87,28 +87,28 @@ public class ProxyAuthenticator {
      * Whether we are using a proxy as set in preferences
      */
     public static boolean isUsingProxy() {
-        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
+        return ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_USE);
     }
     
     /**
      * Whether we are using authentication for the proxy as set in preferences
      */
     public static boolean isUsingAuthentication() {
-        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
+        return ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_PROXY_REQUIRES_AUTHENTICATION);
     }
 
     /**
      * Return the Proxy Host as set in preferences
      */
     public static String getProxyHost() {
-        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
+        return ModelRepositoryPlugin.getInstance().getPreferenceStore().getString(IPreferenceConstants.PREFS_PROXY_HOST);
     }
 
     /**
      * Return the Proxy Port as set in preferences
      */
     public static int getProxyPort() {
-        return ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
+        return ModelRepositoryPlugin.getInstance().getPreferenceStore().getInt(IPreferenceConstants.PREFS_PROXY_PORT);
     }
 
     // Update the proxy details
@@ -146,7 +146,7 @@ public class ProxyAuthenticator {
 
             @Override
             public void connectFailed(URI uri, SocketAddress sa, IOException ex) {
-                ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
                 ex.printStackTrace();
             }
         });

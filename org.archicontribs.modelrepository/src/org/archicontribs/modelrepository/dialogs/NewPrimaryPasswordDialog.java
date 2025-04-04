@@ -15,6 +15,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
@@ -49,11 +50,13 @@ public class NewPrimaryPasswordDialog extends ExtendedTitleAreaDialog {
     
     private Label rubric;
     
-    private int minLowerCase = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LOWERCASE_CHARS), 0);
-    private int minUpperCase = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_UPPERCASE_CHARS), 0);
-    private int minDigits = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_DIGITS), 0);
-    private int minSpecial = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_SPECIAL_CHARS), 0);
-    private int minLength = Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LENGTH),
+    private IPreferenceStore store = ModelRepositoryPlugin.getInstance().getPreferenceStore();
+    
+    private int minLowerCase = Math.max(store.getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LOWERCASE_CHARS), 0);
+    private int minUpperCase = Math.max(store.getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_UPPERCASE_CHARS), 0);
+    private int minDigits = Math.max(store.getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_DIGITS), 0);
+    private int minSpecial = Math.max(store.getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_SPECIAL_CHARS), 0);
+    private int minLength = Math.max(store.getInt(IPreferenceConstants.PREFS_PASSWORD_MIN_LENGTH),
                                   minLowerCase + minUpperCase + minDigits + minSpecial); // maximum of minLength or sum of constraints
 
     private ModifyListener listener = event -> {

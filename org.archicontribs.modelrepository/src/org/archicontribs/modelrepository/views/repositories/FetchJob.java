@@ -122,7 +122,7 @@ public class FetchJob extends Job {
 
         // On Tree dispose...
         fViewer.getControl().addDisposeListener(event -> {
-            ModelRepositoryPlugin.INSTANCE.getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
+            ModelRepositoryPlugin.getInstance().getPreferenceStore().removePropertyChangeListener(preferenceChangeListener);
             cancel();
         });
 
@@ -135,7 +135,7 @@ public class FetchJob extends Job {
         }
 
         // Now listen to preferences
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
+        ModelRepositoryPlugin.getInstance().getPreferenceStore().addPropertyChangeListener(preferenceChangeListener);
     }
     
     private void start() {
@@ -257,7 +257,7 @@ public class FetchJob extends Job {
         }
 
         if(canRun()) {
-            int seconds = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND_INTERVAL);
+            int seconds = ModelRepositoryPlugin.getInstance().getPreferenceStore().getInt(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND_INTERVAL);
             schedule(seconds * 1000); // Schedule again in x milliseconds if possible
         }
         
@@ -266,10 +266,10 @@ public class FetchJob extends Job {
     
     protected boolean canRun() {
         return !fViewer.getControl().isDisposed() &&
-                ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND);
+                ModelRepositoryPlugin.getInstance().getPreferenceStore().getBoolean(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND);
     }
     
     private static void disablePreference() {
-        ModelRepositoryPlugin.INSTANCE.getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
+        ModelRepositoryPlugin.getInstance().getPreferenceStore().setValue(IPreferenceConstants.PREFS_FETCH_IN_BACKGROUND, false);
     }
 }

@@ -50,11 +50,11 @@ public class EncryptedCredentialsStorage {
     private static final String PASSWORD = "password";
     
     private static long PRIMARY_PASSWORD_TIMEOUT = 
-            Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PRIMARY_PASSWORD_TIMEOUT) * 1000 * 60, 0);
+            Math.max(ModelRepositoryPlugin.getInstance().getPreferenceStore().getInt(IPreferenceConstants.PREFS_PRIMARY_PASSWORD_TIMEOUT) * 1000 * 60, 0);
     private static long PRIMARY_PASSWORD_TIMEOUT_MARK = 0;
     
     private static long PASSWORD_INACTIVITY_TIMEOUT =
-            Math.max(ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_INACTIVITY_TIMEOUT) * 1000 * 60, 0);
+            Math.max(ModelRepositoryPlugin.getInstance().getPreferenceStore().getInt(IPreferenceConstants.PREFS_PASSWORD_INACTIVITY_TIMEOUT) * 1000 * 60, 0);
     private static long PASSWORD_INACTIVITY_TIMEOUT_MARK = 0;
 
     
@@ -257,7 +257,7 @@ public class EncryptedCredentialsStorage {
      * @return The primary key file
      */
     public static File getPrimaryKeyFile() {
-        return new File(ModelRepositoryPlugin.INSTANCE.getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
+        return new File(ModelRepositoryPlugin.getInstance().getUserModelRepositoryFolder(), PRIMARY_KEY_FILE);
     }
     
     /**

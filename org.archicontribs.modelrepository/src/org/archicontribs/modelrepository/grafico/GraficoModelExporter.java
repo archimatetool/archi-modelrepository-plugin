@@ -127,7 +127,7 @@ public class GraficoModelExporter {
         createAndSaveResourceForFolder(copy, modelFolder);
 
         // Now save all Resources
-        int maxThreads = ModelRepositoryPlugin.INSTANCE.getPreferenceStore().getInt(IPreferenceConstants.PREFS_EXPORT_MAX_THREADS);
+        int maxThreads = ModelRepositoryPlugin.getInstance().getPreferenceStore().getInt(IPreferenceConstants.PREFS_EXPORT_MAX_THREADS);
         JobGroup jobgroup = new JobGroup("GraficoModelExporter", maxThreads, 1); //$NON-NLS-1$
         
         final ExceptionProgressMonitor pm = new ExceptionProgressMonitor();

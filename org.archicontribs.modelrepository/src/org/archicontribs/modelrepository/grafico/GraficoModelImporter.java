@@ -138,7 +138,7 @@ public class GraficoModelImporter {
             modelCompatibility.fixCompatibility();
         }
         catch(CompatibilityHandlerException ex) {
-            ModelRepositoryPlugin.INSTANCE.log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
+            ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
         }
 
     	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
