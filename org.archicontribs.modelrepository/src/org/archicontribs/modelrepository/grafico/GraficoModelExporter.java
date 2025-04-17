@@ -93,6 +93,19 @@ public class GraficoModelExporter {
 	    fModel = model;
 	    fLocalRepoFolder = folder;
 	}
+
+
+	public void exportChangedModel() {
+		File modelFolder = new File(fLocalRepoFolder, IGraficoConstants.MODEL_FOLDER);
+		
+		
+		// additive
+		
+		
+		
+		// subtractive
+		
+	}
 	
     /**
      * Export the IArchimateModel as Grafico files

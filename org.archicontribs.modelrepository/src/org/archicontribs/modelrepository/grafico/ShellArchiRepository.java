@@ -9,10 +9,10 @@ import org.osgi.framework.FrameworkUtil;
 
 import com.archimatetool.editor.actions.AbstractModelAction;
 
-import git_executor.GitExecutionException;
-import git_executor.GitExecutionResult;
-import git_executor.GitExecutor;
-import git_executor.GitExecutor.PullMode;
+import de.esserjan.edu.imbecile.GitExecutionException;
+import de.esserjan.edu.imbecile.GitExecutionResult;
+import de.esserjan.edu.imbecile.GitExecutor;
+import de.esserjan.edu.imbecile.GitExecutor.PullMode;
 
 /**
  * ShellArchiRepository challenges ArchiRepository with alternative GIT
