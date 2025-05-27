@@ -193,9 +193,6 @@ public class BranchesTableViewer extends TableViewer {
                     else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
                         text = Messages.BranchesTableViewer_12;
                     }
-                    else if(branchInfo.hasUnpushedCommits() && branchInfo.hasRemoteCommits()) {
-                        text = Messages.BranchesTableViewer_13;
-                    }
                     else {
                         text = Messages.BranchesTableViewer_14;
                     }

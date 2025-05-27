@@ -16,8 +16,6 @@ public class Messages extends NLS {
 
     public static String BranchesTableViewer_12;
 
-    public static String BranchesTableViewer_13;
-
     public static String BranchesTableViewer_14;
 
     public static String BranchesTableViewer_15;
