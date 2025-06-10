@@ -2,7 +2,7 @@
 <feature
       id="org.archicontribs.modelrepository.feature"
       label="coArchi"
-      version="1.0.0.qualifier"
+      version="0.9.4.qualifier"
       provider-name="Archi">
 
    <description>
@@ -43,16 +43,10 @@ OTHER DEALINGS IN THE SOFTWARE.
 
    <plugin
          id="org.archicontribs.modelrepository"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.archicontribs.modelrepository.commandline"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
 </feature>

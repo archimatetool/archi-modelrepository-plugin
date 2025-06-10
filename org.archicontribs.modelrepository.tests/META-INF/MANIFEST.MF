@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnit Tests for Model Repository
 Bundle-SymbolicName: org.archicontribs.modelrepository.tests
-Bundle-Version: 1.0.0
+Bundle-Version: 0.9.4.qualifier
 Fragment-Host: org.archicontribs.modelrepository
 Import-Package: org.junit.jupiter.api,
  org.junit.jupiter.api.function,
