@@ -103,7 +103,7 @@ public class GraficoUtils {
         int count = 1;
         File file = new File(parentFolder, folderName);
         
-        while(file.exists() && file.list().length > 0) {
+        while(file.exists() && file.isDirectory() && file.list().length > 0) {
             file = new File(parentFolder, folderName + "_" + count++); //$NON-NLS-1$
         }
         

@@ -170,7 +170,12 @@ public class GraficoModelImporter {
      */
     private void loadImages(File folder, IArchiveManager archiveManager) throws IOException {
         // Add all images files
-        for(File imageFile : folder.listFiles()) {
+        File[] files = folder.listFiles();
+        if(files == null) {
+            return;
+        }
+        
+        for(File imageFile : files) {
             if(imageFile.isFile()) {
                 byte[] bytes = Files.readAllBytes(imageFile.toPath());
                 // This must match the prefix used in ArchiveManager.createArchiveImagePathname()
@@ -295,13 +300,16 @@ public class GraficoModelImporter {
         IFolder currentFolder = (IFolder)loadElement(new File(folder, IGraficoConstants.FOLDER_XML));
 
         // Load each elements (except folder.xml) and add them to folder
-        for(File fileOrFolder : folder.listFiles()) {
-            if(!fileOrFolder.getName().equals(IGraficoConstants.FOLDER_XML)) {
-                if(fileOrFolder.isFile()) {
-                    currentFolder.getElements().add(loadElement(fileOrFolder));
-                }
-                else {
-                    currentFolder.getFolders().add(loadFolder(fileOrFolder));
+        File[] files = folder.listFiles();
+        if(files != null) {
+            for(File fileOrFolder : files) {
+                if(!fileOrFolder.getName().equals(IGraficoConstants.FOLDER_XML)) {
+                    if(fileOrFolder.isFile()) {
+                        currentFolder.getElements().add(loadElement(fileOrFolder));
+                    }
+                    else {
+                        currentFolder.getFolders().add(loadFolder(fileOrFolder));
+                    }
                 }
             }
         }

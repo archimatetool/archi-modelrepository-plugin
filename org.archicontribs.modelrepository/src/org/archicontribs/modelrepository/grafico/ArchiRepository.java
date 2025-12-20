@@ -243,7 +243,7 @@ public class ArchiRepository implements IArchiRepository {
 
     @Override
     public Git createNewLocalGitRepository(String URL) throws GitAPIException, IOException, URISyntaxException {
-        if(getLocalRepositoryFolder().exists() && getLocalRepositoryFolder().list().length > 0) {
+        if(getLocalRepositoryFolder().exists() && getLocalRepositoryFolder().isDirectory() && getLocalRepositoryFolder().list().length > 0) {
             throw new IOException("Directory: " + getLocalRepositoryFolder().getAbsolutePath() + " is not empty.");
         }
         
