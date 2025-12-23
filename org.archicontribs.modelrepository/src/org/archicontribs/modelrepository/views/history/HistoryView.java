@@ -152,7 +152,7 @@ implements IContextProvider, ISelectionListener, IRepositoryListener, IContribut
         tableSash.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         Composite tableComp = new Composite(tableSash, SWT.NONE);
-        tableComp.setLayout(new TableColumnLayout());
+        tableComp.setLayout(new TableColumnLayout(true));
         
         // This ensures a minumum and equal size and no horizontal size creep for the table
         GridData gd = new GridData(GridData.FILL_BOTH);
