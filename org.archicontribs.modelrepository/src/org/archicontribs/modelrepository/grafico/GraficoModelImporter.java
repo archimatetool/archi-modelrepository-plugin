@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 import org.eclipse.gef.commands.CommandStack;
 
+import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
 import com.archimatetool.editor.model.compatibility.ModelCompatibility;
@@ -168,8 +169,7 @@ public class GraficoModelImporter {
     /**
      * Read images from images subfolder and load them into the model
      */
-    private void loadImages(File folder, IArchiveManager archiveManager) throws IOException {
-        // Add all images files
+    private void loadImages(File folder, IArchiveManager archiveManager) {
         File[] files = folder.listFiles();
         if(files == null) {
             return;
@@ -177,9 +177,16 @@ public class GraficoModelImporter {
         
         for(File imageFile : files) {
             if(imageFile.isFile()) {
-                byte[] bytes = Files.readAllBytes(imageFile.toPath());
-                // This must match the prefix used in ArchiveManager.createArchiveImagePathname()
-                archiveManager.addByteContentEntry("images/" + imageFile.getName(), bytes); //$NON-NLS-1$
+                try {
+                    byte[] bytes = Files.readAllBytes(imageFile.toPath());
+                    // This must match the prefix used in ArchiveManager.createArchiveImagePathname()
+                    archiveManager.addByteContentEntry("images/" + imageFile.getName(), bytes); //$NON-NLS-1$
+                }
+                // Catch exception here and continue on to next image
+                // Don't fail loading the model because of an image
+                catch(IOException ex) {
+                    Logger.logError("Could not load image", ex); //$NON-NLS-1$
+                }
             }
         }
     }    

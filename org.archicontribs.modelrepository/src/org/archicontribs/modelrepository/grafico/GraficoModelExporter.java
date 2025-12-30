@@ -34,6 +34,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
+import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.FolderType;
@@ -252,8 +253,8 @@ public class GraficoModelExporter {
     /**
      * Extract and save images used inside a model as separate image files
      */
-    private void saveImages() throws IOException {
-        Set<String> added = new HashSet<>();
+    private void saveImages() {
+        Set<String> saved = new HashSet<>(); // Check don't save more than once
 
         IArchiveManager archiveManager = (IArchiveManager)fModel.getAdapter(IArchiveManager.class);
         if(archiveManager == null) {
@@ -266,15 +267,26 @@ public class GraficoModelExporter {
                 IDiagramModelImageProvider imageProvider = (IDiagramModelImageProvider)eObject;
                 String imagePath = imageProvider.getImagePath();
                 
-                if(imagePath != null && !added.contains(imagePath)) {
+                if(imagePath != null && !saved.contains(imagePath)) {
                     byte[] bytes = archiveManager.getBytesFromEntry(imagePath);
+                    
                     if(bytes == null) {
-                        throw new IOException("Could not get image bytes from image path: " + imagePath); //$NON-NLS-1$
+                        // Don't fail saving the model because of an image
+                        Logger.logError("Could not get image bytes from image path: " + imagePath, new IOException()); //$NON-NLS-1$
+                    }
+                    else {
+                        try {
+                            File file = new File(fLocalRepoFolder, imagePath);
+                            Files.write(file.toPath(), bytes, StandardOpenOption.CREATE);
+                        }
+                        // Catch exception here and continue on to next image
+                        // Don't fail saving the model because of an image
+                        catch(IOException ex) {
+                            Logger.logError("Could not write image bytes from image path: " + imagePath, ex); //$NON-NLS-1$
+                        }
                     }
                     
-                    File file = new File(fLocalRepoFolder, imagePath);
-                    Files.write(file.toPath(), bytes, StandardOpenOption.CREATE);
-                    added.add(imagePath);
+                    saved.add(imagePath);
                 }
             }
         }
