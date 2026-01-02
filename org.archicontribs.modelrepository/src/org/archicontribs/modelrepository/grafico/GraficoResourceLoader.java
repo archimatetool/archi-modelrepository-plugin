@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.xmi.XMLResource;
@@ -70,7 +69,7 @@ public class GraficoResourceLoader {
                 modelCompatibility.checkErrors();
             }
             catch(IncompatibleModelException ex1) {
-                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().getLog().error("Error loading model", ex); //$NON-NLS-1$
                 throw ex;
             }
         }

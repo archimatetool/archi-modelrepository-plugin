@@ -12,8 +12,6 @@ import java.net.URL;
 import org.archicontribs.modelrepository.authentication.ProxyAuthenticator;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -83,10 +81,5 @@ public class ModelRepositoryPlugin extends AbstractUIPlugin {
         // Default
         path = getPreferenceStore().getDefaultString(IPreferenceConstants.PREFS_REPOSITORY_FOLDER);
         return new File(path);
-    }
-    
-    public void log(int severity, String message, Throwable ex) {
-        getLog().log(
-                new Status(severity, getInstance().getBundle().getSymbolicName(), IStatus.OK, message, ex));
     }
 }

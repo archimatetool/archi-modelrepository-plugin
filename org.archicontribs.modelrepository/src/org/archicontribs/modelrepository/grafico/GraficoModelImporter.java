@@ -16,7 +16,6 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import org.archicontribs.modelrepository.ModelRepositoryPlugin;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -25,7 +24,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl;
 import org.eclipse.gef.commands.CommandStack;
 
-import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
 import com.archimatetool.editor.model.compatibility.ModelCompatibility;
@@ -139,7 +137,7 @@ public class GraficoModelImporter {
             modelCompatibility.fixCompatibility();
         }
         catch(CompatibilityHandlerException ex) {
-            ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error loading model", ex); //$NON-NLS-1$
+            ModelRepositoryPlugin.getInstance().getLog().error("Error loading model", ex); //$NON-NLS-1$
         }
 
     	// We now have to remove the Eobject from its Resource so it can be saved in its proper *.archimate format
@@ -185,7 +183,7 @@ public class GraficoModelImporter {
                 // Catch exception here and continue on to next image
                 // Don't fail loading the model because of an image
                 catch(IOException ex) {
-                    Logger.logError("Could not load image", ex); //$NON-NLS-1$
+                    ModelRepositoryPlugin.getInstance().getLog().error("Could not load image", ex); //$NON-NLS-1$
                 }
             }
         }

@@ -34,7 +34,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 
-import com.archimatetool.editor.Logger;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.utils.FileUtils;
 import com.archimatetool.model.FolderType;
@@ -272,7 +271,7 @@ public class GraficoModelExporter {
                     
                     if(bytes == null) {
                         // Don't fail saving the model because of an image
-                        Logger.logError("Could not get image bytes from image path: " + imagePath, new IOException()); //$NON-NLS-1$
+                        ModelRepositoryPlugin.getInstance().getLog().error("Could not get image bytes from image path: " + imagePath, new IOException()); //$NON-NLS-1$
                     }
                     else {
                         try {
@@ -282,7 +281,7 @@ public class GraficoModelExporter {
                         // Catch exception here and continue on to next image
                         // Don't fail saving the model because of an image
                         catch(IOException ex) {
-                            Logger.logError("Could not write image bytes from image path: " + imagePath, ex); //$NON-NLS-1$
+                            ModelRepositoryPlugin.getInstance().getLog().error("Could not write image bytes from image path: " + imagePath, new IOException()); //$NON-NLS-1$
                         }
                     }
                     

@@ -21,7 +21,6 @@ import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.archicontribs.modelrepository.grafico.IRepositoryListener;
 import org.archicontribs.modelrepository.grafico.RepositoryListenerManager;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IDecoration;
@@ -178,7 +177,7 @@ public class ModelRepositoryTreeViewer extends TreeViewer implements IRepository
             }
             catch(IOException | GitAPIException ex) {
                 ex.printStackTrace();
-                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Error getting Model Repository Status", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().getLog().error("Error getting Model Repository Status", ex); //$NON-NLS-1$
             }
         }
     }

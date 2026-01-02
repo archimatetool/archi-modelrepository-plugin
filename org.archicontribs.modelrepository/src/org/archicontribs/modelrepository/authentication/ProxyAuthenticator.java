@@ -27,7 +27,6 @@ import org.archicontribs.modelrepository.authentication.internal.EncryptedCreden
 import org.archicontribs.modelrepository.grafico.GraficoUtils;
 import org.archicontribs.modelrepository.grafico.IGraficoConstants;
 import org.archicontribs.modelrepository.preferences.IPreferenceConstants;
-import org.eclipse.core.runtime.IStatus;
 
 /**
  * Proxy Authenticator
@@ -62,7 +61,7 @@ public class ProxyAuthenticator {
                 }
                 catch(GeneralSecurityException | IOException ex) {
                     ex.printStackTrace();
-                    ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Authentication failed to get credentials", ex); //$NON-NLS-1$
+                    ModelRepositoryPlugin.getInstance().getLog().error("Authentication failed to get credentials", ex); //$NON-NLS-1$
                     return null;
                 }
             }
@@ -146,7 +145,7 @@ public class ProxyAuthenticator {
 
             @Override
             public void connectFailed(URI uri, SocketAddress sa, IOException ex) {
-                ModelRepositoryPlugin.getInstance().log(IStatus.ERROR, "Connect failed in ProxySelector", ex); //$NON-NLS-1$
+                ModelRepositoryPlugin.getInstance().getLog().error("Connect failed in ProxySelector", ex); //$NON-NLS-1$
                 ex.printStackTrace();
             }
         });
