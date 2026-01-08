@@ -15,6 +15,7 @@ import org.archicontribs.modelrepository.grafico.BranchInfo;
 import org.archicontribs.modelrepository.grafico.BranchStatus;
 import org.archicontribs.modelrepository.grafico.IArchiRepository;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -29,7 +30,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import com.archimatetool.editor.ui.ColorFactory;
-import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.ui.UIUtils;
 
 
@@ -215,7 +215,7 @@ public class BranchesTableViewer extends TableViewer {
                 cell.setText(getColumnText(branchInfo, cell.getColumnIndex()));
                 
                 if(branchInfo.isCurrentBranch() && cell.getColumnIndex() == 0) {
-                    cell.setFont(FontFactory.SystemFontBold);
+                    cell.setFont(JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
                 }
                 else {
                     cell.setFont(null);
