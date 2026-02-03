@@ -6,6 +6,7 @@ Bundle-Localization: plugin
 Bundle-Version: 0.9.5.qualifier
 Bundle-Vendor: Archi
 Require-Bundle: org.eclipse.help.ui,
+ org.eclipse.ui.views.properties.tabbed,
  com.archimatetool.editor;bundle-version="4.9.0"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
