@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -198,6 +199,7 @@ public class ArchiRepository implements IArchiRepository {
 
         try(Git git = cloneCommand.call()) {
             setDefaultConfigSettings(git.getRepository());
+            createExcludeFile();
         }
     }
 
@@ -257,6 +259,7 @@ public class ArchiRepository implements IArchiRepository {
         remoteAddCommand.call();
         
         setDefaultConfigSettings(git.getRepository());
+        createExcludeFile();
         
         // Set tracked master branch
         setTrackedBranch(git.getRepository(), IGraficoConstants.MASTER);
@@ -612,4 +615,15 @@ public class ArchiRepository implements IArchiRepository {
             lockFile.delete();
         }
     }
+    
+    /**
+     * Create /info/exclude file for ignored files
+     */
+    private void createExcludeFile() throws IOException {
+        List<String> excludes = List.of("*.bak", ".DS_Store");
+        File excludeFile = new File(getLocalGitFolder(), "/info/exclude");
+        excludeFile.getParentFile().mkdirs();
+        Files.write(excludeFile.toPath(), excludes);
+    }
+
 }
