@@ -308,13 +308,13 @@ public class GraficoModelImporter {
         File[] files = folder.listFiles();
         if(files != null) {
             for(File fileOrFolder : files) {
-                if(!fileOrFolder.getName().equals(IGraficoConstants.FOLDER_XML)) {
-                    if(fileOrFolder.isFile()) {
+                if(fileOrFolder.isFile()) {
+                    if(!fileOrFolder.getName().equals(IGraficoConstants.FOLDER_XML) && fileOrFolder.getName().endsWith(".xml")) { //$NON-NLS-1$
                         currentFolder.getElements().add(loadElement(fileOrFolder));
                     }
-                    else {
-                        currentFolder.getFolders().add(loadFolder(fileOrFolder));
-                    }
+                }
+                else {
+                    currentFolder.getFolders().add(loadFolder(fileOrFolder));
                 }
             }
         }
