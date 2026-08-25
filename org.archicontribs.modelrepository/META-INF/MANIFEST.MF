@@ -9,7 +9,7 @@ Require-Bundle: org.eclipse.help.ui,
  org.eclipse.ui.views.properties.tabbed,
  com.archimatetool.editor;bundle-version="4.9.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-BundleShape: dir
 Bundle-Activator: org.archicontribs.modelrepository.ModelRepositoryPlugin
 Export-Package: org.archicontribs.modelrepository,

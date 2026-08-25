@@ -49,6 +49,23 @@ public class Messages extends NLS {
     public static String LoadModelFromRepositoryProvider_8;
 
     public static String LoadModelFromRepositoryProvider_9;
+    
+    public static String SaveModelToRepositoryProvider_0;
+    
+    public static String SaveModelToRepositoryProvider_1;
+    
+    public static String SaveModelToRepositoryProvider_2;
+    
+    public static String SaveModelToRepositoryProvider_3;
+    
+    public static String SaveModelToRepositoryProvider_4;
+    
+    public static String SaveModelToRepositoryProvider_5;
+    
+    public static String SaveModelToRepositoryProvider_6;
+    
+    public static String SaveModelToRepositoryProvider_7;
+    
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
