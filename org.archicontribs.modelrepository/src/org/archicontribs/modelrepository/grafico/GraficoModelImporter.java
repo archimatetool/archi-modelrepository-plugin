@@ -27,7 +27,6 @@ import org.eclipse.gef.commands.CommandStack;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.compatibility.CompatibilityHandlerException;
 import com.archimatetool.editor.model.compatibility.ModelCompatibility;
-import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
@@ -67,6 +66,17 @@ public class GraficoModelImporter {
             this.parentObject = parentObject;
         }
     }
+    
+    // Folders - the order of these is important!
+    private static List<String> FOLDERS = List.of("strategy", //$NON-NLS-1$
+                                                  "business", //$NON-NLS-1$
+                                                  "application", //$NON-NLS-1$
+                                                  "technology", //$NON-NLS-1$
+                                                  "motivation", //$NON-NLS-1$
+                                                  "implementation_migration", //$NON-NLS-1$
+                                                  "other", //$NON-NLS-1$
+                                                  "relations", //$NON-NLS-1$
+                                                  "diagrams"); //$NON-NLS-1$
     
 	// ID -> Object lookup table
     private Map<String, IIdentifier> fIDLookup;
@@ -264,25 +274,13 @@ public class GraficoModelImporter {
         }
     }
     
-	private IArchimateModel loadModel(File folder) throws IOException {
-		IArchimateModel model = (IArchimateModel)loadElement(new File(folder, IGraficoConstants.FOLDER_XML));
-		IFolder tmpFolder;
+	private IArchimateModel loadModel(File modelFolder) throws IOException {
+		IArchimateModel model = (IArchimateModel)loadElement(new File(modelFolder, IGraficoConstants.FOLDER_XML));
 		
-		List<FolderType> folderList = new ArrayList<FolderType>();
-		folderList.add(FolderType.STRATEGY);
-		folderList.add(FolderType.BUSINESS);
-		folderList.add(FolderType.APPLICATION);
-		folderList.add(FolderType.TECHNOLOGY);
-		folderList.add(FolderType.MOTIVATION);
-		folderList.add(FolderType.IMPLEMENTATION_MIGRATION);
-		folderList.add(FolderType.OTHER);
-		folderList.add(FolderType.RELATIONS);
-		folderList.add(FolderType.DIAGRAMS);
-
-		// Loop based on FolderType enumeration
-		for(FolderType folderType : folderList) {
-		    if((tmpFolder = loadFolder(new File(folder, folderType.toString()))) != null) {
-		        model.getFolders().add(tmpFolder);
+		for(String folderName : FOLDERS) {
+		    IFolder subFolder = loadFolder(new File(modelFolder, folderName));
+		    if(subFolder != null) {
+		        model.getFolders().add(subFolder);
 		    }
 		}
 		
