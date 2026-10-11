@@ -10,5 +10,14 @@
             name="Load &amp; Clone Collaboration Model">
       </commandlineProvider>
    </extension>
+   <extension
+         point="com.archimatetool.commandline.commandlineProvider">
+      <commandlineProvider
+            class="org.archicontribs.modelrepository.commandline.SaveModelToRepositoryProvider"
+            description="Save the currently set model to a local collaboration repository"
+            id="org.archicontribs.modelrepository.commandlineSaveModelToRepository"
+            name="Save Collaboration Model">
+      </commandlineProvider>
+   </extension>
 
 </plugin>
