@@ -30,6 +30,7 @@ import com.archimatetool.editor.model.compatibility.ModelCompatibility;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -68,15 +69,35 @@ public class GraficoModelImporter {
     }
     
     // Folders - the order of these is important!
-    private static List<String> FOLDERS = List.of("strategy", //$NON-NLS-1$
-                                                  "business", //$NON-NLS-1$
-                                                  "application", //$NON-NLS-1$
-                                                  "technology", //$NON-NLS-1$
-                                                  "motivation", //$NON-NLS-1$
-                                                  "implementation_migration", //$NON-NLS-1$
-                                                  "other", //$NON-NLS-1$
-                                                  "relations", //$NON-NLS-1$
-                                                  "diagrams"); //$NON-NLS-1$
+    private static final List<String> FOLDERS;
+    static {
+        // ArchiMate 3
+        if(IArchimatePackage.eINSTANCE.getEClassifier("CommonElement") == null) { //$NON-NLS-1$
+            FOLDERS = List.of(
+                    "strategy", //$NON-NLS-1$
+                    "business", //$NON-NLS-1$
+                    "application", //$NON-NLS-1$
+                    "technology", //$NON-NLS-1$
+                    "motivation", //$NON-NLS-1$
+                    "implementation_migration", //$NON-NLS-1$
+                    "other", //$NON-NLS-1$
+                    "relations", //$NON-NLS-1$
+                    "diagrams"); //$NON-NLS-1$
+        }
+        // ArchiMate 4
+        else {
+            FOLDERS = List.of(
+                    "motivation", //$NON-NLS-1$
+                    "strategy", //$NON-NLS-1$
+                    "common", //$NON-NLS-1$
+                    "business", //$NON-NLS-1$
+                    "application", //$NON-NLS-1$
+                    "technology", //$NON-NLS-1$
+                    "implementation_migration", //$NON-NLS-1$
+                    "relations", //$NON-NLS-1$
+                    "diagrams"); //$NON-NLS-1$
+        }
+    }
     
 	// ID -> Object lookup table
     private Map<String, IIdentifier> fIDLookup;
