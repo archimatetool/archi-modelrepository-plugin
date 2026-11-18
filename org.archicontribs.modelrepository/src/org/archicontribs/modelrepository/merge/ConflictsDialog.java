@@ -516,6 +516,7 @@ class ConflictsDialog extends ExtendedTitleAreaDialog {
             setScaledImage(diagramModel != null ? scale.getSelection() : 0);
         }
         
+        @SuppressWarnings("deprecation")
         void setScaledImage(int scale) {
             Image image = null;
             
