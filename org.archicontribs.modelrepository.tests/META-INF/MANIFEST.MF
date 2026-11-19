@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnit Tests for Model Repository
 Bundle-SymbolicName: org.archicontribs.modelrepository.tests
-Bundle-Version: 0.9.8.qualifier
+Bundle-Version: 1.0.0.qualifier
 Fragment-Host: org.archicontribs.modelrepository
-Import-Package: org.junit.jupiter.api;version="[5.8.0,6.0.0)",
- org.junit.jupiter.api.function;version="[5.8.0,6.0.0)",
- org.junit.platform.suite.api;version="[1.8.0,2.0.0)"
+Import-Package: org.junit.jupiter.api;version="[5.10.0,6.0.0)",
+ org.junit.jupiter.api.function;version="[5.10.0,6.0.0)",
+ org.junit.platform.suite.api;version="[1.10.0,2.0.0)"
 Bundle-Vendor: Archi
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: org.archicontribs.modelrepository.tests
